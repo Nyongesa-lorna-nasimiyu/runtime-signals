@@ -1,0 +1,78 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import EvidenceTag from '@/components/EvidenceTag.astro';
+---
+
+<BaseLayout
+  title="Methodology"
+  description="How Runtime Signals sources, labels, and reviews claims before publication."
+  canonicalPath="/methodology"
+>
+  <article class="prose">
+    <p class="eyebrow">Methodology</p>
+    <h1>How claims are sourced and labeled</h1>
+    <p>
+      Every article names a real system problem, states the invariant it violates, explains the
+      failure mechanism, and gives an implementable practice — with limitations stated, not implied.
+      Every consequential claim gets one of four labels, shown on the article itself:
+    </p>
+    <ul class="evidence-key">
+      <li><EvidenceTag evidence="supported" /> — backed by a primary source, cited.</li>
+      <li><EvidenceTag evidence="mixed" /> — partially supported; the gap is stated.</li>
+      <li>
+        <EvidenceTag evidence="inference" /> — our reasoning from available evidence, not a direct source
+        claim.
+      </li>
+      <li><EvidenceTag evidence="opinion" /> — an editorial judgment, labeled as one.</li>
+    </ul>
+    <p>
+      A claim labeled <EvidenceTag evidence="supported" /> or <EvidenceTag evidence="mixed" /> is rejected
+      at the publication gate if it cites no source — this is enforced in the content schema, not just
+      editorial review.
+    </p>
+
+    <h2>Source priority</h2>
+    <ol>
+      <li>
+        Standards, specifications, official documentation, source repositories, and original papers.
+      </li>
+      <li>Maintainer-authored engineering reports and reproducible production write-ups.</li>
+      <li>Benchmark and dataset documentation and code.</li>
+      <li>
+        Credible secondary analysis, for discovery or context — never as sole proof for a
+        consequential claim.
+      </li>
+    </ol>
+    <p>
+      Every source record keeps its access date, since pricing, limits, APIs, and policies change.
+      We recheck time-sensitive claims before publishing and before any claim likely to have moved.
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .prose {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+    line-height: var(--leading-relaxed);
+  }
+  .prose h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-5);
+  }
+  .prose h2 {
+    font-family: var(--font-body);
+    font-size: var(--text-xl);
+    margin-top: var(--space-7);
+  }
+  .evidence-key {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: var(--space-5) 0;
+  }
+</style>

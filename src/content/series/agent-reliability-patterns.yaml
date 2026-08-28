@@ -1,0 +1,4 @@
+name: Agent Reliability Patterns
+description: A working set of invariants and practices for running multi-step agent systems that survive partial failure.
+order:
+  - model-handoff-as-distributed-state-transfer

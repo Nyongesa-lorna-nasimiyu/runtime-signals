@@ -1,0 +1,5 @@
+name: State & Memory
+description: What agent systems actually persist, transfer, and lose across steps, retries, and model handoffs.
+related:
+  - orchestration
+pillar: true

@@ -1,0 +1,251 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import EvidenceTag from '@/components/EvidenceTag.astro';
+import SignalTrace from '@/components/SignalTrace.astro';
+import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'articles'> | CollectionEntry<'briefs'>;
+  authorNames: string[];
+  topicNames: string[];
+  seriesNames?: string[];
+  sourceTitles: { id: string; title: string; url: string }[];
+  archived: boolean;
+}
+
+const { entry, authorNames, topicNames, seriesNames = [], sourceTitles, archived } = Astro.props;
+const { title, dek, published_at, updated_at, claims, seo } = entry.data;
+const path = entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief/${entry.id}`;
+const sectionLabel = entry.collection === 'articles' ? 'Articles' : 'Brief';
+
+const jsonLd = [
+  breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: sectionLabel, path: entry.collection === 'articles' ? '/articles' : '/brief' },
+    { name: title, path },
+  ]),
+  articleJsonLd({
+    title,
+    description: seo.description ?? dek,
+    path,
+    publishedAt: published_at,
+    updatedAt: updated_at,
+    authorNames,
+  }),
+];
+---
+
+<BaseLayout
+  title={seo.title ?? title}
+  description={seo.description ?? dek}
+  canonicalPath={path}
+  noindex={seo.noindex || archived}
+  jsonLd={jsonLd}
+>
+  <article class="article">
+    <header class="article__header">
+      <p class="eyebrow">
+        {
+          topicNames.map((name, i) => (
+            <>
+              {i > 0 && ' · '}
+              <span data-pagefind-filter="topic">{name}</span>
+            </>
+          ))
+        }
+      </p>
+      <h1 class="article__title">{title}</h1>
+      <p class="article__dek">{dek}</p>
+      <div class="article__byline">
+        {
+          authorNames.map((name, i) => (
+            <>
+              {i > 0 && ', '}
+              <span data-pagefind-filter="author">{name}</span>
+            </>
+          ))
+        }
+        <span aria-hidden="true">·</span>
+        <time datetime={published_at.toISOString()} data-pagefind-filter="date[datetime]">
+          {published_at.toISOString().slice(0, 10)}
+        </time>
+        {
+          updated_at && updated_at.getTime() !== published_at.getTime() && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>updated {updated_at.toISOString().slice(0, 10)}</span>
+            </>
+          )
+        }
+      </div>
+      {
+        seriesNames.length > 0 && (
+          <p class="article__series">
+            Part of{' '}
+            {seriesNames.map((name, i) => (
+              <>
+                {i > 0 && ', '}
+                <span data-pagefind-filter="series">{name}</span>
+              </>
+            ))}
+          </p>
+        )
+      }
+      <SignalTrace seed={entry.id.length + published_at.getUTCDate()} class="article__trace" />
+    </header>
+
+    {
+      archived && (
+        <p class="article__archived-notice" role="note">
+          This piece is archived and no longer actively promoted. The analysis below is preserved as
+          published; it may reference tools, versions, or claims that are now out of date.
+        </p>
+      )
+    }
+
+    <div class="article__body">
+      <slot />
+    </div>
+
+    {
+      claims.length > 0 && (
+        <section class="article__claims" aria-labelledby="claims-heading">
+          <h2 id="claims-heading" class="eyebrow">
+            Claims in this piece
+          </h2>
+          <ul class="article__claims-list">
+            {claims.map((claim) => (
+              <li>
+                <EvidenceTag evidence={claim.evidence} />
+                <span>{claim.text}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      sourceTitles.length > 0 && (
+        <section class="article__sources" aria-labelledby="sources-heading">
+          <h2 id="sources-heading" class="eyebrow">
+            Sources
+          </h2>
+          <ol class="article__sources-list">
+            {sourceTitles.map((source) => (
+              <li>
+                <a href={source.url}>{source.title}</a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .article {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+  }
+
+  .article__title {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    line-height: var(--leading-tight);
+    margin: var(--space-2) 0 var(--space-3);
+  }
+
+  .article__dek {
+    font-size: var(--text-lg);
+    color: var(--ink-muted);
+    margin: 0 0 var(--space-4);
+  }
+
+  .article__byline {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .article__series {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    margin: var(--space-2) 0 0;
+  }
+
+  .article__series a,
+  .article__series span[data-pagefind-filter] {
+    color: var(--signal);
+  }
+
+  .article__trace {
+    margin-top: var(--space-5);
+  }
+
+  .article__archived-notice {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    background: color-mix(in srgb, var(--evidence-mixed) 12%, var(--paper-raised));
+    border-left: 3px solid var(--evidence-mixed);
+    padding: var(--space-4);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+
+  .article__body {
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
+  }
+
+  .article__body :global(h2) {
+    font-family: var(--font-body);
+    font-size: var(--text-xl);
+    margin-top: var(--space-7);
+  }
+
+  .article__body :global(pre) {
+    font-family: var(--font-mono);
+    padding: var(--space-4);
+    border-radius: var(--radius);
+    overflow-x: auto;
+    border: 1px solid var(--hairline);
+  }
+
+  .article__body :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  .article__claims,
+  .article__sources {
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--hairline);
+  }
+
+  .article__claims-list,
+  .article__sources-list {
+    padding-left: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .article__claims-list li {
+    display: flex;
+    gap: var(--space-3);
+    align-items: baseline;
+  }
+
+  .article__sources-list {
+    list-style: decimal;
+    padding-left: 1.25em;
+  }
+</style>

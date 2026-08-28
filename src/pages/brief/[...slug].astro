@@ -1,0 +1,34 @@
+---
+import { getCollection, getEntries, render } from 'astro:content';
+import ArticleLayout from '@/layouts/ArticleLayout.astro';
+import { getRoutableEntries, isArchived } from '@/lib/publication';
+import { resolveAuthorNames, resolveTopicNames, resolveSeriesNames } from '@/lib/resolve';
+import { Callout, Figure } from '@/components/mdx';
+
+export async function getStaticPaths() {
+  const briefs = await getCollection('briefs');
+  const routable = getRoutableEntries(briefs);
+  return routable.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const [authorNames, topicNames, seriesNames, sourceEntries] = await Promise.all([
+  resolveAuthorNames(entry),
+  resolveTopicNames(entry),
+  resolveSeriesNames(entry),
+  getEntries(entry.data.citations),
+]);
+const sourceTitles = sourceEntries.map((s) => ({ id: s.id, title: s.data.title, url: s.data.url }));
+---
+
+<ArticleLayout
+  entry={entry}
+  authorNames={authorNames}
+  topicNames={topicNames}
+  seriesNames={seriesNames}
+  sourceTitles={sourceTitles}
+  archived={isArchived(entry)}
+>
+  <Content components={{ Callout, Figure }} />
+</ArticleLayout>

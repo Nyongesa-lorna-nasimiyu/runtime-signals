@@ -1,0 +1,10 @@
+name: Jordan Avery
+bio: Writes about failure modes in agent orchestration and state handling. Previously built incident response tooling for distributed systems.
+expertise:
+  - orchestration
+  - distributed state
+  - observability
+links:
+  - label: GitHub
+    url: https://github.com/example-runtime-signals
+disclosure: No paid relationships with vendors covered in published pieces.

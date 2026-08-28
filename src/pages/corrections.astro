@@ -1,0 +1,47 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Corrections"
+  description="How Runtime Signals handles factual errors and material updates."
+  canonicalPath="/corrections"
+>
+  <article class="prose">
+    <p class="eyebrow">Corrections</p>
+    <h1>How we correct the record</h1>
+    <p>
+      When a published claim turns out to be wrong, outdated, or missing an important limitation, we
+      fix it in place. The article keeps its URL. The fix carries a visible revision note and an
+      updated timestamp, and the original claim is never quietly edited away.
+    </p>
+    <p>
+      Retiring a piece — because a tool it covers no longer exists, or its practice no longer holds
+      — is a separate action from a correction. Retired pieces are marked archived, stay reachable
+      at their original URL with a notice, and drop out of the active feed and search index.
+    </p>
+    <p>
+      No article moves in either direction without human review; a routine content or dependency fix
+      does not require the same review a factual correction does, but neither is automated end to
+      end.
+    </p>
+    <p>
+      No corrections have been published yet — this repository is at its Phase 2 product foundation
+      checkpoint, before any content has shipped.
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .prose {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+    line-height: var(--leading-relaxed);
+  }
+  .prose h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-5);
+  }
+</style>

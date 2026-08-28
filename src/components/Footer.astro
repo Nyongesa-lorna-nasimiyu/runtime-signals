@@ -1,0 +1,94 @@
+---
+import SignalTrace from './SignalTrace.astro';
+
+const links = [
+  { href: '/methodology', label: 'Methodology' },
+  { href: '/editorial-policy', label: 'Editorial policy' },
+  { href: '/corrections', label: 'Corrections' },
+  { href: '/newsletter', label: 'Newsletter' },
+  { href: '/rss.xml', label: 'RSS' },
+  { href: '/atom.xml', label: 'Atom' },
+];
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <SignalTrace seed={19} class="site-footer__trace" />
+  <div class="site-footer__row">
+    <p class="site-footer__colophon">
+      Runtime Signals — failure mechanism, invariant, engineering practice. Every consequential
+      claim is sourced or labeled as inference.
+    </p>
+    <nav aria-label="Footer">
+      <ul class="site-footer__list">
+        {
+          links.map((link) => (
+            <li>
+              <a href={link.href} class="unstyled-link">
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+  <p class="site-footer__legal">&copy; {year} Runtime Signals.</p>
+</footer>
+
+<style>
+  .site-footer {
+    max-width: var(--wide-width);
+    margin: var(--space-9) auto 0;
+    padding: 0 var(--space-5) var(--space-6);
+  }
+
+  .site-footer__trace {
+    margin-bottom: var(--space-5);
+    opacity: 0.35;
+  }
+
+  .site-footer__row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    border-top: 1px solid var(--hairline);
+    padding-top: var(--space-5);
+  }
+
+  .site-footer__colophon {
+    max-width: 32ch;
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    line-height: var(--leading-normal);
+    margin: 0;
+  }
+
+  .site-footer__list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+  }
+
+  .site-footer__list a {
+    color: var(--ink-muted);
+  }
+
+  .site-footer__list a:hover {
+    color: var(--ink);
+  }
+
+  .site-footer__legal {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    margin-top: var(--space-5);
+  }
+</style>

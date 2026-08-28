@@ -1,0 +1,114 @@
+---
+import SignalTrace from './SignalTrace.astro';
+
+const nav = [
+  { href: '/articles', label: 'Articles' },
+  { href: '/topics', label: 'Topics' },
+  { href: '/series', label: 'Series' },
+  { href: '/brief', label: 'Brief' },
+  { href: '/sources', label: 'Sources' },
+  { href: '/about', label: 'About' },
+  { href: '/search', label: 'Search' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="site-header">
+  <div class="site-header__row">
+    <a href="/" class="masthead unstyled-link">
+      <span class="masthead__mark">RS</span>
+      <span class="masthead__name">Runtime Signals</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul class="site-nav__list">
+        {
+          nav.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class="unstyled-link site-nav__link"
+                aria-current={currentPath.startsWith(item.href) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+  <SignalTrace seed={7} class="site-header__trace" />
+</header>
+
+<style>
+  .site-header {
+    padding: var(--space-5) var(--space-5) 0;
+    max-width: var(--wide-width);
+    margin-inline: auto;
+  }
+
+  .site-header__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  .masthead {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    font-family: var(--font-display);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .masthead__mark {
+    background: var(--ink);
+    color: var(--paper);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    padding: 0.2em 0.4em;
+    border-radius: var(--radius);
+    letter-spacing: 0.04em;
+  }
+
+  .masthead__name {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .site-nav__list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+  }
+
+  .site-nav__link {
+    color: var(--ink-muted);
+    text-decoration: none;
+    padding-bottom: 0.2em;
+    border-bottom: 1px solid transparent;
+  }
+
+  .site-nav__link:hover {
+    color: var(--ink);
+  }
+
+  .site-nav__link[aria-current='page'] {
+    color: var(--ink);
+    border-bottom-color: var(--signal);
+  }
+
+  .site-header__trace {
+    margin-top: var(--space-4);
+  }
+</style>

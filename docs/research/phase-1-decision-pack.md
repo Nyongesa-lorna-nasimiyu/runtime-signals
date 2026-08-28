@@ -64,16 +64,16 @@ Quality gates:
 
 ## Decisions resolved 2026-08-28
 
-3. Architecture: **accepted** — Astro + React islands + Git-backed Markdown + Workers Static Assets, with no Convex or Express in the first release (`docs/decisions/003-backend-boundary.md` revised to remove a stale Convex recommendation).
-5. Hosting: **accepted** — Cloudflare Workers + Static Assets for the public site and GitHub Actions for the build/deploy path.
-6. Search (ADR-0001), analytics (ADR-0003), and editorial automation (ADR-0004): **accepted** for Phase 2 implementation.
-7. Newsletter (ADR-0002): **accepted as architecture** — provider-authoritative, no local subscriber database, no webhook endpoint at launch. Buttondown remains **conditional** pending its own account-level verification.
+1. Architecture: **accepted** — Astro + React islands + Git-backed Markdown + Workers Static Assets, with no Convex or Express in the first release (`docs/decisions/003-backend-boundary.md` revised to remove a stale Convex recommendation).
+2. Hosting: **accepted** — Cloudflare Workers + Static Assets for the public site and GitHub Actions for the build/deploy path.
+3. Search (ADR-0001), analytics (ADR-0003), and editorial automation (ADR-0004): **accepted** for Phase 2 implementation.
+4. Newsletter (ADR-0002): **accepted as architecture** — provider-authoritative, no local subscriber database, no webhook endpoint at launch. Buttondown remains **conditional** pending its own account-level verification.
 
 ## Decisions still requiring approval
 
 1. Brand: approve Runtime Signals as the working masthead, or choose another candidate in the brand report.
 2. Domain: `runtimesignals.tech` is user-confirmed secured; verify registrar access, DNS control, renewal, and privacy settings before launch.
-4. Newsletter provider: confirm Buttondown after its account-level checks pass (pricing/quotas/DPA at signup, DNS authentication, consent/suppression behavior), or select the fallback candidate if it fails those checks. No production email will be sent until DNS and consent checks pass regardless of provider.
+3. Newsletter provider: confirm Buttondown after its account-level checks pass (pricing/quotas/DPA at signup, DNS authentication, consent/suppression behavior), or select the fallback candidate if it fails those checks. No production email will be sent until DNS and consent checks pass regardless of provider.
 
 ## Current underserved niche
 

@@ -1,0 +1,15 @@
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  testDir: '.',
+  timeout: 30_000,
+  webServer: {
+    command: 'npm run preview -- --port 4321',
+    url: 'http://localhost:4321',
+    reuseExistingServer: !process.env.CI,
+    timeout: 60_000,
+  },
+  use: {
+    baseURL: 'http://localhost:4321',
+  },
+});

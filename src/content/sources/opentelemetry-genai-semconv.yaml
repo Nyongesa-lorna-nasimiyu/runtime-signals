@@ -1,0 +1,7 @@
+title: OpenTelemetry Generative AI semantic conventions
+url: https://opentelemetry.io/docs/specs/semconv/gen-ai/
+publisher: OpenTelemetry
+accessed_at: 2026-08-28
+source_type: standard
+primary: true
+notes: Defines standard span/attribute conventions for provider, operation, agent, and retrieval instrumentation.

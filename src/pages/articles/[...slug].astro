@@ -1,0 +1,41 @@
+---
+import { getCollection, render } from 'astro:content';
+import ArticleLayout from '@/layouts/ArticleLayout.astro';
+import { getRoutableEntries, isArchived } from '@/lib/publication';
+import { resolveAuthorNames, resolveTopicNames, resolveSeriesNames } from '@/lib/resolve';
+import { getEntries } from 'astro:content';
+import { Callout, Figure } from '@/components/mdx';
+
+// This is the actual draft/future/unapproved exclusion boundary: getStaticPaths only
+// ever iterates getRoutableEntries(), so a draft, a not-yet-due scheduled piece, or
+// an unapproved commit is never given a route at all — not filtered from a listing,
+// genuinely absent as a URL. Proven against the real dist/ output by
+// scripts/verify-draft-exclusion.mjs (a black-box check, not a mock — see
+// tests/integration/README.md for why this isn't a vitest integration test).
+export async function getStaticPaths() {
+  const articles = await getCollection('articles');
+  const routable = getRoutableEntries(articles);
+  return routable.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const [authorNames, topicNames, seriesNames, sourceEntries] = await Promise.all([
+  resolveAuthorNames(entry),
+  resolveTopicNames(entry),
+  resolveSeriesNames(entry),
+  getEntries(entry.data.citations),
+]);
+const sourceTitles = sourceEntries.map((s) => ({ id: s.id, title: s.data.title, url: s.data.url }));
+---
+
+<ArticleLayout
+  entry={entry}
+  authorNames={authorNames}
+  topicNames={topicNames}
+  seriesNames={seriesNames}
+  sourceTitles={sourceTitles}
+  archived={isArchived(entry)}
+>
+  <Content components={{ Callout, Figure }} />
+</ArticleLayout>

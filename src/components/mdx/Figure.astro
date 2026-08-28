@@ -1,0 +1,34 @@
+---
+// Allow-listed MDX component. Alt text and caption are both required — the
+// publication-gate checks (docs/editorial/publication-gates.md) require images to
+// carry dimensions and alt text.
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+  width: number;
+  height: number;
+}
+const { src, alt, caption, width, height } = Astro.props;
+---
+
+<figure class="mdx-figure">
+  <img src={src} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .mdx-figure {
+    margin: var(--space-6) 0;
+  }
+  .mdx-figure img {
+    border-radius: var(--radius);
+    border: 1px solid var(--hairline);
+  }
+  figcaption {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    margin-top: var(--space-2);
+  }
+</style>

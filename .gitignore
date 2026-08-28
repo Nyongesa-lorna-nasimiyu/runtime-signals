@@ -1,0 +1,27 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# env / local secrets — never commit real secrets
+.env
+.env.*
+!.env.example
+
+# Local dev stand-in for the CI approval manifest, regenerated on every
+# `npm run build` / `npm test` by scripts/generate-approval-manifest.mjs — see
+# src/lib/approval.ts. Contains git commit SHAs that go stale on the next commit,
+# so it's a build artifact, not source.
+approval-manifest.local.json
+
+# editors / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+
+# test artifacts
+coverage/
+test-results/
+playwright-report/

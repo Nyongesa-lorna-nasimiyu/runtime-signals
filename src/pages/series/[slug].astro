@@ -1,0 +1,73 @@
+---
+import { getCollection, getEntries } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ArticleCard from '@/components/ArticleCard.astro';
+import { canPublish } from '@/lib/publication';
+import { resolveTopicNames, weakestEvidence, articlePath } from '@/lib/resolve';
+
+export async function getStaticPaths() {
+  const series = await getCollection('series');
+  return series.map((s) => ({ params: { slug: s.id }, props: { series: s } }));
+}
+
+const { series } = Astro.props;
+const orderedArticles = await getEntries(series.data.order);
+// Preserve the series' authorial reading order rather than reverse-chronological.
+const live = orderedArticles.filter((entry) => canPublish(entry));
+const cards = await Promise.all(
+  live.map(async (entry) => ({
+    path: articlePath(entry),
+    title: entry.data.title,
+    dek: entry.data.dek,
+    publishedAt: entry.data.published_at,
+    topics: await resolveTopicNames(entry),
+    dominantEvidence: weakestEvidence(entry),
+  })),
+);
+---
+
+<BaseLayout
+  title={series.data.name}
+  description={series.data.description}
+  canonicalPath={`/series/${series.id}`}
+>
+  <section class="listing">
+    <header class="listing__header">
+      <p class="eyebrow">Series</p>
+      <h1>{series.data.name}</h1>
+      <p class="listing__intro">{series.data.description}</p>
+    </header>
+    {
+      cards.length === 0 ? (
+        <p class="listing__empty">No published pieces in this series yet.</p>
+      ) : (
+        <div class="listing__list">
+          {cards.map((card) => (
+            <ArticleCard {...card} />
+          ))}
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .listing {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+  }
+  .listing__header h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-2);
+  }
+  .listing__intro {
+    color: var(--ink-muted);
+    max-width: 60ch;
+    margin: 0 0 var(--space-6);
+  }
+  .listing__empty {
+    color: var(--ink-muted);
+  }
+</style>

@@ -1,0 +1,10 @@
+# Phase 1 documentation predates this checkpoint's formatting setup and is out of
+# scope for a reformatting pass here.
+docs/
+
+# JSONC (comments) — not what Prettier's default json parser expects.
+wrangler.jsonc
+
+package-lock.json
+dist/
+.astro/

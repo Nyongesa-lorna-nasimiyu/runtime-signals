@@ -1,0 +1,84 @@
+---
+// Styled as a structured log line — the genuine reverse-chronological, timestamped
+// shape of the content earns this treatment (see the hero's rationale in
+// src/pages/index.astro), not decoration for its own sake.
+interface Props {
+  path: string;
+  title: string;
+  dek: string;
+  publishedAt: Date;
+  topics: string[];
+  dominantEvidence?: 'supported' | 'mixed' | 'inference' | 'opinion';
+  archived?: boolean;
+}
+const { path, title, dek, publishedAt, topics, dominantEvidence, archived = false } = Astro.props;
+const dateLabel = publishedAt.toISOString().slice(0, 10);
+---
+
+<article class="signal-entry" data-archived={archived ? 'true' : undefined}>
+  <a href={path} class="signal-entry__link unstyled-link">
+    <div class="signal-entry__meta">
+      <time class="signal-entry__date" datetime={publishedAt.toISOString()}>{dateLabel}</time>
+      {topics.length > 0 && <span class="signal-entry__topics">{topics.join(' · ')}</span>}
+      {
+        dominantEvidence && (
+          <span class="evidence-tag" data-evidence={dominantEvidence}>
+            {dominantEvidence}
+          </span>
+        )
+      }
+      {archived && <span class="signal-entry__archived">archived</span>}
+    </div>
+    <h3 class="signal-entry__title">{title}</h3>
+    <p class="signal-entry__dek">{dek}</p>
+  </a>
+</article>
+
+<style>
+  .signal-entry {
+    border-top: 1px solid var(--hairline);
+    padding: var(--space-5) 0;
+  }
+  .signal-entry:first-child {
+    border-top: none;
+  }
+  .signal-entry__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  .signal-entry__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    margin-bottom: var(--space-2);
+  }
+  .signal-entry__date {
+    color: var(--signal);
+    font-weight: 600;
+  }
+  .signal-entry__archived {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--evidence-mixed);
+  }
+  .signal-entry__title {
+    font-family: var(--font-body);
+    font-size: var(--text-lg);
+    line-height: var(--leading-tight);
+    margin: 0 0 var(--space-1);
+    font-weight: 600;
+  }
+  .signal-entry:hover .signal-entry__title {
+    color: var(--signal);
+  }
+  .signal-entry__dek {
+    margin: 0;
+    color: var(--ink-muted);
+    max-width: 60ch;
+  }
+</style>

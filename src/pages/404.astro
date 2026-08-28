@@ -1,0 +1,50 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import SignalTrace from '@/components/SignalTrace.astro';
+---
+
+<BaseLayout
+  title="404"
+  description="This signal was not found."
+  canonicalPath="/404"
+  noindex={true}
+>
+  <section class="not-found">
+    <p class="eyebrow">404</p>
+    <h1>No signal at this address</h1>
+    <p>
+      The page you're looking for doesn't exist, was never published, or was archived. Draft and
+      unapproved content never gets a public URL at all — if you followed a link here from somewhere
+      else, it's likely stale.
+    </p>
+    <SignalTrace seed={42} class="not-found__trace" />
+    <a href="/" class="not-found__home">Back to Runtime Signals →</a>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-5) var(--space-9);
+    text-align: center;
+  }
+  .not-found h1 {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-4);
+  }
+  .not-found p {
+    color: var(--ink-muted);
+    max-width: 50ch;
+    margin: 0 auto;
+  }
+  .not-found__trace {
+    margin: var(--space-6) 0;
+  }
+  .not-found__home {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+  }
+</style>

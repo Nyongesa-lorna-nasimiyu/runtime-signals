@@ -1,0 +1,57 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Editorial policy"
+  description="How Runtime Signals reviews and approves content before it publishes."
+  canonicalPath="/editorial-policy"
+>
+  <article class="prose">
+    <p class="eyebrow">Editorial policy</p>
+    <h1>Review and approval</h1>
+    <p>
+      A piece moves through research and review — idea, researching, source-verified, outlined,
+      drafting, technical review, editorial review — before it is ever eligible to publish. That
+      workflow tracks readiness; it does not grant permission to publish.
+    </p>
+    <p>
+      Publication authorization is separate and never comes from the content itself. It requires a
+      merged, reviewed pull request whose required checks pass, whose CODEOWNERS approval is
+      recorded, and whose deployment environment is authorized — captured for the exact commit being
+      built. Nothing an author writes in a draft, including a status field, can grant that
+      authorization.
+    </p>
+    <h2>AI assistance</h2>
+    <p>
+      LLMs may assist with source triage, metadata extraction, outline suggestions, citation-gap
+      detection, and draft critique. No unreviewed AI-generated article is ever published; every
+      AI-assisted step is recorded — model, prompt version, inputs, outputs, and the human
+      reviewer's decision — and hidden reasoning is never stored.
+    </p>
+    <h2>Corrections</h2>
+    <p>
+      A correction does not erase history. It creates a visible revision note, keeps the article's
+      stable URL, and states what changed and why. See <a href="/corrections">corrections</a>.
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .prose {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+    line-height: var(--leading-relaxed);
+  }
+  .prose h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-5);
+  }
+  .prose h2 {
+    font-family: var(--font-body);
+    font-size: var(--text-xl);
+    margin-top: var(--space-7);
+  }
+</style>

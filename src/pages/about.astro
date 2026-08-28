@@ -1,0 +1,75 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="About"
+  description="Runtime Signals connects research claims, runtime invariants, operational evidence, and reproducible artifacts."
+  canonicalPath="/about"
+>
+  <article class="prose">
+    <p class="eyebrow">About</p>
+    <h1>What Runtime Signals is for</h1>
+    <p>
+      Runtime Signals is not an AI news site. It publishes system-level analysis of evaluation,
+      reliability, recovery, orchestration, state, memory, tool security, distributed execution,
+      observability, and failure analysis for AI agents running in production.
+    </p>
+    <p>
+      Most coverage of agent systems is either research summary or product announcement. Neither
+      connects the four layers that actually determine whether a system holds up under load:
+      research claims and their limitations, the runtime invariants that get violated (idempotency,
+      leases, fencing, authorization, state transfer), the operational evidence — traces, costs,
+      failures, recovery behavior — and reproducible implementation artifacts a reader can run or
+      inspect.
+    </p>
+    <p>
+      The editorial unit here is a chain: a real failure mechanism, the invariant it violates, and
+      the engineering practice that holds under load. That's narrower than general AI commentary,
+      and it's the whole point.
+    </p>
+    <h2>What we commit to</h2>
+    <ol>
+      <li>No unreviewed AI-generated articles are published.</li>
+      <li>
+        Every consequential factual claim has a source record or is explicitly marked inference or
+        opinion.
+      </li>
+      <li>
+        Source records preserve URL, publisher, publication date, access date, evidence type, and
+        what the source supports.
+      </li>
+      <li>Articles state limitations and workload or configuration boundaries.</li>
+      <li>
+        A human approves publication, meaningful updates, corrections, and syndicated versions.
+      </li>
+    </ol>
+    <p>
+      See <a href="/methodology">methodology</a> for how claims are labeled and sourced, and <a
+        href="/editorial-policy">editorial policy</a
+      > for the review process itself.
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .prose {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+    line-height: var(--leading-relaxed);
+  }
+  .prose h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-5);
+  }
+  .prose h2 {
+    font-family: var(--font-body);
+    font-size: var(--text-xl);
+    margin-top: var(--space-7);
+  }
+  .prose li {
+    margin-bottom: var(--space-2);
+  }
+</style>

@@ -1,0 +1,25 @@
+{
+  // Structural checks only — deliberately lenient on style/formatting, since
+  // docs/ is intentionally kept outside Prettier's reach (.prettierignore) for its
+  // hand-formatted research tables. This checks the things that indicate a
+  // genuinely malformed document (broken heading hierarchy, two H1s, a table that
+  // isn't a table), not house style.
+  "config": {
+    "default": false,
+    "MD001": true, // heading levels increment by one, not skip
+    "MD003": true, // consistent heading style within a document
+    "MD018": true, // "#Heading" — missing space after hash
+    "MD022": true, // headings surrounded by blank lines
+    "MD023": true, // headings start at the line's beginning
+    "MD025": true, // single top-level heading per document
+    "MD027": true, // no multiple spaces after blockquote symbol
+    "MD029": { "style": "ordered" }, // ordered lists use real, incrementing numbers
+    "MD032": true, // lists surrounded by blank lines
+    "MD034": true, // no bare URLs (must be a real link or angle-bracketed)
+    "MD040": true, // fenced code blocks declare a language
+    "MD051": true, // link fragments (#anchor) must resolve to a real heading
+    "MD055": true, // table pipe style is consistent within a table
+    "MD056": true, // table rows have a consistent column count
+  },
+  "globs": ["docs/**/*.md", "README.md"],
+}

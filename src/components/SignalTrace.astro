@@ -1,0 +1,57 @@
+---
+// The signature element: a deterministic step/pulse trace, the visual grammar of a
+// logic analyzer or oscilloscope reading — the literal thing "Runtime Signals" is
+// named for. Used sparingly (masthead, section dividers, footer) so it reads as the
+// one memorable mark, not ambient decoration. Deterministic per `seed` so
+// server-rendered markup is stable across builds.
+interface Props {
+  class?: string;
+  seed?: number;
+}
+
+const { class: className = '', seed = 1 } = Astro.props;
+
+function pulseTrace(seedValue: number, points = 40): string {
+  let state = seedValue || 1;
+  const next = () => {
+    state = (state * 9301 + 49297) % 233280;
+    return state / 233280;
+  };
+  const stepWidth = 400 / points;
+  let y = 12;
+  const coords: string[] = [`0,${y}`];
+  for (let i = 1; i <= points; i++) {
+    const x = i * stepWidth;
+    coords.push(`${x},${y}`);
+    if (next() > 0.7) y = 3 + Math.round(next() * 18);
+    coords.push(`${x},${y}`);
+  }
+  return coords.join(' ');
+}
+
+const points = pulseTrace(seed);
+---
+
+<svg
+  class={`signal-trace ${className}`}
+  viewBox="0 0 400 24"
+  preserveAspectRatio="none"
+  aria-hidden="true"
+  focusable="false"
+>
+  <polyline
+    points={points}
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.5"
+    stroke-linejoin="round"></polyline>
+</svg>
+
+<style>
+  .signal-trace {
+    width: 100%;
+    height: 1.25rem;
+    color: var(--signal);
+    opacity: 0.6;
+  }
+</style>

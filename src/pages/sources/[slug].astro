@@ -1,0 +1,83 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const sources = await getCollection('sources');
+  return sources.map((source) => ({ params: { slug: source.id }, props: { source } }));
+}
+
+const { source } = Astro.props;
+const { title, url, publisher, published_at, accessed_at, source_type, primary, notes } =
+  source.data;
+---
+
+<BaseLayout
+  title={title}
+  description={`${title} — ${publisher}`}
+  canonicalPath={`/sources/${source.id}`}
+>
+  <article class="source">
+    <p class="eyebrow">{source_type} · {primary ? 'primary source' : 'secondary source'}</p>
+    <h1>{title}</h1>
+    <dl class="source__meta">
+      <div>
+        <dt>Publisher</dt>
+        <dd>{publisher}</dd>
+      </div>
+      {
+        published_at && (
+          <div>
+            <dt>Published</dt>
+            <dd>{published_at.toISOString().slice(0, 10)}</dd>
+          </div>
+        )
+      }
+      <div>
+        <dt>Accessed</dt>
+        <dd>{accessed_at.toISOString().slice(0, 10)}</dd>
+      </div>
+    </dl>
+    {notes && <p class="source__notes">{notes}</p>}
+    <a href={url} class="source__link">View source →</a>
+  </article>
+</BaseLayout>
+
+<style>
+  .source {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+  }
+  .source h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-5);
+  }
+  .source__meta {
+    display: flex;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    margin: 0 0 var(--space-5);
+  }
+  .source__meta dt {
+    color: var(--ink-muted);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+  }
+  .source__meta dd {
+    margin: 0;
+  }
+  .source__notes {
+    color: var(--ink-muted);
+    max-width: 60ch;
+  }
+  .source__link {
+    display: inline-block;
+    margin-top: var(--space-4);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+  }
+</style>

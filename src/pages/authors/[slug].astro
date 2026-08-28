@@ -1,0 +1,113 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ArticleCard from '@/components/ArticleCard.astro';
+import { getPublishedEntries } from '@/lib/publication';
+import { resolveTopicNames, weakestEvidence, articlePath } from '@/lib/resolve';
+import { profilePageJsonLd } from '@/lib/seo';
+
+export async function getStaticPaths() {
+  const authors = await getCollection('authors');
+  return authors.map((author) => ({ params: { slug: author.id }, props: { author } }));
+}
+
+const { author } = Astro.props;
+const [articles, briefs] = await Promise.all([getCollection('articles'), getCollection('briefs')]);
+const live = getPublishedEntries([...articles, ...briefs]).filter((entry) =>
+  entry.data.authors.some((ref) => ref.id === author.id),
+);
+const cards = await Promise.all(
+  live.map(async (entry) => ({
+    path: articlePath(entry),
+    title: entry.data.title,
+    dek: entry.data.dek,
+    publishedAt: entry.data.published_at,
+    topics: await resolveTopicNames(entry),
+    dominantEvidence: weakestEvidence(entry),
+  })),
+);
+const jsonLd = [
+  profilePageJsonLd({
+    name: author.data.name,
+    bio: author.data.bio,
+    path: `/authors/${author.id}`,
+  }),
+];
+---
+
+<BaseLayout
+  title={author.data.name}
+  description={author.data.bio}
+  canonicalPath={`/authors/${author.id}`}
+  jsonLd={jsonLd}
+>
+  <section class="listing">
+    <header class="listing__header">
+      <p class="eyebrow">Author</p>
+      <h1>{author.data.name}</h1>
+      <p class="listing__intro">{author.data.bio}</p>
+      {
+        author.data.disclosure && (
+          <p class="listing__disclosure">Disclosure: {author.data.disclosure}</p>
+        )
+      }
+      {
+        author.data.links.length > 0 && (
+          <ul class="listing__links">
+            {author.data.links.map((link) => (
+              <li>
+                <a href={link.url}>{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+    {
+      cards.length === 0 ? (
+        <p class="listing__empty">No published pieces yet.</p>
+      ) : (
+        <div class="listing__list">
+          {cards.map((card) => (
+            <ArticleCard {...card} />
+          ))}
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .listing {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+  }
+  .listing__header h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-2);
+  }
+  .listing__intro {
+    color: var(--ink-muted);
+    max-width: 60ch;
+    margin: 0 0 var(--space-3);
+  }
+  .listing__disclosure {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+  .listing__links {
+    list-style: none;
+    display: flex;
+    gap: var(--space-4);
+    padding: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    margin: var(--space-3) 0 var(--space-6);
+  }
+  .listing__empty {
+    color: var(--ink-muted);
+  }
+</style>

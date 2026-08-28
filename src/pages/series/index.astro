@@ -1,0 +1,66 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const series = (await getCollection('series')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name),
+);
+---
+
+<BaseLayout
+  title="Series"
+  description="Ordered collections of Runtime Signals articles."
+  canonicalPath="/series"
+>
+  <section class="listing">
+    <header class="listing__header">
+      <p class="eyebrow">Collections</p>
+      <h1>Series</h1>
+    </header>
+    <ul class="series-list">
+      {
+        series.map((s) => (
+          <li>
+            <a href={`/series/${s.id}`} class="unstyled-link series-list__item">
+              <span class="series-list__name">{s.data.name}</span>
+              <span class="series-list__desc">{s.data.description}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .listing {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+  }
+  .listing__header h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-6);
+  }
+  .series-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .series-list__item {
+    display: block;
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--hairline);
+    color: inherit;
+  }
+  .series-list__name {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+  .series-list__desc {
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+  }
+</style>

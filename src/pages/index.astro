@@ -1,0 +1,115 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ArticleCard from '@/components/ArticleCard.astro';
+import SignalTrace from '@/components/SignalTrace.astro';
+import { getCollection } from 'astro:content';
+import { getPublishedEntries } from '@/lib/publication';
+import { resolveTopicNames, weakestEvidence, articlePath } from '@/lib/resolve';
+
+const [articles, briefs] = await Promise.all([getCollection('articles'), getCollection('briefs')]);
+const live = getPublishedEntries([...articles, ...briefs]).slice(0, 12);
+
+const cards = await Promise.all(
+  live.map(async (entry) => ({
+    path: articlePath(entry),
+    title: entry.data.title,
+    dek: entry.data.dek,
+    publishedAt: entry.data.published_at,
+    topics: await resolveTopicNames(entry),
+    dominantEvidence: weakestEvidence(entry),
+  })),
+);
+---
+
+<BaseLayout
+  title="Runtime Signals"
+  description="Systems analysis of evaluation, reliability, recovery, orchestration, state, memory, tool security, and observability for AI agents in production."
+  canonicalPath="/"
+>
+  <section class="hero">
+    <p class="eyebrow">
+      A publication about running AI agents like they'll fail — because they will
+    </p>
+    <h1 class="hero__title">Runtime Signals</h1>
+    <p class="hero__thesis">
+      Every piece traces one chain: a real failure mechanism, the invariant it violates, and the
+      engineering practice that holds under load. No unreviewed AI-generated articles. Every
+      consequential claim is sourced or explicitly labeled as inference.
+    </p>
+    <SignalTrace seed={3} class="hero__trace" />
+  </section>
+
+  <section class="log" aria-labelledby="log-heading">
+    <div class="log__header">
+      <h2 id="log-heading" class="eyebrow">Recent signals</h2>
+      <span class="log__count">{cards.length} live</span>
+    </div>
+    {
+      cards.length === 0 ? (
+        <p class="log__empty">
+          No approved, published pieces exist yet. This is expected at the Phase 2 checkpoint —
+          content, review, and the CI approval manifest arrive together in Phase 4.
+        </p>
+      ) : (
+        <div class="log__list">
+          {cards.map((card) => (
+            <ArticleCard {...card} />
+          ))}
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    max-width: var(--wide-width);
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-5) var(--space-6);
+  }
+
+  .hero__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--text-3xl);
+    letter-spacing: -0.02em;
+    margin: var(--space-3) 0 var(--space-5);
+  }
+
+  .hero__thesis {
+    max-width: 62ch;
+    font-size: var(--text-lg);
+    color: var(--ink-muted);
+    line-height: var(--leading-relaxed);
+    margin: 0;
+  }
+
+  .hero__trace {
+    margin-top: var(--space-6);
+  }
+
+  .log {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: 0 var(--space-5) var(--space-9);
+  }
+
+  .log__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: var(--space-3);
+  }
+
+  .log__count {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--signal);
+  }
+
+  .log__empty {
+    color: var(--ink-muted);
+    padding: var(--space-6) 0;
+  }
+</style>

@@ -1,0 +1,108 @@
+/*
+  Design direction — "signal paper": a cool, precise engineering-notebook register,
+  not the warm-cream/serif or near-black/neon defaults. The one aesthetic risk is
+  using a monospace face as the DISPLAY voice (headlines, eyebrows, nav) rather than
+  reserving it for code — appropriate for a publication literally named for signals
+  and telemetry, read by engineers who live in monospace. Body copy stays a system
+  serif for sustained long-form reading and zero font-loading cost.
+
+  JetBrains Mono Variable, self-hosted (public/fonts/), SIL OFL 1.1.
+*/
+
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  src: url('/fonts/jetbrains-mono-variable.woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Color — light (default) */
+  --paper: #f7f8fa;
+  --paper-raised: #ffffff;
+  --ink: #12161c;
+  --ink-muted: #4b5563;
+  --hairline: #d8dee7;
+  --signal: #2354c9;
+  --signal-ink: #ffffff;
+  --signal-dim: #e8eefe;
+  --focus-ring: #b6470a;
+
+  /* Evidence-strength semantics — these colors carry content meaning
+     (docs/architecture/content-model.md claim.evidence), not decoration. */
+  --evidence-supported: #0f7a56;
+  --evidence-mixed: #a3660a;
+  --evidence-inference: #5b4fa8;
+  --evidence-opinion: #5b6472;
+
+  /* Type */
+  --font-display:
+    'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
+    monospace;
+  --font-body: ui-serif, Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Times New Roman', serif;
+  --font-mono: var(--font-display);
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: clamp(1.375rem, 1.15rem + 1vw, 1.875rem);
+  --text-2xl: clamp(1.875rem, 1.3rem + 2.4vw, 3rem);
+  --text-3xl: clamp(2.25rem, 1.4rem + 3.8vw, 4.25rem);
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+
+  /* Space (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --space-9: 7rem;
+
+  --content-width: 42rem;
+  --wide-width: 72rem;
+  --radius: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #0e1218;
+    --paper-raised: #161b23;
+    --ink: #e8ebf1;
+    --ink-muted: #9aa5b6;
+    --hairline: #2a313d;
+    --signal: #7ea2f7;
+    --signal-ink: #0e1218;
+    --signal-dim: #1a2740;
+    --focus-ring: #f0975a;
+
+    --evidence-supported: #4bc794;
+    --evidence-mixed: #e0a63c;
+    --evidence-inference: #ab9ee8;
+    --evidence-opinion: #9aa5b6;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #0e1218;
+  --paper-raised: #161b23;
+  --ink: #e8ebf1;
+  --ink-muted: #9aa5b6;
+  --hairline: #2a313d;
+  --signal: #7ea2f7;
+  --signal-ink: #0e1218;
+  --signal-dim: #1a2740;
+  --focus-ring: #f0975a;
+
+  --evidence-supported: #4bc794;
+  --evidence-mixed: #e0a63c;
+  --evidence-inference: #ab9ee8;
+  --evidence-opinion: #9aa5b6;
+}

@@ -1,0 +1,7 @@
+title: Astro Content Collections
+url: https://docs.astro.build/en/guides/content-collections/
+publisher: Astro
+accessed_at: 2026-08-28
+source_type: repository
+primary: true
+notes: Build-time, schema-validated content loading used as this site's content model implementation.

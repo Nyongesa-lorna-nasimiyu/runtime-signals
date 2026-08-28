@@ -1,0 +1,8 @@
+---
+interface Props {
+  evidence: 'supported' | 'mixed' | 'inference' | 'opinion';
+}
+const { evidence } = Astro.props;
+---
+
+<span class="evidence-tag" data-evidence={evidence}>{evidence}</span>

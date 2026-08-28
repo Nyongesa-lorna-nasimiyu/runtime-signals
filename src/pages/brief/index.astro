@@ -1,0 +1,60 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ArticleCard from '@/components/ArticleCard.astro';
+import { getCollection } from 'astro:content';
+import { getPublishedEntries } from '@/lib/publication';
+import { resolveTopicNames, weakestEvidence, articlePath } from '@/lib/resolve';
+
+const briefs = await getCollection('briefs');
+const live = getPublishedEntries(briefs);
+const cards = await Promise.all(
+  live.map(async (entry) => ({
+    path: articlePath(entry),
+    title: entry.data.title,
+    dek: entry.data.dek,
+    publishedAt: entry.data.published_at,
+    topics: await resolveTopicNames(entry),
+    dominantEvidence: weakestEvidence(entry),
+  })),
+);
+---
+
+<BaseLayout
+  title="Brief"
+  description="The Agent Engineering Brief — a weekly digest with linked source records."
+  canonicalPath="/brief"
+>
+  <section class="listing">
+    <header class="listing__header">
+      <p class="eyebrow">Weekly</p>
+      <h1>Agent Engineering Brief</h1>
+    </header>
+    {
+      cards.length === 0 ? (
+        <p class="listing__empty">No published briefs yet.</p>
+      ) : (
+        <div class="listing__list">
+          {cards.map((card) => (
+            <ArticleCard {...card} />
+          ))}
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .listing {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+  }
+  .listing__header h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-6);
+  }
+  .listing__empty {
+    color: var(--ink-muted);
+  }
+</style>

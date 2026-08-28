@@ -1,0 +1,4 @@
+title: Model handoff state-transfer simulation
+kind: simulation
+url: https://github.com/example-runtime-signals/handoff-simulation
+description: A minimal reproduction of state loss during a multi-model handoff, referenced in "Model handoff as distributed state transfer."

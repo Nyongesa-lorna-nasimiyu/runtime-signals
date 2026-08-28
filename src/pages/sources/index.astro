@@ -1,0 +1,75 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const sources = (await getCollection('sources')).sort((a, b) =>
+  a.data.title.localeCompare(b.data.title),
+);
+---
+
+<BaseLayout
+  title="Sources"
+  description="Papers, reports, repositories, benchmarks, datasets, tools, and case studies Runtime Signals cites."
+  canonicalPath="/sources"
+>
+  <section class="listing">
+    <header class="listing__header">
+      <p class="eyebrow">Evidence</p>
+      <h1>Sources</h1>
+    </header>
+    <ul class="source-list">
+      {
+        sources.map((source) => (
+          <li>
+            <a href={`/sources/${source.id}`} class="unstyled-link source-list__item">
+              <span class="source-list__type">{source.data.source_type}</span>
+              <span class="source-list__title">{source.data.title}</span>
+              <span class="source-list__publisher">{source.data.publisher}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .listing {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+  }
+  .listing__header h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-6);
+  }
+  .source-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .source-list__item {
+    display: flex;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--hairline);
+    color: inherit;
+    flex-wrap: wrap;
+  }
+  .source-list__type {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    color: var(--signal);
+    min-width: 6rem;
+  }
+  .source-list__title {
+    font-weight: 600;
+  }
+  .source-list__publisher {
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+  }
+</style>

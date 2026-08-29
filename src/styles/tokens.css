@@ -81,8 +81,27 @@
     --wide-width: 72rem;
     --radius: 3px;
 
+    /* Faint static paper-grain texture, light mode only - a tiny inline
+       feTurbulence SVG (opacity baked into the SVG itself, since
+       background-image has no separate CSS opacity control) layered under
+       the flat --paper color via body's background-image in global.css.
+       Not a light-dark() token - light-dark() is a <color> function and
+       can't produce a background-image value, so this is the one
+       deliberate exception to "single light-dark() definition per token":
+       one default (light) value here, one dark override below, never a
+       third data-theme copy. */
+    --paper-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+
     /* Minimum interactive target per WCAG 2.5.8 AA - enforced with min-inline/
        block-size (can grow, never shrinks) rather than width/height. */
     --touch-target-min: 24px;
+  }
+
+  /* The one deliberate exception to this file's light-dark()-only rule (see
+     --paper-texture above) - dark mode stays flat, never the grain. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper-texture: none;
+    }
   }
 }

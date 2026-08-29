@@ -21,7 +21,9 @@
 
   body {
     margin: 0;
-    background: var(--paper);
+    background-color: var(--paper);
+    /* --paper-texture is `none` in dark mode (tokens.css) - stays flat there. */
+    background-image: var(--paper-texture);
     color: var(--ink);
     font-family: var(--font-body);
     font-size: var(--text-base);

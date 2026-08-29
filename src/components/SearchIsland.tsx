@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { track } from '@/lib/analytics';
 
 // The one React island in this checkpoint, and it's justified: docs/adr/0001
 // requires the search index and UI load "only on the search page or after
@@ -72,6 +73,17 @@ export default function SearchIsland() {
   // fresher results - every request is tagged with a generation counter, and a
   // response is applied only if it's still the most recent request in flight.
   const requestGeneration = useRef(0);
+  // client:idle (astro.config.mjs / src/pages/search.astro) means hydration
+  // can genuinely be delayed under main-thread contention - a real
+  // production edge case (a very busy device, e.g. a low-powered phone under
+  // load), not just a test artifact: it's also what caused real,
+  // reproducible test flakiness under Playwright's parallel workers, where
+  // .fill() could race ahead of React actually attaching its onChange
+  // handler, silently losing the keystroke. This flag gives both real users
+  // and tests an observable "is this actually interactive yet" signal
+  // instead of the input merely being present in SSR'd markup.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
 
   async function handleChange(value: string) {
     setQuery(value);
@@ -101,6 +113,9 @@ export default function SearchIsland() {
 
       setResults(withData);
       setStatus('ready');
+      // Fired once per settled (non-superseded) search, not per keystroke -
+      // ADR-0003: property is a count, never the query text itself.
+      track({ name: 'search_submit', properties: { resultCount: withData.length } });
     } catch {
       if (requestGeneration.current !== generation) return;
       setStatus('error');
@@ -109,7 +124,7 @@ export default function SearchIsland() {
   }
 
   return (
-    <div className="search-island">
+    <div className="search-island" data-hydrated={hydrated}>
       <label htmlFor="search-input" className="visually-hidden">
         Search Runtime Signals
       </label>

@@ -1,57 +1,105 @@
 ---
-import BaseLayout from '@/layouts/BaseLayout.astro';
+import ProseLayout from '@/layouts/ProseLayout.astro';
+
+// A real ordered sequence (docs/editorial/workflow.md), not a decorative
+// 01/02/03 - a piece genuinely cannot skip a stage, and the order itself is
+// the information worth showing, so it earns the same step-trace visual
+// language as ArticleLayout.astro's progress rail rather than a plain list.
+const stages = [
+  'Idea',
+  'Researching',
+  'Source-verified',
+  'Outlined',
+  'Drafting',
+  'Technical review',
+  'Editorial review',
+];
 ---
 
-<BaseLayout
-  title="Editorial policy"
+<ProseLayout
+  eyebrow="Editorial policy"
+  title="Review and approval"
   description="How Runtime Signals reviews and approves content before it publishes."
   canonicalPath="/editorial-policy"
+  traceSeed={11}
 >
-  <article class="prose">
-    <p class="eyebrow">Editorial policy</p>
-    <h1>Review and approval</h1>
-    <p>
-      A piece moves through research and review - idea, researching, source-verified, outlined,
-      drafting, technical review, editorial review - before it is ever eligible to publish. That
-      workflow tracks readiness; it does not grant permission to publish.
-    </p>
-    <p>
-      Publication authorization is separate and never comes from the content itself. It requires a
-      merged, reviewed pull request whose required checks pass, whose CODEOWNERS approval is
-      recorded, and whose deployment environment is authorized - captured for the exact commit being
-      built. Nothing an author writes in a draft, including a status field, can grant that
-      authorization.
-    </p>
-    <h2>AI assistance</h2>
-    <p>
-      LLMs may assist with source triage, metadata extraction, outline suggestions, citation-gap
-      detection, and draft critique. No unreviewed AI-generated article is ever published; every
-      AI-assisted step is recorded - model, prompt version, inputs, outputs, and the human
-      reviewer's decision - and hidden reasoning is never stored.
-    </p>
-    <h2>Corrections</h2>
-    <p>
-      A correction does not erase history. It creates a visible revision note, keeps the article's
-      stable URL, and states what changed and why. See <a href="/corrections">corrections</a>.
-    </p>
-  </article>
-</BaseLayout>
+  <ol class="workflow-trace" aria-label="Editorial workflow stages, in order">
+    {
+      stages.map((stage, i) => (
+        <li>
+          <span class="workflow-trace__mark" aria-hidden="true">
+            {String(i + 1).padStart(2, '0')}
+          </span>
+          <span class="workflow-trace__label">{stage}</span>
+        </li>
+      ))
+    }
+  </ol>
+  <p>That workflow tracks readiness; it does not grant permission to publish.</p>
+  <p>
+    Publication authorization is separate and never comes from the content itself. It requires a
+    merged, reviewed pull request whose required checks pass, whose CODEOWNERS approval is recorded,
+    and whose deployment environment is authorized - captured for the exact commit being built.
+    Nothing an author writes in a draft, including a status field, can grant that authorization.
+  </p>
+  <h2>AI assistance</h2>
+  <p>
+    LLMs may assist with source triage, metadata extraction, outline suggestions, citation-gap
+    detection, and draft critique. No unreviewed AI-generated article is ever published; every
+    AI-assisted step is recorded - model, prompt version, inputs, outputs, and the human reviewer's
+    decision - and hidden reasoning is never stored.
+  </p>
+  <h2>Corrections</h2>
+  <p>
+    A correction does not erase history. It creates a visible revision note, keeps the article's
+    stable URL, and states what changed and why. See <a href="/corrections">corrections</a>.
+  </p>
+</ProseLayout>
 
 <style>
-  .prose {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-5) var(--space-9);
-    line-height: var(--leading-relaxed);
+  .workflow-trace {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: var(--space-6) 0;
+    padding: 0;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
   }
-  .prose h1 {
-    font-family: var(--font-body);
-    font-size: var(--text-2xl);
-    margin: var(--space-2) 0 var(--space-5);
+
+  .workflow-trace li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4) var(--space-3) 0;
+    position: relative;
   }
-  .prose h2 {
-    font-family: var(--font-body);
-    font-size: var(--text-xl);
-    margin-top: var(--space-7);
+
+  /* A connecting line between stages, desktop only - on narrow viewports the
+     list wraps and a horizontal connector would misalign, so the hairline
+     top/bottom border above is the connector there instead. */
+  @media (min-width: 640px) {
+    .workflow-trace li:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      width: var(--space-4);
+      height: 1px;
+      background: var(--hairline);
+    }
+  }
+
+  .workflow-trace__mark {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--signal);
+    font-weight: 600;
+  }
+
+  .workflow-trace__label {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    color: var(--ink-muted);
   }
 </style>

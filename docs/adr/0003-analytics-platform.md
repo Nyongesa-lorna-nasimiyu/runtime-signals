@@ -1,8 +1,20 @@
 # ADR-0003: Minimal privacy-preserving measurement
 
-- Status: Accepted
+- Status: Accepted (amended 2026-08-29 - see Amendment below)
 - Date: 2026-08-28 (accepted 2026-08-28)
 - Approval state: Accepted for Phase 2 implementation; no analytics account or script activated yet - instrumentation still follows the privacy/retention and testing/launch checklist below
+
+## Amendment (2026-08-29): the event contract is now built, not deferred
+
+The original decision below says "Do not add custom behavioral analytics at launch" and treats the bounded event contract (`article_view`, `engaged_read`, `search_submit`, `artifact_open`, `newsletter_cta`, `business_cta`) as conditional future work, gated on "a specific interaction decision" emerging.
+
+That decision has now emerged: Phase 3 Checkpoint 2 (privacy-safe measurement and observability) explicitly scopes "non-blocking Core Web Vitals and interaction measurement" as a checkpoint deliverable, and the site now has enough real content and surfaces (articles, search, an artifacts collection) to instrument meaningfully rather than speculatively.
+
+What changes: `src/lib/analytics.ts` implements the bounded event contract exactly as originally specified here - same event names, same allow-listed-property constraint, same `engaged_read` sampling/no-identity rule, same prohibition on merging with OpenTelemetry or Langfuse. What does not change: no analytics account or script is activated by this amendment. The dispatch function's actual "send" step is an inert stub until a real provider (Cloudflare Web Analytics, or Plausible/Umami per the original decision's Phase-2 candidates) is account-verified and wired in - the exact same dry-run posture this project has used for every other external-service boundary (Cloudflare deployment, Buttondown). Building the instrumented client now and having it do nothing in production until an account exists is strictly additive to the original decision, not a reversal of its privacy posture.
+
+Two of the six events currently have no real UI to attach to: `newsletter_cta` (the newsletter page has no signup form - see `docs/decisions/004-newsletter.md` and `src/pages/newsletter.astro`) and `business_cta` (no consulting/business CTA exists on the site yet). Both are defined in the type contract with no call site, rather than fabricated against UI that doesn't exist. `artifact_open` required fixing a real, unrelated gap first: the `artifacts` content collection existed with real data but was never rendered as a link on the article page at all.
+
+Everything else in this ADR - the requirements, the minimum launch metrics, the privacy/retention rules, the risks, and the explicit separation from OpenTelemetry/Langfuse - stands unchanged.
 
 ## Context
 

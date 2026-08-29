@@ -5,9 +5,10 @@ import SignalTrace from '@/components/SignalTrace.astro';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
 import { resolveTopicNames, weakestEvidence, articlePath } from '@/lib/resolve';
+import { BUILD_TIME } from '@/lib/build-time';
 
 const [articles, briefs] = await Promise.all([getCollection('articles'), getCollection('briefs')]);
-const live = getPublishedEntries([...articles, ...briefs]).slice(0, 12);
+const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME).slice(0, 12);
 
 const cards = await Promise.all(
   live.map(async (entry) => ({

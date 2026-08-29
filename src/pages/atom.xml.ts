@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
 import { articlePath, latestRevisionDate } from '@/lib/resolve';
 import { absoluteUrl } from '@/lib/seo';
+import { BUILD_TIME } from '@/lib/build-time';
 
 function escapeXml(value: string): string {
   return value
@@ -18,7 +19,7 @@ export async function GET(_context: APIContext) {
     getCollection('articles'),
     getCollection('briefs'),
   ]);
-  const live = getPublishedEntries([...articles, ...briefs]);
+  const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
   const updated = live[0]?.data.published_at.toISOString() ?? new Date(0).toISOString();
 
   const entries = live

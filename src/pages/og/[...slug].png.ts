@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { getRoutableEntries } from '@/lib/publication';
 import { resolveTopicNames } from '@/lib/resolve';
 import { renderOgImage } from '@/lib/og-image';
+import { BUILD_TIME } from '@/lib/build-time';
 
 // One real OG image per routable article/brief, generated at build time (this
 // is a static site — there is no request-time renderer to generate these on
@@ -17,7 +18,7 @@ export async function getStaticPaths() {
     getCollection('articles'),
     getCollection('briefs'),
   ]);
-  const routable = getRoutableEntries([...articles, ...briefs]);
+  const routable = getRoutableEntries([...articles, ...briefs], BUILD_TIME);
   return Promise.all(
     routable.map(async (entry) => {
       const topics = await resolveTopicNames(entry);

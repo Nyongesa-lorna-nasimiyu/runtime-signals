@@ -5,6 +5,7 @@ import { getRoutableEntries, isArchived } from '@/lib/publication';
 import { resolveAuthorNames, resolveTopicNames, resolveSeries } from '@/lib/resolve';
 import { getEntries } from 'astro:content';
 import { Callout, Figure } from '@/components/mdx';
+import { BUILD_TIME } from '@/lib/build-time';
 
 // This is the actual draft/future/unapproved exclusion boundary: getStaticPaths only
 // ever iterates getRoutableEntries(), so a draft, a not-yet-due scheduled piece, or
@@ -14,7 +15,7 @@ import { Callout, Figure } from '@/components/mdx';
 // tests/integration/README.md for why this isn't a vitest integration test).
 export async function getStaticPaths() {
   const articles = await getCollection('articles');
-  const routable = getRoutableEntries(articles);
+  const routable = getRoutableEntries(articles, BUILD_TIME);
   return routable.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 

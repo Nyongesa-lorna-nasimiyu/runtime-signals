@@ -10,10 +10,19 @@ interface Props {
   canonicalPath: string;
   noindex?: boolean;
   jsonLd?: object[];
+  ogImagePath?: string;
 }
 
-const { title, description, canonicalPath, noindex = false, jsonLd = [] } = Astro.props;
+const {
+  title,
+  description,
+  canonicalPath,
+  noindex = false,
+  jsonLd = [],
+  ogImagePath = '/og-default.png',
+} = Astro.props;
 const canonical = absoluteUrl(canonicalPath);
+const ogImage = absoluteUrl(ogImagePath);
 const allJsonLd = [websiteJsonLd(), ...jsonLd];
 ---
 
@@ -32,7 +41,11 @@ const allJsonLd = [websiteJsonLd(), ...jsonLd];
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content="Runtime Signals" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
 
     <link rel="alternate" type="application/rss+xml" title="Runtime Signals" href="/rss.xml" />
     <link rel="alternate" type="application/atom+xml" title="Runtime Signals" href="/atom.xml" />

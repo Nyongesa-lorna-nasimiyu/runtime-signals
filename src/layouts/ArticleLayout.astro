@@ -18,6 +18,7 @@ const { entry, authorNames, topicNames, seriesNames = [], sourceTitles, archived
 const { title, dek, published_at, updated_at, claims, seo } = entry.data;
 const path = entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief/${entry.id}`;
 const sectionLabel = entry.collection === 'articles' ? 'Articles' : 'Brief';
+const ogImagePath = `/og/${entry.collection === 'articles' ? 'articles' : 'brief'}/${entry.id}.png`;
 
 const jsonLd = [
   breadcrumbJsonLd([
@@ -42,6 +43,7 @@ const jsonLd = [
   canonicalPath={path}
   noindex={seo.noindex || archived}
   jsonLd={jsonLd}
+  ogImagePath={ogImagePath}
 >
   <article class="article">
     <header class="article__header">

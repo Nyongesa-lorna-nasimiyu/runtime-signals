@@ -30,3 +30,9 @@ approval-manifest.local.json
 coverage/
 test-results/
 playwright-report/
+
+# Local/CI-run audit output from scripts/ci/run-scheduled-publish.mjs and
+# scripts/verify-preview-performance.mjs - generated fresh every run
+# (uploaded as a real workflow artifact in CI), never source.
+schedule-audit.json
+preview-performance.json

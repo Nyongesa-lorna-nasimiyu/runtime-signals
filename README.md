@@ -21,4 +21,5 @@ This repository is currently in Phase 1: research and decisions. The domain `run
 - [Operations and cost model](docs/operations/cost-model.md)
 - [Implementation roadmap](docs/roadmap.md)
 
+
 Research snapshot: 2026-08-28. Availability, prices, framework status, and service limits are time-sensitive and must be rechecked before launch.

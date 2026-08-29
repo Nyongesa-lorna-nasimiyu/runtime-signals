@@ -1,6 +1,6 @@
 name: deploy
 
-# Runs only on push to main, which — given branch protection is configured to
+# Runs on push to main, which — given branch protection is configured to
 # require a pull request, the `publication-gate` check, and CODEOWNERS review
 # before merge (a required repository setting this workflow does not itself
 # enforce; it only re-verifies the outcome) — can only happen via a reviewed,
@@ -9,9 +9,17 @@ name: deploy
 # exact commit below, in case branch protection is ever misconfigured or
 # disabled. See docs/editorial/publication-gates.md and
 # docs/research/architecture-research-report.md launch blocker #4.
+#
+# Also runs on workflow_dispatch, always against main's current HEAD — this
+# is how .github/workflows/scheduled-publish.yml re-triggers a build when
+# scheduled content's published_at passes with no new commit to push. The
+# commit being (re)built is still whatever most recently merged, so the same
+# "find the merged PR, verify its checks and review" logic below resolves
+# identically regardless of which trigger fired.
 on:
   push:
     branches: [main]
+  workflow_dispatch: {}
 
 permissions:
   contents: read

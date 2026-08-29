@@ -1,0 +1,82 @@
+name: scheduled-publish
+
+# Content's publication_state can be 'scheduled' with a future published_at
+# (src/content.config.ts) - src/lib/publication.ts already makes that content
+# go live automatically once published_at passes, with no write-back to
+# frontmatter (docs/poc/scheduled-publish/idempotency.mjs proves this is
+# idempotent). But that only takes effect the next time a build actually
+# runs, and deploy.yml only runs on a push to main - so without this
+# workflow, scheduled content would silently sit unpublished until someone
+# happened to merge an unrelated PR. This is what actually makes "go live at
+# time T" true on a real clock instead of "go live whenever someone next
+# merges something."
+#
+# Cron is always UTC - see docs/editorial/scheduled-publishing.md for the
+# Nairobi (EAT, UTC+3, no DST) editorial-time mapping. Hourly is deliberately
+# coarse: this is a technical publication, not a breaking-news outlet, and an
+# up-to-one-hour publish delay is an acceptable, documented tradeoff against
+# running a build every few minutes for content that (per the fixtures in
+# src/content/articles/) publishes on the order of days apart, not minutes.
+on:
+  schedule:
+    - cron: '0 * * * *'
+  # Lets a human force an immediate check instead of waiting for the next
+  # hourly tick - the practical "retry" mechanism: a failed run's watermark
+  # simply doesn't advance (see lastSuccessfulRunWatermark in
+  # scripts/ci/run-scheduled-publish.mjs), so the next tick - scheduled or
+  # manually dispatched here - naturally re-covers whatever it missed.
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  # write (which also grants read) is required for two things: reading this
+  # workflow's own past runs to compute the watermark, and dispatching
+  # deploy.yml when content is newly due. Never any access beyond the
+  # actions API - no contents:write, no ability to push commits or modify
+  # content itself.
+  actions: write
+
+concurrency:
+  group: scheduled-publish
+  # A run that's still deciding (or whose dispatched deploy.yml is still
+  # running) must finish before the next tick starts, or two ticks could
+  # both see the same stale watermark and both decide the same content is
+  # newly due - not unsafe (deploy.yml's own manifest/build/verify gates
+  # would just run twice for the same commit), but wasteful and confusing in
+  # the audit trail.
+  cancel-in-progress: false
+
+jobs:
+  check-and-trigger:
+    name: scheduled-publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for newly-due scheduled content and trigger a deploy if needed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SCHEDULE_AUDIT_PATH: schedule-audit.json
+        run: node scripts/ci/run-scheduled-publish.mjs
+
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        # Always upload, even on failure, so a failed run still leaves a
+        # record of what watermark and content set it was working from -
+        # exactly what's needed to debug a missed run after the fact.
+        if: always()
+        with:
+          name: schedule-audit-${{ github.run_id }}
+          path: schedule-audit.json
+          retention-days: 90

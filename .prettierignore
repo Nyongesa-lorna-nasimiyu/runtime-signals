@@ -8,3 +8,7 @@ wrangler.jsonc
 package-lock.json
 dist/
 .astro/
+
+# Claude Code's own local tool-management state (e.g. worktrees for parallel
+# agent sessions) - not source, never this repo's to format.
+.claude/

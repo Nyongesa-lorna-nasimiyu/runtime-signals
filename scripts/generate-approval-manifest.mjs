@@ -10,6 +10,7 @@
 import { execFileSync } from 'node:child_process';
 import { readdirSync, writeFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
+import { getCommitSha, withSpan } from './lib/otel.mjs';
 
 const CONTENT_ROOT = 'src/content';
 const COLLECTIONS = ['articles', 'briefs'];
@@ -34,32 +35,43 @@ function commitSha(filePath) {
   }
 }
 
-const manifest = {};
+await withSpan(
+  'build.approval_manifest',
+  {
+    'vcs.commit.sha': getCommitSha(),
+    'build.manifest.authoritative': false,
+  },
+  async (span) => {
+    const manifest = {};
 
-for (const collection of COLLECTIONS) {
-  const dir = join(CONTENT_ROOT, collection);
-  let files = [];
-  try {
-    files = readdirSync(dir);
-  } catch {
-    continue;
-  }
-  for (const file of files) {
-    if (!['.md', '.mdx'].includes(extname(file))) continue;
-    const id = file.slice(0, -extname(file).length);
-    if (FIXTURE_UNAPPROVED_IDS.has(id)) continue;
-    const filePath = join(dir, file);
-    const key = `${collection}/${id}`;
-    manifest[key] = {
-      commit_sha: commitSha(filePath),
-      required_checks_passed: true,
-      codeowners_approved: true,
-      deployment_environment_authorized: true,
-    };
-  }
-}
+    for (const collection of COLLECTIONS) {
+      const dir = join(CONTENT_ROOT, collection);
+      let files = [];
+      try {
+        files = readdirSync(dir);
+      } catch {
+        continue;
+      }
+      for (const file of files) {
+        if (!['.md', '.mdx'].includes(extname(file))) continue;
+        const id = file.slice(0, -extname(file).length);
+        if (FIXTURE_UNAPPROVED_IDS.has(id)) continue;
+        const filePath = join(dir, file);
+        const key = `${collection}/${id}`;
+        manifest[key] = {
+          commit_sha: commitSha(filePath),
+          required_checks_passed: true,
+          codeowners_approved: true,
+          deployment_environment_authorized: true,
+        };
+      }
+    }
 
-writeFileSync(OUT_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
-console.log(
-  `Wrote ${Object.keys(manifest).length} entries to ${OUT_PATH} (local dev stand-in - not authoritative).`,
+    const entryCount = Object.keys(manifest).length;
+    span.setAttribute('build.manifest.entries', entryCount);
+    writeFileSync(OUT_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
+    console.log(
+      `Wrote ${entryCount} entries to ${OUT_PATH} (local dev stand-in - not authoritative).`,
+    );
+  },
 );

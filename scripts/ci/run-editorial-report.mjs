@@ -7,6 +7,7 @@
 // spamming a new one each time.
 import { execFileSync } from 'node:child_process';
 import { readFullEditorialRecords, readTopicRecords } from '../lib/content-status.mjs';
+import { withSpan } from '../lib/otel.mjs';
 import {
   seoPreview,
   findPossibleDuplicates,
@@ -134,28 +135,57 @@ async function upsertComment(body) {
   const comments = await githubApi(`/issues/${prNumber}/comments`);
   const existing = comments.find((c) => c.body?.includes(MARKER));
   if (existing) {
-    await githubApi(`/issues/comments/${existing.id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ body }),
-    });
+    await withSpan(
+      'editorial_report.post_comment',
+      {
+        'github.issue.number': Number(prNumber),
+        'github.comment.action': 'update',
+        'boundary.kind': 'outbound_notification',
+      },
+      () =>
+        githubApi(`/issues/comments/${existing.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ body }),
+        }),
+    );
     console.log(`Updated existing editorial-report comment (id ${existing.id}).`);
   } else {
-    await githubApi(`/issues/${prNumber}/comments`, {
-      method: 'POST',
-      body: JSON.stringify({ body }),
-    });
+    await withSpan(
+      'editorial_report.post_comment',
+      {
+        'github.issue.number': Number(prNumber),
+        'github.comment.action': 'create',
+        'boundary.kind': 'outbound_notification',
+      },
+      () =>
+        githubApi(`/issues/${prNumber}/comments`, {
+          method: 'POST',
+          body: JSON.stringify({ body }),
+        }),
+    );
     console.log('Posted a new editorial-report comment.');
   }
 }
 
 async function main() {
-  const changedKeys = changedContentKeys();
-  const allRecords = readFullEditorialRecords();
-  const allTopics = readTopicRecords();
-  const changedRecords = allRecords.filter((r) => changedKeys.has(r.key));
+  await withSpan(
+    'editorial_report.generate',
+    {
+      'github.issue.number': Number(prNumber),
+      'vcs.base_sha': baseSha,
+      'vcs.head_sha': headSha,
+    },
+    async (span) => {
+      const changedKeys = changedContentKeys();
+      const allRecords = readFullEditorialRecords();
+      const allTopics = readTopicRecords();
+      const changedRecords = allRecords.filter((r) => changedKeys.has(r.key));
 
-  const report = renderReport(changedRecords, allRecords, allTopics);
-  await upsertComment(report);
+      span.setAttribute('editorial.changed_content_count', changedRecords.length);
+      const report = renderReport(changedRecords, allRecords, allTopics);
+      await upsertComment(report);
+    },
+  );
 }
 
 main().catch((err) => {

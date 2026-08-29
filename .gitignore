@@ -26,6 +26,11 @@ approval-manifest.local.json
 .vscode/*
 !.vscode/extensions.json
 
+# Claude Code's own local tool-management state (e.g. worktrees for parallel
+# agent sessions) - not source, never meant to be tracked or scanned by
+# format/lint tooling.
+.claude/
+
 # test artifacts
 coverage/
 test-results/

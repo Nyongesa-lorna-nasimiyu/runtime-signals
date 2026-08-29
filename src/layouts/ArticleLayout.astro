@@ -18,7 +18,16 @@ const { entry, authorNames, topicNames, series = [], sourceTitles, archived } = 
 const { title, dek, published_at, updated_at, claims, seo } = entry.data;
 const path = entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief/${entry.id}`;
 const sectionLabel = entry.collection === 'articles' ? 'Articles' : 'Brief';
-const ogImagePath = `/og/${entry.collection === 'articles' ? 'articles' : 'brief'}/${entry.id}.png`;
+// Cache-busted by the content's own revision timestamp, not just the slug: the OG
+// PNG endpoint is served with a one-year immutable Cache-Control
+// (src/pages/og/[...slug].png.ts), which would otherwise let a browser or social
+// crawler hold onto a stale image after a title/content revision. Cloudflare
+// Workers Static Assets matches the file by pathname only, ignoring the query
+// string, so this never needs a second physical file — it only changes the cache
+// key, and only when an editor actually bumps updated_at for a real revision
+// (docs/architecture/content-model.md: material edits are recorded there).
+const ogVersion = (updated_at ?? published_at).getTime();
+const ogImagePath = `/og/${entry.collection === 'articles' ? 'articles' : 'brief'}/${entry.id}.png?v=${ogVersion}`;
 
 const jsonLd = [
   breadcrumbJsonLd([

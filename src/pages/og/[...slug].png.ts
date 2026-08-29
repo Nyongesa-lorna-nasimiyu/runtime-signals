@@ -33,10 +33,15 @@ export async function getStaticPaths() {
 export const GET: APIRoute = async ({ props }) => {
   const { title, eyebrow } = props as { title: string; eyebrow: string };
   const png = await renderOgImage({ title, eyebrow, seed: title.length });
+  // No headers set here beyond Content-Type: this Response is only used to
+  // extract the PNG bytes for the static file Astro writes to dist/ at build
+  // time — Cloudflare Workers Static Assets then serves that file with its own
+  // headers, ignoring whatever this Response object specified (confirmed via a
+  // real wrangler dev request: a Cache-Control set here never appeared on the
+  // actual response). The real, effective cache policy lives in
+  // public/_headers, the only mechanism that actually reaches production for a
+  // static response — see the /og/* rule there.
   return new Response(new Uint8Array(png), {
-    headers: {
-      'Content-Type': 'image/png',
-      'Cache-Control': 'public, max-age=31536000, immutable',
-    },
+    headers: { 'Content-Type': 'image/png' },
   });
 };

@@ -9,10 +9,13 @@ export const GET: APIRoute = async () => {
     title: 'Systems analysis for AI agents in production',
     seed: 7,
   });
+  // See src/pages/og/[...slug].png.ts for why no Cache-Control is set here —
+  // it's inert for a static response; the real policy is in public/_headers.
+  // Unlike the per-article images, this URL is never content-versioned (it's
+  // not tied to a single content entry), so it gets a short revalidating
+  // policy there, not `immutable` — its bytes DO change across a redeploy even
+  // though the URL stays the same.
   return new Response(new Uint8Array(png), {
-    headers: {
-      'Content-Type': 'image/png',
-      'Cache-Control': 'public, max-age=31536000, immutable',
-    },
+    headers: { 'Content-Type': 'image/png' },
   });
 };

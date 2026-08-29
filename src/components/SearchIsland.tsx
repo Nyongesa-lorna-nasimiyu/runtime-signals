@@ -57,6 +57,13 @@ function loadPagefind(): Promise<PagefindModule> {
   return pagefindLoadPromise;
 }
 
+// Filter UI (topic/author/series/date) is explicitly deferred, not silently
+// dropped: data-pagefind-filter attributes are already indexed (ArticleLayout.astro)
+// and pagefind.search() accepts a `filters` option against them, but no control
+// here exposes it yet. Flagged by external review of Checkpoint 2 — tracked
+// here rather than built speculatively; wire up when a real filtering need
+// appears (e.g. once /articles listing gets its own topic filter, the same
+// pattern extends naturally to search).
 export default function SearchIsland() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<{ url: string; title: string; excerpt: string }[]>([]);

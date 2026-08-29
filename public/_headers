@@ -34,3 +34,24 @@
   Permissions-Policy: camera=(), geolocation=(), microphone=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin-allow-popups
   Strict-Transport-Security: max-age=300; includeSubDomains
+
+# Cache-Control for a static response can ONLY be set here — a header set
+# inside an Astro static endpoint's Response (src/pages/og/[...slug].png.ts)
+# only affects the one-time build-time file generation and is discarded by the
+# time Cloudflare actually serves the file (confirmed with a real request
+# against `wrangler dev`, not assumed from Astro's docs). This block, not that
+# one, is the real, effective cache policy.
+#
+# /og/* is safe as `immutable`: each article/brief's image URL is
+# content-versioned by a `?v={updated_at}` query string (ArticleLayout.astro),
+# so a real revision gets a new cache key automatically rather than requiring
+# a stale cached image to expire — the same pattern Astro's own hashed
+# _astro/*.js assets already use.
+/og/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# /og-default.png is NOT content-versioned (it isn't tied to a single content
+# entry), so its bytes can change across a redeploy at the same URL —
+# `immutable` here would risk exactly the staleness bug this fix addresses.
+/og-default.png
+  Cache-Control: public, max-age=3600, must-revalidate

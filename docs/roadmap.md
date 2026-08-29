@@ -19,15 +19,15 @@ Gate: user approval of masthead/domain pursuit, architecture, hosting, and newsl
 
 ## Phase 2 - product foundation
 
-- Create the TypeScript/Astro workspace and pinned toolchain.
-- Build design tokens, typography, responsive layout, theme, landmarks, and article chrome.
-- Add typed content collections, Markdown renderer, source records, claim validation, slug collision checks, and redirects.
-- Add routes for home, articles, topics, series, authors, sources, about, methodology, policy, and 404.
-- Generate metadata, JSON-LD, sitemap, robots, RSS, Atom, OG images, and print styles.
-- Add search index foundation; keep initial search client-side/static if content volume is small.
-- Add tests for rendering, metadata, feeds, structured data, links, accessibility, and mobile layouts.
+- Create the TypeScript/Astro workspace and pinned toolchain. **Done** (checkpoint 1).
+- Build design tokens, typography, responsive layout, theme, landmarks, and article chrome. **Done** (checkpoint 1; hardened with cascade layers, `light-dark()`, touch targets in checkpoint 2).
+- Add typed content collections, Markdown renderer, source records, claim validation, slug collision checks, and redirects. **Done** (checkpoint 1) - redirects specifically not yet exercised (no content has moved URLs yet to test against).
+- Add routes for home, articles, topics, series, authors, sources, about, methodology, policy, and 404. **Done** (checkpoint 1).
+- Generate metadata, JSON-LD, sitemap, robots, RSS, Atom, OG images, and print styles. **Done** - OG images and print styles landed in checkpoint 2; everything else in checkpoint 1.
+- Add search index foundation; keep initial search client-side/static if content volume is small. **Done**: Pagefind, lazy-loaded on `/search` only, `client:idle`. Filter metadata (topic/author/series/date) is indexed but has no UI controls yet - explicitly deferred, not silently dropped; see `docs/poc/README.md`.
+- Add tests for rendering, metadata, feeds, structured data, links, accessibility, and mobile layouts. **Done**: unit, a11y (axe), CSP, print, and draft-exclusion black-box tests all real and passing. Not yet done: visual regression baselines and fixture-scale (100/1k/5k document) testing.
 
-Gate: preview inspected at mobile and desktop sizes; quality gates green.
+Gate: preview inspected at mobile and desktop sizes; quality gates green. Still open before this gate is fully satisfied: fixture scaling, the real GitHub Actions approval/deployment workflow (a Phase 2 launch-blocker item, tracked in `docs/research/architecture-research-report.md`), and visual regression baselines.
 
 ## Phase 3 - editorial and advanced features
 

@@ -1,8 +1,14 @@
 # Local non-production proofs of concept
 
-Date: 2026-08-28
+Date: 2026-08-28. Updated 2026-08-29: the Astro workspace now exists (Phase 2
+checkpoints 1-2) and all four POCs originally deferred below are complete —
+see "POCs completed once the Astro workspace existed." This file was left
+claiming "the repository is currently documentation-only" for a full
+checkpoint after that stopped being true; caught by external review, not
+by re-reading this file after each checkpoint, which is now the standing
+practice.
 
-The repository is currently documentation-only, so these POCs deliberately use no external accounts, APIs, secrets, or real subscriber data.
+These POCs still deliberately use no external accounts, APIs, secrets, or real subscriber data.
 
 ## Run
 
@@ -20,12 +26,17 @@ node --test docs/poc/newsletter-contracts/provider.test.mjs docs/poc/publication
 - `publication-gate/validate.test.mjs`: tests that content validation (schema shape, timing) and authorization (a CI-generated approval manifest keyed by commit SHA, required checks, CODEOWNERS, deployment-environment authorization) are independent checks - a forged frontmatter approval field has no effect, and approval tied to an old commit SHA is rejected once content changes.
 - `scheduled-publish/idempotency.test.mjs`: proves the scheduled-build snapshot in `docs/architecture/data-flows.md` ("Scheduled publication") is a pure, order-independent function of `(records, approvalManifest, now)`. Rerunning it later with no change yields an identical artifact hash (safe no-op redeploy); a future-dated record is picked up automatically once its time passes; and - the case the first version of this POC missed - editing a record's body/title/sources without changing `canonical` or `published_at` changes the hash via `content_digest`, so a silent content edit cannot be mistaken for a no-op and skipped.
 
-## POCs explicitly deferred to Phase 2
+## POCs completed once the Astro workspace existed
 
-The original research brief also asked for proofs on Astro Content Collection schema validation, draft-content exclusion from the real search index, real Pagefind index generation, and analytics-script performance impact. These four are deferred, not silently dropped, because the repository has no Astro workspace, Content Collections schema, or chosen analytics script yet - there is nothing real to measure. Each is picked up in Phase 2 once the corresponding scaffold exists:
+All four originally deferred here are done, against the real thing, not a simulation:
 
-- Content Collection validation and draft exclusion: as soon as `src/content/config.ts` exists (Phase 2, "typed content collections").
-- Real Pagefind index generation and size: as soon as the Astro build produces real HTML (Phase 2 gate).
-- Analytics script performance impact: once ADR-0003 is approved and Cloudflare Web Analytics' actual beacon script is added.
+- **Content Collection schema validation**: `src/content.config.ts`'s zod schema is live; `tests/unit/claims.test.ts` proves the "supported/mixed claim needs a source" rule in isolation, and a real invalid fixture was committed, built with `astro check` (rejected with the exact expected error), then removed - a manual verification, documented in the Phase 2 checkpoint report rather than kept as a standing test, since `astro:content` inside plain `vitest run` is a documented-flaky combination (see `tests/integration/README.md`).
+- **Draft/future/unapproved-content exclusion**: `scripts/verify-draft-exclusion.mjs` is a real black-box check against `dist/` after a real `astro build` - not a mock. It's proven to actually catch a regression, not just pass: the sitemap-exclusion bug an external review found was confirmed to make this script fail before the fix, and pass after.
+- **Real Pagefind index generation and size**: `scripts/measure-pagefind-index.mjs` measures the actual `dist/pagefind/` output post-build. Current fixture volume (2 articles, 1 brief): content data (`pf_fragment`+`pf_index`+`pf_meta`) is ~21 KB gzip; total including the search engine runtime itself is ~281 KB gzip. Still needs re-measuring at realistic archive size - see "Remaining: fixture scaling" below.
+- **Analytics-script performance impact**: `scripts/measure-analytics-script.mjs` fetches Cloudflare Web Analytics' real, public `beacon.min.js` (no account created, no data sent) - 9.5 KB gzip as served, not the ~5 KB budget assumed when ADR-0003 was written.
+
+## Remaining: fixture scaling
+
+Not yet done: re-running `measure-pagefind-index.mjs` and a full `astro build` timing measurement against synthetic archives of 100, 1,000, and 5,000 documents, which is what ADR-0001's migration boundary (1-2 MB compressed search payload) is actually measured against. Tracked as an open Checkpoint 2 item, not silently dropped.
 
 Record Node version, output, and fixture commit in the eventual implementation report.

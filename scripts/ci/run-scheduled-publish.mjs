@@ -10,6 +10,7 @@
 // matter how long ago that merge happened.
 import { writeFileSync } from 'node:fs';
 import { readEditorialRecords } from '../lib/content-status.mjs';
+import { getCommitSha, withSpan } from '../lib/otel.mjs';
 import { contentDueSince, shouldTriggerDeploy } from './schedule-decision.mjs';
 
 const repo = process.env.GITHUB_REPOSITORY;
@@ -71,31 +72,52 @@ async function lastSuccessfulRunWatermark(now) {
 }
 
 async function main() {
-  const now = new Date();
-  const watermark = await lastSuccessfulRunWatermark(now);
-  const records = readEditorialRecords();
-  const due = contentDueSince(records, watermark, now);
-  const willDeploy = shouldTriggerDeploy(records, watermark, now);
+  await withSpan(
+    'publish.scheduled_check',
+    {
+      'vcs.commit.sha': getCommitSha(),
+      'ci.repository': repo,
+    },
+    async (span) => {
+      const now = new Date();
+      const watermark = await lastSuccessfulRunWatermark(now);
+      const records = readEditorialRecords();
+      const due = contentDueSince(records, watermark, now);
+      const willDeploy = shouldTriggerDeploy(records, watermark, now);
 
-  const audit = {
-    watermark: watermark.toISOString(),
-    now: now.toISOString(),
-    due_keys: due.map((r) => r.key),
-    triggered_deploy: willDeploy,
-  };
-  writeFileSync(auditPath, `${JSON.stringify(audit, null, 2)}\n`);
+      const audit = {
+        watermark: watermark.toISOString(),
+        now: now.toISOString(),
+        due_keys: due.map((r) => r.key),
+        triggered_deploy: willDeploy,
+      };
+      span.setAttribute('publication.due_count', due.length);
+      span.setAttribute('publication.deploy_triggered', willDeploy);
+      writeFileSync(auditPath, `${JSON.stringify(audit, null, 2)}\n`);
 
-  if (!willDeploy) {
-    console.log(`Nothing due between ${audit.watermark} and ${audit.now}. No-op.`);
-    return;
-  }
+      if (!willDeploy) {
+        console.log(`Nothing due between ${audit.watermark} and ${audit.now}. No-op.`);
+        return;
+      }
 
-  console.log(`Newly due since ${audit.watermark}: ${due.map((r) => r.key).join(', ')}`);
-  await githubApi('/actions/workflows/deploy.yml/dispatches', {
-    method: 'POST',
-    body: JSON.stringify({ ref: 'main' }),
-  });
-  console.log('Dispatched deploy.yml against main.');
+      console.log(`Newly due since ${audit.watermark}: ${due.map((r) => r.key).join(', ')}`);
+      await withSpan(
+        'publish.deploy_dispatch',
+        {
+          'ci.repository': repo,
+          'github.workflow': 'deploy.yml',
+          'github.ref': 'main',
+          'boundary.kind': 'outbound_trigger',
+        },
+        () =>
+          githubApi('/actions/workflows/deploy.yml/dispatches', {
+            method: 'POST',
+            body: JSON.stringify({ ref: 'main' }),
+          }),
+      );
+      console.log('Dispatched deploy.yml against main.');
+    },
+  );
 }
 
 main().catch((err) => {

@@ -14,10 +14,10 @@ export async function resolveAuthorNames(entry: Editorial): Promise<string[]> {
   return authors.map((a) => a.data.name);
 }
 
-export async function resolveSeriesNames(entry: Editorial): Promise<string[]> {
+export async function resolveSeries(entry: Editorial): Promise<{ id: string; name: string }[]> {
   if (entry.data.series.length === 0) return [];
   const series = await getEntries(entry.data.series);
-  return series.map((s) => s.data.name);
+  return series.map((s) => ({ id: s.id, name: s.data.name }));
 }
 
 const STRENGTH_ORDER = ['supported', 'mixed', 'inference', 'opinion'] as const;

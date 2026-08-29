@@ -174,3 +174,76 @@
     animation: var(--animation-reduced) !important;
   }
 }
+
+/* Print. Unlayered (like the rest of this file after @layer utilities) so it
+   reliably overrides both layered rules and component-scoped Astro styles for
+   the print context specifically - a reader printing an article (the
+   plausible case for this audience: a technical piece worth keeping on
+   paper) gets the article, not the site chrome around it. */
+@media print {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+
+  .site-header,
+  .site-footer,
+  .skip-link,
+  .search-island,
+  .signal-trace,
+  .log__count,
+  [data-pagefind-ui] {
+    display: none !important;
+  }
+
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  /* Only external links get their URL spelled out - internal navigation
+     links are meaningless once off-screen, and this would otherwise print a
+     runtimesignals.tech URL after every single internal link on the page. */
+  a[href^='http']:not([href*='runtimesignals.tech'])::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.85em;
+    color: #333;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  pre,
+  .evidence-tag,
+  img,
+  figure {
+    break-inside: avoid;
+  }
+
+  pre {
+    white-space: pre-wrap;
+    border: 1px solid #999;
+  }
+
+  .evidence-tag {
+    border-color: #000 !important;
+    color: #000 !important;
+  }
+
+  .evidence-tag::before {
+    background: #000 !important;
+  }
+
+  .article__archived-notice {
+    border-color: #000;
+    background: none;
+  }
+}

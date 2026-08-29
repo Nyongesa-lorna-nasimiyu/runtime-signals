@@ -9,12 +9,12 @@ interface Props {
   entry: CollectionEntry<'articles'> | CollectionEntry<'briefs'>;
   authorNames: string[];
   topicNames: string[];
-  seriesNames?: string[];
+  series?: { id: string; name: string }[];
   sourceTitles: { id: string; title: string; url: string }[];
   archived: boolean;
 }
 
-const { entry, authorNames, topicNames, seriesNames = [], sourceTitles, archived } = Astro.props;
+const { entry, authorNames, topicNames, series = [], sourceTitles, archived } = Astro.props;
 const { title, dek, published_at, updated_at, claims, seo } = entry.data;
 const path = entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief/${entry.id}`;
 const sectionLabel = entry.collection === 'articles' ? 'Articles' : 'Brief';
@@ -82,13 +82,15 @@ const jsonLd = [
         }
       </div>
       {
-        seriesNames.length > 0 && (
+        series.length > 0 && (
           <p class="article__series">
             Part of{' '}
-            {seriesNames.map((name, i) => (
+            {series.map((s, i) => (
               <>
                 {i > 0 && ', '}
-                <span data-pagefind-filter="series">{name}</span>
+                <a href={`/series/${s.id}`} data-pagefind-filter="series">
+                  {s.name}
+                </a>
               </>
             ))}
           </p>
@@ -182,8 +184,7 @@ const jsonLd = [
     margin: var(--space-2) 0 0;
   }
 
-  .article__series a,
-  .article__series span[data-pagefind-filter] {
+  .article__series a {
     color: var(--signal);
   }
 

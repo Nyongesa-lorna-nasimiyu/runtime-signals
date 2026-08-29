@@ -2,7 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import ArticleLayout from '@/layouts/ArticleLayout.astro';
 import { getRoutableEntries, isArchived } from '@/lib/publication';
-import { resolveAuthorNames, resolveTopicNames, resolveSeriesNames } from '@/lib/resolve';
+import { resolveAuthorNames, resolveTopicNames, resolveSeries } from '@/lib/resolve';
 import { getEntries } from 'astro:content';
 import { Callout, Figure } from '@/components/mdx';
 
@@ -20,10 +20,10 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const [authorNames, topicNames, seriesNames, sourceEntries] = await Promise.all([
+const [authorNames, topicNames, series, sourceEntries] = await Promise.all([
   resolveAuthorNames(entry),
   resolveTopicNames(entry),
-  resolveSeriesNames(entry),
+  resolveSeries(entry),
   getEntries(entry.data.citations),
 ]);
 const sourceTitles = sourceEntries.map((s) => ({ id: s.id, title: s.data.title, url: s.data.url }));
@@ -33,7 +33,7 @@ const sourceTitles = sourceEntries.map((s) => ({ id: s.id, title: s.data.title, 
   entry={entry}
   authorNames={authorNames}
   topicNames={topicNames}
-  seriesNames={seriesNames}
+  series={series}
   sourceTitles={sourceTitles}
   archived={isArchived(entry)}
 >

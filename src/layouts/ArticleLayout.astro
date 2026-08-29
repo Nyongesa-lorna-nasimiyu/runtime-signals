@@ -422,9 +422,15 @@ const jsonLd = [
     gap: var(--space-3);
   }
 
+  /* WCAG 2.5.8 (Target Size, Minimum) AA - same --touch-target-min pattern
+     used site-wide (e.g. Header.astro's nav links): min-inline/block-size,
+     not width/height, so it can grow but never shrinks below 24px, even
+     though the visible tick mark itself stays a slim 2px line. */
   .article__rail-tick {
-    display: block;
-    padding: var(--space-1) 0;
+    display: flex;
+    align-items: center;
+    min-inline-size: var(--touch-target-min);
+    min-block-size: var(--touch-target-min);
   }
 
   .article__rail-mark {

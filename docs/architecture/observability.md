@@ -49,3 +49,17 @@ npm run verify:otel
 ```
 
 CI scripts require their existing GitHub environment variables and permissions. Their OTel spans add no new credentials or API calls.
+
+## Langfuse
+
+Langfuse is explicitly out of scope for this checkpoint. It is reserved for
+future AI-assisted editorial work, consistent with the
+[editorial automation policy](../editorial/automation-policy.md), which requires
+AI execution telemetry to remain separate from web and runtime telemetry and
+keeps provider records authoritative for billing.
+
+If Langfuse instrumentation is added later, it must use its own tracer and
+pipeline. It must never be layered onto the existing tracer in
+[`scripts/lib/otel.mjs`](../../scripts/lib/otel.mjs) or merged into the
+interaction-event contract in [`src/lib/analytics.ts`](../../src/lib/analytics.ts),
+per [ADR-0003](../adr/0003-analytics-platform.md).

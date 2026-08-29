@@ -4,10 +4,11 @@ import ArticleLayout from '@/layouts/ArticleLayout.astro';
 import { getRoutableEntries, isArchived } from '@/lib/publication';
 import { resolveAuthorNames, resolveTopicNames, resolveSeries } from '@/lib/resolve';
 import { Callout, Figure } from '@/components/mdx';
+import { BUILD_TIME } from '@/lib/build-time';
 
 export async function getStaticPaths() {
   const briefs = await getCollection('briefs');
-  const routable = getRoutableEntries(briefs);
+  const routable = getRoutableEntries(briefs, BUILD_TIME);
   return routable.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 

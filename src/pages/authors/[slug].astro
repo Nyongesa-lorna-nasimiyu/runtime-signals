@@ -5,6 +5,7 @@ import ArticleCard from '@/components/ArticleCard.astro';
 import { getPublishedEntries } from '@/lib/publication';
 import { resolveTopicNames, weakestEvidence, articlePath } from '@/lib/resolve';
 import { profilePageJsonLd } from '@/lib/seo';
+import { BUILD_TIME } from '@/lib/build-time';
 
 export async function getStaticPaths() {
   const authors = await getCollection('authors');
@@ -13,7 +14,7 @@ export async function getStaticPaths() {
 
 const { author } = Astro.props;
 const [articles, briefs] = await Promise.all([getCollection('articles'), getCollection('briefs')]);
-const live = getPublishedEntries([...articles, ...briefs]).filter((entry) =>
+const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME).filter((entry) =>
   entry.data.authors.some((ref) => ref.id === author.id),
 );
 const cards = await Promise.all(

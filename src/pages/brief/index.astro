@@ -4,9 +4,10 @@ import ArticleCard from '@/components/ArticleCard.astro';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
 import { resolveTopicNames, weakestEvidence, articlePath } from '@/lib/resolve';
+import { BUILD_TIME } from '@/lib/build-time';
 
 const briefs = await getCollection('briefs');
-const live = getPublishedEntries(briefs);
+const live = getPublishedEntries(briefs, BUILD_TIME);
 const cards = await Promise.all(
   live.map(async (entry) => ({
     path: articlePath(entry),

@@ -3,13 +3,14 @@ import type { APIContext } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
 import { articlePath } from '@/lib/resolve';
+import { BUILD_TIME } from '@/lib/build-time';
 
 export async function GET(context: APIContext) {
   const [articles, briefs] = await Promise.all([
     getCollection('articles'),
     getCollection('briefs'),
   ]);
-  const live = getPublishedEntries([...articles, ...briefs]);
+  const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
 
   return rss({
     title: 'Runtime Signals',

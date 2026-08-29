@@ -2,6 +2,11 @@
 dist/
 .astro/
 
+# wrangler local dev state (miniflare SQLite cache/observability state from
+# `wrangler dev` / scripts/verify-security-headers.mjs) - local emulation
+# state, not source.
+.wrangler/
+
 # dependencies
 node_modules/
 

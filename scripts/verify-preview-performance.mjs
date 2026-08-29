@@ -47,6 +47,23 @@ const LIGHTHOUSE_CONFIG = {
 };
 const auditPath = process.env.PREVIEW_PERF_AUDIT_PATH ?? 'preview-performance.json';
 
+// docs/adr/0003-analytics-platform.md's Phase-1 research cites these as the
+// site's Core Web Vitals targets (web.dev, 75th-percentile real-user
+// measurement). This check is a synthetic/lab budget, not a literal
+// enforcement of that RUM percentile - a single Lighthouse run is one
+// measurement, not a distribution - but the same numeric thresholds are the
+// right budget to hold a lab run to: if a single unthrottled lab run can't
+// clear the number real users are supposed to hit at their 75th percentile,
+// that's a real regression worth catching before it ships. INP itself has no
+// lab equivalent (it requires a real user interaction to measure); Total
+// Blocking Time is the standard Lighthouse lab proxy for input
+// responsiveness, so it's checked against the same 200ms budget as INP.
+const CWV_BUDGETS = {
+  lcpMs: 2500,
+  clsScore: 0.1,
+  tbtMs: 200,
+};
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -83,22 +100,49 @@ try {
       { port: chrome.port, output: 'json', onlyCategories: ['performance'], logLevel: 'error' },
       LIGHTHOUSE_CONFIG,
     );
-    const score = runnerResult.lhr.categories.performance.score;
-    results.push({ route, score });
+    const { audits, categories } = runnerResult.lhr;
+    results.push({
+      route,
+      score: categories.performance.score,
+      lcpMs: audits['largest-contentful-paint'].numericValue,
+      clsScore: audits['cumulative-layout-shift'].numericValue,
+      tbtMs: audits['total-blocking-time'].numericValue,
+    });
   }
 
   writeFileSync(
     auditPath,
-    `${JSON.stringify({ minRequired: MIN_PERFORMANCE_SCORE, results }, null, 2)}\n`,
+    `${JSON.stringify({ minRequired: MIN_PERFORMANCE_SCORE, budgets: CWV_BUDGETS, results }, null, 2)}\n`,
   );
 
-  const failures = results.filter((r) => r.score === null || r.score < MIN_PERFORMANCE_SCORE);
+  const failures = [];
+  for (const r of results) {
+    if (r.score === null || r.score < MIN_PERFORMANCE_SCORE) {
+      failures.push(`${r.route}: performance score ${r.score} (minimum ${MIN_PERFORMANCE_SCORE})`);
+    }
+    if (r.lcpMs > CWV_BUDGETS.lcpMs) {
+      failures.push(`${r.route}: LCP ${r.lcpMs.toFixed(0)}ms (budget ${CWV_BUDGETS.lcpMs}ms)`);
+    }
+    if (r.clsScore > CWV_BUDGETS.clsScore) {
+      failures.push(`${r.route}: CLS ${r.clsScore.toFixed(3)} (budget ${CWV_BUDGETS.clsScore})`);
+    }
+    if (r.tbtMs > CWV_BUDGETS.tbtMs) {
+      failures.push(
+        `${r.route}: TBT ${r.tbtMs.toFixed(0)}ms (budget ${CWV_BUDGETS.tbtMs}ms, INP proxy)`,
+      );
+    }
+  }
+
   if (failures.length > 0) {
-    console.error(`Performance verification FAILED (minimum ${MIN_PERFORMANCE_SCORE}):`);
-    for (const f of failures) console.error(`  - ${f.route}: ${f.score}`);
+    console.error('Performance verification FAILED:');
+    for (const f of failures) console.error(`  - ${f}`);
     process.exitCode = 1;
   } else {
-    for (const r of results) console.log(`${r.route}: performance score ${r.score}`);
+    for (const r of results) {
+      console.log(
+        `${r.route}: score ${r.score}, LCP ${r.lcpMs.toFixed(0)}ms, CLS ${r.clsScore.toFixed(3)}, TBT ${r.tbtMs.toFixed(0)}ms`,
+      );
+    }
   }
 } finally {
   try {

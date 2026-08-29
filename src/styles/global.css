@@ -41,7 +41,7 @@ a:not(.unstyled-link) {
   text-decoration: none;
 }
 
-/* Visible keyboard focus everywhere — never suppressed. */
+/* Visible keyboard focus everywhere - never suppressed. */
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
@@ -119,13 +119,27 @@ a:not(.unstyled-link) {
   border: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* Per-element reduced-motion override point. A blanket
+   `animation-duration: 0.01ms !important` on * is a known anti-pattern — it can
+   make some animations MORE jarring (an instant snap) rather than calmer. Any
+   future animation should define its own `--animation-reduced` fallback
+   alongside the real one (see the guidance's Motion & Preferences section),
+   e.g.: `.spinner { animation: spin 1s linear infinite; --animation-reduced: none; }` */
+@property --animation-reduced {
+  syntax: '*';
+  inherits: false;
+  initial-value: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation: var(--animation-reduced) !important;
   }
 }

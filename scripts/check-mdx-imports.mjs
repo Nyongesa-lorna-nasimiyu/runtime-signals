@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // Enforces docs/security/threat-model.md's MDX mitigation: "Trusted-author boundary;
 // Markdown default; allow-list components." Astro/MDX does not sandbox `import`
-// statements inside .mdx content — anything importable in the project is
+// statements inside .mdx content - anything importable in the project is
 // importable from an .mdx file. So the boundary is a build-time allow-list check,
 // not a runtime sandbox: only relative imports of the components explicitly
 // exported from src/components/mdx/ (or side-effect-free relative CSS imports) may
 // appear in content .mdx files. This is intentionally an allow-list, not a
-// deny-list — anything not explicitly permitted fails the build.
+// deny-list - anything not explicitly permitted fails the build.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 
@@ -53,7 +53,7 @@ for (const file of files) {
 }
 
 if (violations.length > 0) {
-  console.error('MDX import allow-list violation(s) — see docs/security/threat-model.md:');
+  console.error('MDX import allow-list violation(s) - see docs/security/threat-model.md:');
   for (const v of violations) {
     console.error(
       `  ${v.file}: import "${v.spec}" is not in src/components/mdx/ and is not a relative stylesheet.`,

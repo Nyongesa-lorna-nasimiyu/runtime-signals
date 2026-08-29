@@ -18,7 +18,7 @@ Snapshot date: 2026-08-28. Prices are indicative and must be rechecked before pu
 
 - **Prototype**: $0–$15/month plus domain, using free tiers and local builds.
 - **Early production**: $5–$75/month, adding a paid Worker route, email or analytics features, and a hosted telemetry backend if required.
-- **Growing publication**: $100–$300/month, driven primarily by newsletter list size, analytics, build minutes, and optional search/AI processing—not static page delivery.
+- **Growing publication**: $100–$300/month, driven primarily by newsletter list size, analytics, build minutes, and optional search/AI processing-not static page delivery.
 
 ## Cost controls
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Black-box draft/future/unapproved-content exclusion check against the REAL build
-// output in dist/ — not a mock. Run after `npm run build`. This is the concrete
+// output in dist/ - not a mock. Run after `npm run build`. This is the concrete
 // "draft-leak test" the Phase 2 checkpoint calls for: it inspects what actually got
 // written to disk, not what the source code claims it does.
 import { existsSync, readFileSync } from 'node:fs';
@@ -32,18 +32,18 @@ const mustNotExist = [
 let failures = [];
 
 for (const [rel, label] of mustExist) {
-  if (!existsSync(join(DIST, rel))) failures.push(`MISSING (should exist): ${rel} — ${label}`);
+  if (!existsSync(join(DIST, rel))) failures.push(`MISSING (should exist): ${rel} - ${label}`);
 }
 for (const [rel, label] of mustNotExist) {
-  if (existsSync(join(DIST, rel))) failures.push(`LEAKED (must not exist): ${rel} — ${label}`);
+  if (existsSync(join(DIST, rel))) failures.push(`LEAKED (must not exist): ${rel} - ${label}`);
 }
 
 // The archived piece must drop out of the active listing, home feed, RSS, Atom, AND
-// the sitemap — even though its own page still exists. The sitemap check was
+// the sitemap - even though its own page still exists. The sitemap check was
 // previously missing entirely: this script claimed sitemap exclusion without ever
 // having checked it, and @astrojs/sitemap crawls every emitted route by default, so
 // the archived article was actually leaking into the real sitemap. Caught by
-// external review, not by this script — fixed by actually checking it now.
+// external review, not by this script - fixed by actually checking it now.
 const surfacesThatMustExcludeArchived = [
   'articles/index.html',
   'index.html',

@@ -4,7 +4,7 @@ import { isApproved, loadApprovalManifest, type ApprovalManifest } from './appro
 type Editorial = CollectionEntry<'articles'> | CollectionEntry<'briefs'>;
 
 /**
- * publication_state content-shape and timing check only — status and
+ * publication_state content-shape and timing check only - status and
  * published_at <= now. This is deliberately independent of authorization; see
  * canPublish() below and docs/architecture/content-model.md ("Two state machines").
  * `scheduled` content becomes live once its time passes without any write-back to
@@ -24,7 +24,7 @@ export function isArchived<T extends Editorial>(entry: T): boolean {
   return entry.data.status === 'archived';
 }
 
-/** A URL should exist at all — live or archived — but never for draft or
+/** A URL should exist at all - live or archived - but never for draft or
  * not-yet-due scheduled content. This is the boundary getStaticPaths uses. */
 export function isRoutable<T extends Editorial>(entry: T, now: Date = new Date()): boolean {
   return isPubliclyLive(entry, now) || isArchived(entry);
@@ -33,7 +33,7 @@ export function isRoutable<T extends Editorial>(entry: T, now: Date = new Date()
 /**
  * The full publication gate: content is shaped and timed correctly (isPubliclyLive)
  * AND a CI approval-manifest entry authorizes the exact commit (isApproved). Neither
- * check alone is sufficient — see docs/poc/publication-gate/validate.test.mjs for
+ * check alone is sufficient - see docs/poc/publication-gate/validate.test.mjs for
  * the property tests this mirrors.
  */
 export function canPublish<T extends Editorial>(

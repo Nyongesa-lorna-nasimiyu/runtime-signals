@@ -35,13 +35,13 @@ resolved but never restated, or the reason a prior attempt failed.
 
 Treating a handoff as string concatenation hides the state boundary. Nothing forces an author to
 enumerate what must survive the handoff, so it's easy to lose exactly the information a recovery
-path needs — often only visible after a retry silently redoes work the first attempt already
+path needs - often only visible after a retry silently redoes work the first attempt already
 completed.
 
 ## The invariant
 
-A handoff is a state transfer with a boundary. Anything the next step needs — completed
-sub-results, open constraints, failure history — has to be part of an explicit transfer contract,
+A handoff is a state transfer with a boundary. Anything the next step needs - completed
+sub-results, open constraints, failure history - has to be part of an explicit transfer contract,
 not an implicit assumption about what the transcript will happen to contain.
 
 ## The practice
@@ -50,6 +50,28 @@ Define the transfer contract as a typed structure, not a prompt string: what mus
 what's optional, and what a receiving step should do if a required field is missing. This mirrors
 how OpenTelemetry standardizes what a GenAI span records, rather than leaving span attributes to
 whatever a given SDK happens to log.
+
+A minimal version of that contract, enforced rather than assumed:
+
+```typescript
+interface HandoffState {
+  completedSubResults: Record<string, unknown>;
+  openConstraints: string[];
+  priorFailure?: { step: string; reason: string };
+}
+
+function receiveHandoff(state: Partial<HandoffState>): HandoffState {
+  if (!state.completedSubResults) {
+    throw new Error(
+      'Handoff rejected: completedSubResults is required, not inferred from transcript.',
+    );
+  }
+  return { openConstraints: [], ...state, completedSubResults: state.completedSubResults };
+}
+```
+
+The receiving step fails loudly on a missing required field instead of silently guessing from
+whatever the transcript happens to contain.
 
 ## Limitations
 

@@ -24,12 +24,12 @@ An article cannot publish unless all checks pass and protected-branch review is 
 
 ## Approval representation
 
-The authoritative approval is a merged PR whose required checks include `publication-gate` and whose branch protection requires the appropriate CODEOWNERS reviewers. Frontmatter can express intent (`status: scheduled`) but cannot grant permission — the build never reads an `approval` or similar boolean out of content frontmatter, because anyone who can edit content can set it.
+The authoritative approval is a merged PR whose required checks include `publication-gate` and whose branch protection requires the appropriate CODEOWNERS reviewers. Frontmatter can express intent (`status: scheduled`) but cannot grant permission - the build never reads an `approval` or similar boolean out of content frontmatter, because anyone who can edit content can set it.
 
 Concretely, the gate is two independent checks that must both pass, and only the second is authorization:
 
-1. **Content validation** (`isContentValid` / `isPublishable` in `docs/poc/publication-gate/validate.mjs`): schema-shape and timing only — status, required fields, source presence, `published_at <= now`. This can run on any commit, including an unreviewed one, and proves nothing about permission to publish.
-2. **Authorization** (`isApproved`): checked only against a CI-generated approval manifest keyed by canonical URL, containing the exact reviewed `commit_sha`, required-check-run result, CODEOWNERS approval, and deployment-environment authorization. It is never derived from the record's own frontmatter. If content is edited after approval (a new commit SHA), the manifest entry for the old SHA no longer matches and the record is excluded until re-reviewed — see `docs/poc/scheduled-publish/idempotency.test.mjs` ("content edited after approval is excluded until the manifest is updated for the new commit").
+1. **Content validation** (`isContentValid` / `isPublishable` in `docs/poc/publication-gate/validate.mjs`): schema-shape and timing only - status, required fields, source presence, `published_at <= now`. This can run on any commit, including an unreviewed one, and proves nothing about permission to publish.
+2. **Authorization** (`isApproved`): checked only against a CI-generated approval manifest keyed by canonical URL, containing the exact reviewed `commit_sha`, required-check-run result, CODEOWNERS approval, and deployment-environment authorization. It is never derived from the record's own frontmatter. If content is edited after approval (a new commit SHA), the manifest entry for the old SHA no longer matches and the record is excluded until re-reviewed - see `docs/poc/scheduled-publish/idempotency.test.mjs` ("content edited after approval is excluded until the manifest is updated for the new commit").
 
 Store reviewer identities, PR number, commit SHA, check-run IDs, and deployment ID in the build manifest.
 

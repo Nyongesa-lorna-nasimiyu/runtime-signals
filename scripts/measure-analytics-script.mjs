@@ -3,7 +3,7 @@
 // impact of the script docs/adr/0003 recommends (Cloudflare Web Analytics), without
 // creating any account or embedding it. This fetches only the public, unauthenticated
 // beacon script Cloudflare serves to every site using the product and reports its
-// transfer size — no analytics account, token, or site ID is involved or needed.
+// transfer size - no analytics account, token, or site ID is involved or needed.
 import https from 'node:https';
 
 const URL = 'https://static.cloudflareinsights.com/beacon.min.js';
@@ -39,7 +39,7 @@ const result = {
   as_served_encoding: compressed.contentEncoding,
   budget_kb: BUDGET_KB,
   within_budget: compressed.bytes <= BUDGET_KB * 1024,
-  note: 'Fetched the public beacon script directly; no analytics account created or data sent. Does not measure main-thread/render-blocking impact — that requires a real page load trace, deferred to when ADR-0003 is actually instrumented.',
+  note: 'Fetched the public beacon script directly; no analytics account created or data sent. Does not measure main-thread/render-blocking impact - that requires a real page load trace, deferred to when ADR-0003 is actually instrumented.',
 };
 
 console.log(JSON.stringify(result, null, 2));

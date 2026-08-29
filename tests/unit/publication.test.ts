@@ -74,7 +74,7 @@ describe('isArchived / isRoutable', () => {
   });
 });
 
-describe('canPublish — content validity and authorization are both required', () => {
+describe('canPublish - content validity and authorization are both required', () => {
   it('is false when live content has no matching manifest entry', () => {
     const e = entry({ status: 'published', published_at: new Date('2020-01-01') });
     expect(canPublish(e, {}, NOW)).toBe(false);
@@ -99,7 +99,7 @@ describe('canPublish — content validity and authorization are both required', 
 
   it('is true when content is live and the manifest authorizes the exact (uncommitted-fixture) sha', () => {
     // A nonexistent filePath makes git report no history for it, which
-    // commitShaForFile treats as 'uncommitted' — a deterministic, git-independent
+    // commitShaForFile treats as 'uncommitted' - a deterministic, git-independent
     // value this test can match against.
     const e = entry({
       status: 'published',

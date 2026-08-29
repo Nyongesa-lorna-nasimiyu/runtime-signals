@@ -28,7 +28,7 @@ Scores are 1–5, where 5 is strongest. “Domain” is an availability signal, 
 
 ## Shortlist
 
-### 1. Runtime Signals — recommended
+### 1. Runtime Signals - recommended
 
 Why: it sounds like an engineering publication, not a generated SaaS product; it can cover traces, reliability, orchestration, routing, and operations; and it gives the visual identity a useful signal/trace vocabulary. `runtimesignals.tech` had no RDAP record on 2026-08-28. Use the descriptor “Engineering the systems behind reliable AI agents” to remove ambiguity.
 

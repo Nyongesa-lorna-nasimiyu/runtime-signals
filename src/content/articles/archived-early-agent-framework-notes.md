@@ -7,7 +7,7 @@ authors: [jordan-avery]
 topics: [orchestration]
 published_at: 2026-03-01T07:00:00Z
 updated_at: 2026-07-01T07:00:00Z
-revision_note: Archived — superseded by later pieces; kept for the stable URL.
+revision_note: Archived - superseded by later pieces; kept for the stable URL.
 reading_time_minutes: 4
 claims: []
 ---

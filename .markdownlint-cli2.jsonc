@@ -1,5 +1,5 @@
 {
-  // Structural checks only — deliberately lenient on style/formatting, since
+  // Structural checks only - deliberately lenient on style/formatting, since
   // docs/ is intentionally kept outside Prettier's reach (.prettierignore) for its
   // hand-formatted research tables. This checks the things that indicate a
   // genuinely malformed document (broken heading hierarchy, two H1s, a table that
@@ -8,7 +8,7 @@
     "default": false,
     "MD001": true, // heading levels increment by one, not skip
     "MD003": true, // consistent heading style within a document
-    "MD018": true, // "#Heading" — missing space after hash
+    "MD018": true, // "#Heading" - missing space after hash
     "MD022": true, // headings surrounded by blank lines
     "MD023": true, // headings start at the line's beginning
     "MD025": true, // single top-level heading per document

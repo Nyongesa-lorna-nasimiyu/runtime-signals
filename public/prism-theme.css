@@ -1,0 +1,83 @@
+/*
+  A bespoke, token-driven Prism theme - not a third-party stylesheet - so code
+  blocks use the same "signal paper" palette as everything else (src/styles/tokens.css)
+  and read as part of one system rather than a pasted-in default. Class-based only,
+  no inline styles, which is the whole reason Prism replaced Shiki: see
+  astro.config.mjs and docs/security/secrets-and-access.md.
+
+  This file is loaded once, globally (BaseLayout.astro), because any page's
+  fenced code block needs it and it's small (~1.5KB uncompressed).
+*/
+
+code[class*='language-'],
+pre[class*='language-'] {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  text-shadow: none;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: var(--ink-muted);
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: var(--evidence-mixed);
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: var(--evidence-supported);
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: var(--ink-muted);
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: var(--signal);
+}
+
+.token.function,
+.token.class-name {
+  color: var(--evidence-inference);
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: var(--evidence-mixed);
+}
+
+.token.important,
+.token.bold {
+  font-weight: 600;
+}
+
+.token.italic {
+  font-style: italic;
+}

@@ -22,7 +22,7 @@ const allJsonLd = [websiteJsonLd(), ...jsonLd];
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} — Runtime Signals</title>
+    <title>{title} - Runtime Signals</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
@@ -37,6 +37,17 @@ const allJsonLd = [websiteJsonLd(), ...jsonLd];
     <link rel="alternate" type="application/rss+xml" title="Runtime Signals" href="/rss.xml" />
     <link rel="alternate" type="application/atom+xml" title="Runtime Signals" href="/atom.xml" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- Above-the-fold on every page (masthead, nav, hero) - preloaded per web
+         performance guidance; crossorigin is required even for same-origin fonts. -->
+    <link
+      rel="preload"
+      href="/fonts/jetbrains-mono-variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <!-- Class-based Prism theme, not Shiki's inline styles - see astro.config.mjs. -->
+    <link rel="stylesheet" href="/prism-theme.css" />
 
     {
       allJsonLd.map((entry) => (
@@ -48,9 +59,12 @@ const allJsonLd = [websiteJsonLd(), ...jsonLd];
     <a href="#main" class="skip-link">Skip to content</a>
     <Header />
     <!-- data-pagefind-body scopes indexing to real content, site-wide, so header
-         nav and footer chrome are never indexed — the gap an external review
+         nav and footer chrome are never indexed - the gap an external review
          caught (Pagefind had been indexing whole pages with 0 filters). -->
-    <main id="main" data-pagefind-body>
+    <!-- tabindex="-1": the skip link's target must be programmatically focusable
+         or clicking it scrolls here without actually moving keyboard focus, so
+         the next Tab press resumes from the skip link instead of from here. -->
+    <main id="main" data-pagefind-body tabindex="-1">
       <slot />
     </main>
     <Footer />

@@ -10,5 +10,5 @@ reading_time_minutes: 3
 claims: []
 ---
 
-This fixture exists to prove not-yet-due scheduled content never gets a public route — see
+This fixture exists to prove not-yet-due scheduled content never gets a public route - see
 tests/integration/draft-exclusion.test.ts and scripts/verify-draft-exclusion.mjs.

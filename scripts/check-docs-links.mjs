@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Internal-link validation for docs/ and README.md. Prettier is deliberately kept
 // off the hand-formatted research tables in docs/ (.prettierignore), but that
-// doesn't mean the decision pack should sit completely outside quality checks —
+// doesn't mean the decision pack should sit completely outside quality checks -
 // tracked as a gap by external review of Phase 2 checkpoint 1. This checks the one
 // thing that silently rots fastest as docs get renamed/moved: relative markdown
 // links pointing at a file that no longer exists.

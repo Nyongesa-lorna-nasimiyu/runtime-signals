@@ -2,7 +2,7 @@
 // Local development stand-in for the CI-generated approval manifest described in
 // docs/editorial/publication-gates.md. In real CI (docs/adr/0004), this file is
 // produced from GitHub's actual protected-branch review state, required check-run
-// results, CODEOWNERS approval, and deployment-environment authorization — never
+// results, CODEOWNERS approval, and deployment-environment authorization - never
 // from this script. This script exists only so `npm run build` produces a working
 // local site without a GitHub Actions pipeline yet. It trusts everything currently
 // committed, which is correct for local iteration and would be a critical bug in
@@ -61,5 +61,5 @@ for (const collection of COLLECTIONS) {
 
 writeFileSync(OUT_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
 console.log(
-  `Wrote ${Object.keys(manifest).length} entries to ${OUT_PATH} (local dev stand-in — not authoritative).`,
+  `Wrote ${Object.keys(manifest).length} entries to ${OUT_PATH} (local dev stand-in - not authoritative).`,
 );

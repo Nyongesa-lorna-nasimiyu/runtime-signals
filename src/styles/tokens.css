@@ -1,8 +1,8 @@
 /*
-  Design direction — "signal paper": a cool, precise engineering-notebook register,
+  Design direction - "signal paper": a cool, precise engineering-notebook register,
   not the warm-cream/serif or near-black/neon defaults. The one aesthetic risk is
   using a monospace face as the DISPLAY voice (headlines, eyebrows, nav) rather than
-  reserving it for code — appropriate for a publication literally named for signals
+  reserving it for code - appropriate for a publication literally named for signals
   and telemetry, read by engineers who live in monospace. Body copy stays a system
   serif for sustained long-form reading and zero font-loading cost.
 
@@ -18,7 +18,7 @@
 }
 
 :root {
-  /* Color — light (default) */
+  /* Color - light (default) */
   --paper: #f7f8fa;
   --paper-raised: #ffffff;
   --ink: #12161c;
@@ -29,7 +29,7 @@
   --signal-dim: #e8eefe;
   --focus-ring: #b6470a;
 
-  /* Evidence-strength semantics — these colors carry content meaning
+  /* Evidence-strength semantics - these colors carry content meaning
      (docs/architecture/content-model.md claim.evidence), not decoration. */
   --evidence-supported: #0f7a56;
   --evidence-mixed: #a3660a;

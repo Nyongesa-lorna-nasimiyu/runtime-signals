@@ -22,7 +22,7 @@ export async function resolveSeriesNames(entry: Editorial): Promise<string[]> {
 
 const STRENGTH_ORDER = ['supported', 'mixed', 'inference', 'opinion'] as const;
 
-/** The weakest-backed claim on the piece — a conservative signal to surface on a
+/** The weakest-backed claim on the piece - a conservative signal to surface on a
  * card, in keeping with docs/editorial/source-policy.md's evidence-first stance. */
 export function weakestEvidence(entry: Editorial): (typeof STRENGTH_ORDER)[number] | undefined {
   let weakest: (typeof STRENGTH_ORDER)[number] | undefined;

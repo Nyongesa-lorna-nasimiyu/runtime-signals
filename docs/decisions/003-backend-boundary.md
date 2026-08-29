@@ -10,7 +10,7 @@ Do not add Express or Convex to the first release. Use Astro build hooks and Git
 
 ## Rationale
 
-Express and Convex would each add a deployable service, secret boundary, runtime, and observability surface without a current requirement. The publication is static-first: reading, search (Pagefind), and the newsletter (provider-authoritative, per ADR-0002) all work without an application server or database. If a bounded dynamic need emerges that a static build and a Worker route cannot own — for example a local subscriber projection, an audit ledger, or a reconciliation queue — evaluate it against Cloudflare D1 first, not Convex, because D1's SQL export and Worker-native integration are simpler to keep portable. See ADR-0002 for the concrete comparison. Add Express only if a bounded need requires a long-running process or a runtime Workers cannot support.
+Express and Convex would each add a deployable service, secret boundary, runtime, and observability surface without a current requirement. The publication is static-first: reading, search (Pagefind), and the newsletter (provider-authoritative, per ADR-0002) all work without an application server or database. If a bounded dynamic need emerges that a static build and a Worker route cannot own - for example a local subscriber projection, an audit ledger, or a reconciliation queue - evaluate it against Cloudflare D1 first, not Convex, because D1's SQL export and Worker-native integration are simpler to keep portable. See ADR-0002 for the concrete comparison. Add Express only if a bounded need requires a long-running process or a runtime Workers cannot support.
 
 ## Note
 

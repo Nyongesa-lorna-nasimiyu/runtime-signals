@@ -1,5 +1,5 @@
 // Content validation and authorization are deliberately separate functions.
-// Frontmatter is author-controlled and can never grant approval — see
+// Frontmatter is author-controlled and can never grant approval - see
 // docs/editorial/publication-gates.md. isContentValid() only checks shape.
 // isApproved() only trusts a CI-generated approval manifest, keyed by canonical
 // URL, that must match the exact commit the record was built from.
@@ -20,7 +20,7 @@ export function isPublishable(record, now = new Date()) {
 // codeowners_approved, deployment_environment_authorized }>. This stands in for
 // the real artifact: a build-time manifest generated from protected-branch
 // review state, required check-run results, CODEOWNERS approval, and
-// deployment-environment authorization — never from the record itself.
+// deployment-environment authorization - never from the record itself.
 export function isApproved(record, approvalManifest) {
   const entry = approvalManifest instanceof Map
     ? approvalManifest.get(record.canonical)

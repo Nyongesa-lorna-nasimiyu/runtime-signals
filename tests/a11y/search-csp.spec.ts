@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // Proves the search island's Pagefind loader (public/search-loader.mjs, loaded via
 // a browser-native <script type="module" src>, never `new Function`/`eval`) works
-// under the site's real, always-on CSP — astro.config.mjs `security.csp`, which
+// under the site's real, always-on CSP - astro.config.mjs `security.csp`, which
 // Astro renders as a <meta> tag with hash-based allowances for its own inline
 // hydration scripts/styles plus an explicit resources entry for
 // /search-loader.mjs. No route interception needed: this is the actual policy
@@ -31,7 +31,7 @@ test('search works end to end under the site real CSP, with no unsafe-eval anywh
   const input = page.getByLabel('Search Runtime Signals');
   await input.fill('handoff');
   // "handoff" legitimately appears across several pages (the home feed teaser,
-  // topic hubs, the series page) — this asserts real results came back and the
+  // topic hubs, the series page) - this asserts real results came back and the
   // article that actually discusses the term ranks first, not an exact count.
   await expect(page.locator('.search-island__results li').first()).toBeVisible({ timeout: 10_000 });
   await expect(page.locator('.search-island__results a').first()).toHaveAttribute(

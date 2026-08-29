@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 // requires the search index and UI load "only on the search page or after
 // explicit focus," never on page load. The Pagefind runtime itself
 // (public path: /pagefind/pagefind.js, emitted by the postbuild step) is
-// loaded on first keystroke, not on mount — this component ships its own
+// loaded on first keystroke, not on mount - this component ships its own
 // small JS, but the actual search index/engine stays lazy.
 interface PagefindResult {
   id: string;
@@ -18,7 +18,7 @@ let pagefindLoadPromise: Promise<PagefindModule> | null = null;
 
 /**
  * Loads /pagefind/pagefind.js via a browser-native <script type="module" src>
- * pointed at public/search-loader.mjs (a genuinely static, un-bundled file) —
+ * pointed at public/search-loader.mjs (a genuinely static, un-bundled file) -
  * never via a bundler-visible import() or `new Function`/`eval`. This needs only
  * `script-src 'self'` under a restrictive CSP; it never requires `unsafe-eval`.
  * See public/search-loader.mjs for why a plain import() can't be used directly.
@@ -62,7 +62,7 @@ export default function SearchIsland() {
   const [results, setResults] = useState<{ url: string; title: string; excerpt: string }[]>([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   // A slower earlier query resolving after a faster later one must not overwrite
-  // fresher results — every request is tagged with a generation counter, and a
+  // fresher results - every request is tagged with a generation counter, and a
   // response is applied only if it's still the most recent request in flight.
   const requestGeneration = useRef(0);
 
@@ -130,7 +130,7 @@ export default function SearchIsland() {
           {results.map((r) => (
             <li key={r.url}>
               <a href={r.url}>{r.title}</a>
-              {/* Pagefind's own excerpt-generation API, not raw query/content —
+              {/* Pagefind's own excerpt-generation API, not raw query/content -
                   the exact boundary docs/adr/0001's XSS mitigation requires. */}
               <p dangerouslySetInnerHTML={{ __html: r.excerpt }} />
             </li>

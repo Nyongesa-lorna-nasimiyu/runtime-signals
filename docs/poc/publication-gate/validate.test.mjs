@@ -21,7 +21,7 @@ function manifestWith(overrides = {}) {
   }]]);
 }
 
-test('valid, scheduled, future-timed content is publishable content on its own — but not yet authorized', () => {
+test('valid, scheduled, future-timed content is publishable content on its own - but not yet authorized', () => {
   const now = new Date('2026-08-28T04:01:00Z');
   assert.equal(isPublishable(record, now), true);
   assert.equal(canPublish(record, new Map(), now), false);
@@ -36,7 +36,7 @@ test('malformed or draft or unsourced or future content fails content validation
   assert.equal(isContentValid({ ...record, title: '' }), false);
 });
 
-test('a frontmatter approval flag has no effect — approval only comes from the manifest', () => {
+test('a frontmatter approval flag has no effect - approval only comes from the manifest', () => {
   const now = new Date('2026-08-28T04:01:00Z');
   const forgedRecord = { ...record, approval: true, status_approved: true };
   assert.equal(canPublish(forgedRecord, new Map(), now), false);

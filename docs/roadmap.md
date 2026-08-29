@@ -1,6 +1,6 @@
 # Implementation roadmap and gates
 
-## Phase 1 — research and decisions
+## Phase 1 - research and decisions
 
 Deliverables complete in this repository:
 
@@ -17,7 +17,7 @@ Gate: user approval of masthead/domain pursuit, architecture, hosting, and newsl
 
 **Resolved 2026-08-28**: architecture, hosting, search (ADR-0001), analytics (ADR-0003), and editorial automation (ADR-0004) are accepted. Newsletter architecture (ADR-0002) is accepted; Buttondown as the specific provider remains conditional pending account-level verification. Brand/domain confirmation remains open. See `docs/research/phase-1-decision-pack.md` for the resolved/open split. Phase 2 may begin.
 
-## Phase 2 — product foundation
+## Phase 2 - product foundation
 
 - Create the TypeScript/Astro workspace and pinned toolchain.
 - Build design tokens, typography, responsive layout, theme, landmarks, and article chrome.
@@ -29,7 +29,7 @@ Gate: user approval of masthead/domain pursuit, architecture, hosting, and newsl
 
 Gate: preview inspected at mobile and desktop sizes; quality gates green.
 
-## Phase 3 — editorial and advanced features
+## Phase 3 - editorial and advanced features
 
 - Add a database-backed editorial queue and source/claim review metadata only if the Git-only workflow becomes a measured bottleneck.
 - Add preview tokens, scheduled build orchestration, revision history UI, SEO preview, duplicate-topic detection, and internal-link suggestions.
@@ -39,7 +39,7 @@ Gate: preview inspected at mobile and desktop sizes; quality gates green.
 
 Gate: no autonomous publishing; human approval remains mandatory.
 
-## Phase 4 — content and SEO launch
+## Phase 4 - content and SEO launch
 
 - Write five pillar pages.
 - Publish three complete launch articles plus the ten-brief backlog.
@@ -49,7 +49,7 @@ Gate: no autonomous publishing; human approval remains mandatory.
 
 Gate: launch checklist approved; email remains disabled until deliverability checks pass.
 
-## Phase 5 — production readiness
+## Phase 5 - production readiness
 
 - Dependency and supply-chain audit.
 - Threat-model review and preview/authentication test.

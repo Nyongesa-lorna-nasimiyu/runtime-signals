@@ -28,7 +28,7 @@ const cards = await Promise.all(
 >
   <section class="hero">
     <p class="eyebrow">
-      A publication about running AI agents like they'll fail — because they will
+      A publication about running AI agents like they'll fail - because they will
     </p>
     <h1 class="hero__title">Runtime Signals</h1>
     <p class="hero__thesis">
@@ -39,7 +39,7 @@ const cards = await Promise.all(
     <SignalTrace seed={3} class="hero__trace" />
   </section>
 
-  <section class="log" aria-labelledby="log-heading">
+  <section class="log">
     <div class="log__header">
       <h2 id="log-heading" class="eyebrow">Recent signals</h2>
       <span class="log__count">{cards.length} live</span>
@@ -47,7 +47,7 @@ const cards = await Promise.all(
     {
       cards.length === 0 ? (
         <p class="log__empty">
-          No approved, published pieces exist yet. This is expected at the Phase 2 checkpoint —
+          No approved, published pieces exist yet. This is expected at the Phase 2 checkpoint -
           content, review, and the CI approval manifest arrive together in Phase 4.
         </p>
       ) : (

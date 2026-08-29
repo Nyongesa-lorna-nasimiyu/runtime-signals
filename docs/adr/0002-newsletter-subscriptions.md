@@ -1,6 +1,6 @@
 # ADR-0002: Buttondown candidate with provider-authoritative subscribers
 
-- Status: Conditional — the provider-authoritative, no-local-DB, no-webhooks-at-launch architecture is accepted; Buttondown specifically remains a candidate pending account-level verification
+- Status: Conditional - the provider-authoritative, no-local-DB, no-webhooks-at-launch architecture is accepted; Buttondown specifically remains a candidate pending account-level verification
 - Date: 2026-08-28 (conditional acceptance 2026-08-28)
 - Approval state: Architecture accepted. Buttondown is not locked until the account-level checks in "Testing and launch checklist" are verified (current pricing/quotas/DPA at signup, exact 1k/10k subscriber cost, DNS authentication, consent/suppression behavior). If those checks fail, the architecture stands and Resend/Kit/MailerLite become the fallback candidate without changing this ADR's decision. No account, DNS, integration, or email sending authorized yet.
 
@@ -27,7 +27,7 @@ Lifecycle: anonymous → pending confirmation → confirmed/active → unsubscri
 
 Select Buttondown as the first candidate to validate, not as an accepted production dependency. Use its double-opt-in subscriber lifecycle. Do not maintain a local subscriber database at launch. The provider is authoritative; the site stores no email address after forwarding a valid signup. If a Worker form route is added, it returns a generic response, uses a provider adapter, and sends no email itself.
 
-**Do not accept provider webhooks at launch.** With no durable store and no local subscriber projection, a webhook receiver has nothing correctness-critical to update — Buttondown's own dashboard and lifecycle already reflect confirmation, unsubscribe, bounce, and complaint state, and a scheduled export/reconciliation (already required by this ADR's exit strategy) covers any operational need to see that state locally. Standing up a webhook endpoint before there is a durable, idempotent store to write into adds an unauthenticated-until-proven-otherwise public endpoint, a signature-verification and replay-defense surface, and an idempotency-key store — real engineering cost for no launch-time benefit. Reconsider only when a concrete requirement needs near-real-time reaction to a subscriber event (for example, gating access to something on confirmation status) that polling or scheduled export cannot satisfy; at that point, `docs/poc/newsletter-contracts/provider.test.mjs` already validates the signature/idempotency/replay contract the endpoint would need.
+**Do not accept provider webhooks at launch.** With no durable store and no local subscriber projection, a webhook receiver has nothing correctness-critical to update - Buttondown's own dashboard and lifecycle already reflect confirmation, unsubscribe, bounce, and complaint state, and a scheduled export/reconciliation (already required by this ADR's exit strategy) covers any operational need to see that state locally. Standing up a webhook endpoint before there is a durable, idempotent store to write into adds an unauthenticated-until-proven-otherwise public endpoint, a signature-verification and replay-defense surface, and an idempotency-key store - real engineering cost for no launch-time benefit. Reconsider only when a concrete requirement needs near-real-time reaction to a subscriber event (for example, gating access to something on confirmation status) that polling or scheduled export cannot satisfy; at that point, `docs/poc/newsletter-contracts/provider.test.mjs` already validates the signature/idempotency/replay contract the endpoint would need.
 
 Use a dedicated sending subdomain such as `mail.runtimesignals.tech` (exact label to be chosen before DNS work), with a root-domain reply-to address. This isolates newsletter reputation from the website. Configure SPF, DKIM, DMARC, Return-Path, and any tracking-domain records only after approval.
 
@@ -56,7 +56,7 @@ Negative: provider outage or API quota can block new signup but not reading; pro
 ## Risks
 
 - Subscription bombing: generic responses, IP/email rate limits, Turnstile only if abuse warrants it, provider double opt-in.
-- Forged/replayed webhooks: not applicable at launch — no webhook endpoint exists to attack (see Decision). If one is added later: raw-body HMAC verification, timestamp/event-ID dedupe, short timeout, no side effects before validation.
+- Forged/replayed webhooks: not applicable at launch - no webhook endpoint exists to attack (see Decision). If one is added later: raw-body HMAC verification, timestamp/event-ID dedupe, short timeout, no side effects before validation.
 - Suppression divergence: provider remains authoritative; scheduled export/reconciliation before campaigns.
 - API-key leakage: secret only in protected environment, least scope, rotation runbook, never client-side.
 - Enumeration: identical response and timing envelope for duplicate/new requests.
@@ -89,4 +89,4 @@ Launch-blocking (no webhook endpoint involved):
 
 Deferred until a webhook endpoint is actually built (not launch-blocking, per the no-webhooks-at-launch decision above):
 
-- Verify generic responses, idempotency, signature failure, replay, out-of-order events, retry, and provider outage — already covered as a contract test in `docs/poc/newsletter-contracts/provider.test.mjs`, to be re-run against the real endpoint before it goes live.
+- Verify generic responses, idempotency, signature failure, replay, out-of-order events, retry, and provider outage - already covered as a contract test in `docs/poc/newsletter-contracts/provider.test.mjs`, to be re-run against the real endpoint before it goes live.

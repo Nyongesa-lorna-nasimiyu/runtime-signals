@@ -1,5 +1,5 @@
 {
-  // Deployment configuration only — not deployed by this checkpoint. Validate locally
+  // Deployment configuration only - not deployed by this checkpoint. Validate locally
   // with `npm run wrangler:dry-run` (wrangler deploy --dry-run), which never publishes.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "runtime-signals",

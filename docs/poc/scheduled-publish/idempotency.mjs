@@ -8,8 +8,8 @@ import { canPublish } from '../publication-gate/validate.mjs';
 // change, must produce an identical artifact hash so a redeploy is a safe
 // no-op, not a duplicate publish.
 //
-// The hash covers the full deterministic build output per record — not just
-// canonical/published_at identity — because editing a title, body, sources, or
+// The hash covers the full deterministic build output per record - not just
+// canonical/published_at identity - because editing a title, body, sources, or
 // correction note without changing the publish timestamp must change the hash
 // and trigger a redeploy. `content_digest` stands in for the real hash Astro
 // would produce over the rendered article (title, body, sources, claims,

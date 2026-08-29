@@ -2,7 +2,7 @@
 
 Date: 2026-08-28
 
-Status: preparatory. This defines the procedure to follow if a security control fails; it does not authorize any action, account, or notification on its own. Distinct from `docs/operations/failure-modes.md` (routine external-dependency outages) and `docs/operations/external-service-runbook.md` (newsletter-provider-specific sequence) — this file covers security incidents: compromise, unauthorized access, or unauthorized publication.
+Status: preparatory. This defines the procedure to follow if a security control fails; it does not authorize any action, account, or notification on its own. Distinct from `docs/operations/failure-modes.md` (routine external-dependency outages) and `docs/operations/external-service-runbook.md` (newsletter-provider-specific sequence) - this file covers security incidents: compromise, unauthorized access, or unauthorized publication.
 
 ## Severity
 
@@ -25,12 +25,12 @@ Status: preparatory. This defines the procedure to follow if a security control 
 
 The primary mitigation and detection/recovery signal for each threat category already lives in `docs/security/threat-model.md`; this file is the procedure once that signal fires. In particular:
 
-- **GitHub account or token compromise**: force-rotate the credential, review recent audit-log actions by that identity, and redeploy from the last SHA known to predate the compromise window. A signed-commit history does not distinguish the attacker's actions from the legitimate user's — a stolen session can still produce GitHub-verified commits — so treat every action by the affected identity during the suspected window as untrusted until the audit log and out-of-band contact with the account owner say otherwise (see `docs/security/secrets-and-access.md`, "Account-compromise controls").
+- **GitHub account or token compromise**: force-rotate the credential, review recent audit-log actions by that identity, and redeploy from the last SHA known to predate the compromise window. A signed-commit history does not distinguish the attacker's actions from the legitimate user's - a stolen session can still produce GitHub-verified commits - so treat every action by the affected identity during the suspected window as untrusted until the audit log and out-of-band contact with the account owner say otherwise (see `docs/security/secrets-and-access.md`, "Account-compromise controls").
 - **Malicious PR or dependency merged**: revert the merge commit, redeploy the prior artifact, and re-run the supply-chain scanner before re-attempting the change through normal review.
 - **Forged or replayed webhook that was actually processed** (a bug bypassed HMAC/idempotency checks rather than the attacker guessing the secret): disable the webhook route immediately, audit which events were applied, and reconcile subscriber state from the provider rather than trusting the local projection.
-- **Accidental publication of draft or restricted content**: unpublish by redeploying the prior artifact (never a silent file delete against the live site), and treat the exposure window as public regardless of how quickly it was reverted — caches and crawlers may have already captured it.
+- **Accidental publication of draft or restricted content**: unpublish by redeploying the prior artifact (never a silent file delete against the live site), and treat the exposure window as public regardless of how quickly it was reverted - caches and crawlers may have already captured it.
 - **Secret committed to the repository**: rotate the secret immediately regardless of whether the branch was ever merged or public; a force-push or history rewrite does not un-expose a secret that was ever pushed.
 
 ## Escalation and communication
 
-At current team size (single maintainer/small team), "escalation" means the incident is recorded and, for SEV1/SEV2, the affected external party is notified: the newsletter provider (if subscriber data may be affected) or readers (if incorrect published content requires a correction notice per `docs/editorial/workflow.md`). Define a named on-call/owner and a second contact before any production account is activated — this is a launch blocker, not a Phase 1 deliverable, and is tracked in `docs/research/architecture-research-report.md` under launch blockers.
+At current team size (single maintainer/small team), "escalation" means the incident is recorded and, for SEV1/SEV2, the affected external party is notified: the newsletter provider (if subscriber data may be affected) or readers (if incorrect published content requires a correction notice per `docs/editorial/workflow.md`). Define a named on-call/owner and a second contact before any production account is activated - this is a launch blocker, not a Phase 1 deliverable, and is tracked in `docs/research/architecture-research-report.md` under launch blockers.

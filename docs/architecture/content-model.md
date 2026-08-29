@@ -30,7 +30,7 @@ kind: article # note | brief | deep-dive | tutorial | case-study
 title: Treat model handoff as distributed state transfer
 slug: model-handoff-as-distributed-state-transfer
 dek: A handoff is a state boundary, not a prompt concatenation trick.
-status: draft # scheduled | published | archived — see "Two state machines" below
+status: draft # scheduled | published | archived - see "Two state machines" below
 authors: [author.primary]
 topics: [orchestration, state]
 series: [agent-reliability-patterns]
@@ -74,10 +74,10 @@ Validate that relationship targets exist and that published claims have at least
 
 Earlier drafts of this document, `docs/editorial/workflow.md`, and the frontmatter example described overlapping states (`draft`, `in_review`, `approved`, `scheduled`, `published`, `updated`, `archived` in one place; `idea` through `archived` in another) with an undefined boundary between them. There are exactly two state machines, and neither one includes `approved`:
 
-- **`publication_state`** (this document; stored in the `status` frontmatter field): `draft → scheduled → published → archived`. This is what the reader-facing site and the build care about. A material edit to a `published` article does not change its `publication_state` — it stays `published` and the edit is recorded as a revision (`updated_at`, `revision_note`), not a state transition. Moving `draft`/`scheduled` → `published`, or any transition into `published`, requires the separate authorization check below; it is never a function of the `status` field alone.
+- **`publication_state`** (this document; stored in the `status` frontmatter field): `draft → scheduled → published → archived`. This is what the reader-facing site and the build care about. A material edit to a `published` article does not change its `publication_state` - it stays `published` and the edit is recorded as a revision (`updated_at`, `revision_note`), not a state transition. Moving `draft`/`scheduled` → `published`, or any transition into `published`, requires the separate authorization check below; it is never a function of the `status` field alone.
 - **`editorial_state`** (`docs/editorial/workflow.md`; tracked in the GitHub issue/PR/project, not frontmatter): the research-and-review workflow, `idea → researching → source-verified → outlined → drafting → technical-review → editorial-review → editorial-complete`, then a post-publication loop of `monitoring → update-required → revised → technical-review`. This tracks *who is doing what and why*; it has no authority over what the site serves.
 
-**Approval is neither state.** It is external CI evidence — protected-branch review, required check-run results, CODEOWNERS approval, and deployment-environment authorization, captured in a build-time approval manifest keyed by canonical URL and commit SHA (see `docs/editorial/publication-gates.md` and `docs/poc/publication-gate/validate.mjs`). `publication_state` can only advance into `published` when both `editorial_state` has reached `editorial-complete` *and* the approval manifest has a matching, fully-authorized entry for the exact commit being built. A `status: scheduled` frontmatter field expresses intent; it cannot grant permission.
+**Approval is neither state.** It is external CI evidence - protected-branch review, required check-run results, CODEOWNERS approval, and deployment-environment authorization, captured in a build-time approval manifest keyed by canonical URL and commit SHA (see `docs/editorial/publication-gates.md` and `docs/poc/publication-gate/validate.mjs`). `publication_state` can only advance into `published` when both `editorial_state` has reached `editorial-complete` *and* the approval manifest has a matching, fully-authorized entry for the exact commit being built. A `status: scheduled` frontmatter field expresses intent; it cannot grant permission.
 
 A correction does not erase history: it creates a revision record, keeps the stable URL, and adds a visible correction note, all while `publication_state` remains `published`.
 

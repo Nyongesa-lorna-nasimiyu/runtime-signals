@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-28 (accepted 2026-08-28)
-- Approval state: Accepted for Phase 2 implementation; no search service activated yet — implementation still follows the migration boundary, risks, and testing/launch checklist below
+- Approval state: Accepted for Phase 2 implementation; no search service activated yet - implementation still follows the migration boundary, risks, and testing/launch checklist below
 
 ## Context
 

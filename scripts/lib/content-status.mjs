@@ -1,5 +1,5 @@
 // A dependency-free frontmatter status scanner for use in astro.config.mjs, which
-// runs before Astro's content layer exists — `astro:content` isn't importable
+// runs before Astro's content layer exists - `astro:content` isn't importable
 // there, so this reads status/noindex directly off the frontmatter block instead
 // of duplicating the full zod schema. It only needs to answer one narrow question
 // ("should this URL be excluded from the sitemap?"), not validate content.

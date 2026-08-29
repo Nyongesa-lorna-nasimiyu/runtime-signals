@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-28 (accepted 2026-08-28)
-- Approval state: Accepted for Phase 2 implementation; no scheduled workflow or AI provider activated yet — automation still follows the risks, mitigations, and testing/launch checklist below
+- Approval state: Accepted for Phase 2 implementation; no scheduled workflow or AI provider activated yet - automation still follows the risks, mitigations, and testing/launch checklist below
 
 ## Context
 
@@ -32,7 +32,7 @@ Use LLMs only for source triage, metadata extraction, similarity hints, outline/
 
 ## Editorial state machine
 
-There are two state machines, not one, and `approved` is a value in neither — see `docs/architecture/content-model.md` ("Two state machines") for the full rationale. `editorial_state` (`docs/editorial/workflow.md`) tracks research and review: `idea → researching → source-verified → outlined → drafting → technical-review → editorial-review → editorial-complete`, then `monitoring → update-required → revised → technical-review`. `publication_state` (frontmatter `status`) tracks what the site serves: `draft → scheduled → published → archived`. The only bridge is the build-time approval manifest below — CI evidence, not a state either machine holds.
+There are two state machines, not one, and `approved` is a value in neither - see `docs/architecture/content-model.md` ("Two state machines") for the full rationale. `editorial_state` (`docs/editorial/workflow.md`) tracks research and review: `idea → researching → source-verified → outlined → drafting → technical-review → editorial-review → editorial-complete`, then `monitoring → update-required → revised → technical-review`. `publication_state` (frontmatter `status`) tracks what the site serves: `draft → scheduled → published → archived`. The only bridge is the build-time approval manifest below - CI evidence, not a state either machine holds.
 
 ## Evidence
 

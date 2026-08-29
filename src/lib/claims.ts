@@ -6,7 +6,7 @@ export interface ClaimLike {
 
 /**
  * The actual business rule behind src/content.config.ts's schema refinement,
- * extracted so it's testable without going through zod/astro:content — see
+ * extracted so it's testable without going through zod/astro:content - see
  * tests/unit/claims.test.ts and docs/editorial/source-policy.md ("mark inference,
  * opinion, and unresolved claims explicitly ... publication gates reject unresolved
  * markers").

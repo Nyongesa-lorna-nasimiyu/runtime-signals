@@ -5,14 +5,14 @@ import type { CollectionEntry } from 'astro:content';
 
 /**
  * The CI-generated approval-manifest boundary (docs/editorial/publication-gates.md,
- * "Approval representation"). Authorization is never read from content frontmatter —
+ * "Approval representation"). Authorization is never read from content frontmatter -
  * a record's own `status` only proves shape and timing (see isPubliclyLive in
  * publication.ts). This file is the only place that grants publication authority,
  * and it grants it only for the exact commit that was reviewed.
  *
  * In real CI (docs/adr/0004, "protected production environments"), this manifest is
  * generated from GitHub's actual protected-branch review state, required check-run
- * results, CODEOWNERS approval, and deployment-environment authorization — never
+ * results, CODEOWNERS approval, and deployment-environment authorization - never
  * written by a content author. Locally, with no CI yet, the build reads a checked-in
  * fixture (approval-manifest.local.json) that is explicitly documented as a
  * non-authoritative stand-in; see scripts/generate-approval-manifest.mjs.
@@ -55,7 +55,7 @@ export function manifestKeyFor(
  * unit-testable (tests/unit/approval.test.ts). True only if the manifest has an
  * entry for this exact key, tied to the exact commit that was reviewed (so an edit
  * after approval invalidates it until the manifest is regenerated for the new
- * commit — the property docs/poc/scheduled-publish/idempotency.test.mjs proves),
+ * commit - the property docs/poc/scheduled-publish/idempotency.test.mjs proves),
  * and every trust signal is true.
  */
 export function isApprovedFor(
@@ -76,7 +76,7 @@ export function isApprovedFor(
 /**
  * True only if the manifest authorizes this exact content record for its actual,
  * git-derived commit SHA. A forged `approval: true` in frontmatter has no code path
- * into this function — the schema in src/content.config.ts doesn't even accept such
+ * into this function - the schema in src/content.config.ts doesn't even accept such
  * a field.
  */
 export function isApproved(

@@ -71,7 +71,7 @@ flowchart LR
 
 ## Two state machines: editorial_state and publication_state
 
-`approved` is not a state in either machine — see `docs/architecture/content-model.md` ("Two state machines"). `editorial_state` tracks research/review readiness; `publication_state` tracks what the site serves. The only bridge between them is the approval manifest, which is neither state: it is CI evidence (protected-branch review, required checks, CODEOWNERS, deployment-environment authorization) for one exact commit.
+`approved` is not a state in either machine - see `docs/architecture/content-model.md` ("Two state machines"). `editorial_state` tracks research/review readiness; `publication_state` tracks what the site serves. The only bridge between them is the approval manifest, which is neither state: it is CI evidence (protected-branch review, required checks, CODEOWNERS, deployment-environment authorization) for one exact commit.
 
 ```mermaid
 stateDiagram-v2

@@ -3,11 +3,11 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { findClaimsMissingSources } from './lib/claims';
 
-// publication_state — the only reader-facing lifecycle. See
+// publication_state - the only reader-facing lifecycle. See
 // docs/architecture/content-model.md ("Two state machines"). There is no `approved`
 // value here: authorization is never a frontmatter field. It comes only from the
 // build-time approval manifest cross-checked in src/lib/approval.ts against each
-// file's actual git commit SHA — a value this schema deliberately does not accept
+// file's actual git commit SHA - a value this schema deliberately does not accept
 // from frontmatter, because anything accepted here is author-controlled.
 const publicationState = z.enum(['draft', 'scheduled', 'published', 'archived']);
 
@@ -28,7 +28,7 @@ const seo = z
   })
   .default({ noindex: false });
 
-// Shared shape for articles and briefs — both are long-form, reviewed, cited
+// Shared shape for articles and briefs - both are long-form, reviewed, cited
 // editorial content per docs/architecture/content-model.md's entity inventory.
 const editorialFields = {
   title: z.string().min(1),
@@ -113,7 +113,7 @@ const series = defineCollection({
 });
 
 // This is the published, reader-facing source record (used for citations and
-// /sources/{slug} pages) — a smaller shape than the pre-publication research
+// /sources/{slug} pages) - a smaller shape than the pre-publication research
 // source card in docs/editorial/workflow.md, which tracks discovery/dedupe state
 // in GitHub issues, not this collection.
 const sources = defineCollection({

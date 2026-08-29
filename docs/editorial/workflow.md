@@ -2,7 +2,7 @@
 
 Date: 2026-08-28
 
-This document defines `editorial_state`: the research-and-review workflow only. It is tracked in the GitHub issue/PR/project, not in content frontmatter, and it has no authority to publish anything. The separate, reader-facing `publication_state` (`draft → scheduled → published → archived`) and the authorization boundary between the two live in `docs/architecture/content-model.md` ("Two state machines") and `docs/editorial/publication-gates.md`. In particular: reaching `editorial-complete` here is necessary but not sufficient for publication — the build-time approval manifest (protected-branch review, required checks, CODEOWNERS, deployment-environment authorization) must independently authorize the exact commit before `publication_state` can move to `published`.
+This document defines `editorial_state`: the research-and-review workflow only. It is tracked in the GitHub issue/PR/project, not in content frontmatter, and it has no authority to publish anything. The separate, reader-facing `publication_state` (`draft → scheduled → published → archived`) and the authorization boundary between the two live in `docs/architecture/content-model.md` ("Two state machines") and `docs/editorial/publication-gates.md`. In particular: reaching `editorial-complete` here is necessary but not sufficient for publication - the build-time approval manifest (protected-branch review, required checks, CODEOWNERS, deployment-environment authorization) must independently authorize the exact commit before `publication_state` can move to `published`.
 
 ## States and ownership
 

@@ -11,7 +11,7 @@ How a reviewer sees a rendered PR before merging, and what's deliberately not bu
 1. Builds the site at the PR's head commit with `PREVIEW_BUILD=true`.
 2. Verifies metadata across every page (`scripts/verify-preview-metadata.mjs`): title, description, canonical URL, Open Graph tags, and JSON-LD are all present and non-empty.
 3. Runs the existing accessibility suite (`npm run test:a11y`, axe-core) against the build.
-4. Runs a real Lighthouse performance audit (`scripts/verify-preview-performance.mjs`) against two representative routes - the homepage and one article - requiring a performance score of at least 0.85.
+4. Runs a real Lighthouse performance audit (`scripts/verify-preview-performance.mjs`) against two representative routes - the homepage and one article - requiring a performance score of at least 0.85 and, since Phase 3 Checkpoint 2, explicit Core Web Vitals budgets (see below).
 5. Uploads the built `dist/` and the performance audit JSON as short-lived (7-day) GitHub Actions artifacts.
 
 This is separate from `publication-gate.yml`, which already runs `npm run build` on every PR but only to prove the build succeeds - it never inspects or exposes the output itself. `pr-preview.yml` is what lets a reviewer actually look at the rendered result.
@@ -34,4 +34,10 @@ Rather than fake a preview URL or silently skip this requirement, the workflow i
 
 ## Performance budget
 
-0.85 minimum Lighthouse performance score, not a stricter 0.9+, because this is the first real performance gate this project has had - there was no prior baseline to calibrate a tighter number against. It already fails a genuine regression while leaving room to tighten once real scores across more routes and more content exist. Only the `performance` category is checked; accessibility is deliberately left to the dedicated axe-core suite rather than also asserted from Lighthouse's own (differently-tuned) accessibility audit, to avoid two tools disagreeing on the same question.
+0.85 minimum Lighthouse performance score, not a stricter 0.9+, because this is the first real performance gate this project had - there was no prior baseline to calibrate a tighter number against. It already fails a genuine regression while leaving room to tighten once real scores across more routes and more content exist. Only the `performance` category is checked; accessibility is deliberately left to the dedicated axe-core suite rather than also asserted from Lighthouse's own (differently-tuned) accessibility audit, to avoid two tools disagreeing on the same question.
+
+## Core Web Vitals budgets
+
+Alongside the aggregate score, `scripts/verify-preview-performance.mjs` asserts three specific metrics against the targets `docs/adr/0003-analytics-platform.md`'s Phase-1 research cites (web.dev's 75th-percentile real-user targets): LCP ≤ 2500ms, CLS ≤ 0.1, and Total Blocking Time ≤ 200ms as the lab proxy for INP (INP itself requires a real user interaction and has no lab equivalent).
+
+This is a synthetic/lab budget, not a literal enforcement of that real-user percentile - a single unthrottled Lighthouse run is one measurement, not a distribution. But it's the right number to hold a lab run to: if a single run on a quiet CI runner can't clear the budget real users are supposed to hit at their 75th percentile, that's a regression worth catching before it ships, not after. The full per-route numbers are written to the uploaded `preview-performance-<number>` artifact alongside the aggregate score.

@@ -5,9 +5,4 @@
 # branch-protection setting already enforced it, which requires this file to
 # be real and that setting to be enabled).
 #
-# PLACEHOLDER — replace before this becomes functional. No real GitHub
-# username exists in this project's context to fill in here; fabricating one
-# would be worse than leaving this file inert. Replace @REPLACE-ME with the
-# actual maintainer's GitHub username (or a team) before creating the GitHub
-# repository and enabling branch protection.
-* @REPLACE-ME
+* @Nyongesa-lorna-nasimiyu

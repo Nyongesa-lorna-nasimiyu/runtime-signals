@@ -12,10 +12,19 @@ interface Props {
   topicNames: string[];
   series?: { id: string; name: string }[];
   sourceTitles: { id: string; title: string; url: string }[];
+  artifactTitles: { id: string; title: string; url: string; kind: string }[];
   archived: boolean;
 }
 
-const { entry, authorNames, topicNames, series = [], sourceTitles, archived } = Astro.props;
+const {
+  entry,
+  authorNames,
+  topicNames,
+  series = [],
+  sourceTitles,
+  artifactTitles,
+  archived,
+} = Astro.props;
 const { title, dek, published_at, revisions, claims, seo } = entry.data;
 const path = entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief/${entry.id}`;
 const sectionLabel = entry.collection === 'articles' ? 'Articles' : 'Brief';
@@ -63,7 +72,7 @@ const jsonLd = [
   jsonLd={jsonLd}
   ogImagePath={ogImagePath}
 >
-  <article class="article">
+  <article class="article" data-slug={entry.id} data-topics={JSON.stringify(topicNames)}>
     <header class="article__header">
       <p class="eyebrow">
         {
@@ -196,6 +205,26 @@ const jsonLd = [
     }
 
     {
+      artifactTitles.length > 0 && (
+        <section class="article__artifacts">
+          <h2 id="artifacts-heading" class="eyebrow">
+            Artifacts
+          </h2>
+          <ol class="article__artifacts-list">
+            {artifactTitles.map((artifact) => (
+              <li>
+                <a href={artifact.url} data-artifact-id={artifact.id}>
+                  {artifact.title}
+                </a>{' '}
+                <span class="article__artifact-kind">({artifact.kind})</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
+    {
       sourceTitles.length > 0 && (
         <section class="article__sources">
           <h2 id="sources-heading" class="eyebrow">
@@ -213,6 +242,41 @@ const jsonLd = [
     }
   </article>
 </BaseLayout>
+
+<script>
+  // ADR-0003's bounded interaction-event contract (see the 2026-08-29
+  // amendment) - article_view fires once per page load, engaged_read is
+  // wired up (sampled, time-plus-depth gated) by initEngagedRead itself, and
+  // artifact_open fires on a real click of a real artifact link, not
+  // speculatively.
+  //
+  // Reads slug/topics from the .article element's data attributes rather
+  // than Astro's define:vars: define:vars forces the script into a
+  // non-module inline IIFE, which cannot contain a top-level `import` -
+  // confirmed by inspecting real build output, where an earlier version of
+  // this script rendered as a plain (non-module) inline <script> containing
+  // a literal `import` statement, which would have thrown
+  // "Cannot use import statement outside a module" in a real browser. A
+  // genuine <script type="module"> (this one) is bundled normally by Astro/
+  // Vite, so the import below resolves correctly.
+  import { track, initEngagedRead } from '@/lib/analytics';
+
+  const articleEl = document.querySelector('.article');
+  const slug = articleEl?.getAttribute('data-slug');
+  const topics = JSON.parse(articleEl?.getAttribute('data-topics') ?? '[]');
+
+  if (slug) {
+    track({ name: 'article_view', properties: { slug, topics } });
+    initEngagedRead(slug);
+  }
+
+  for (const link of document.querySelectorAll('.article__artifacts-list a[data-artifact-id]')) {
+    link.addEventListener('click', () => {
+      const artifactId = link.getAttribute('data-artifact-id');
+      if (artifactId) track({ name: 'artifact_open', properties: { artifactId } });
+    });
+  }
+</script>
 
 <style>
   .article {
@@ -294,6 +358,7 @@ const jsonLd = [
 
   .article__claims,
   .article__revisions,
+  .article__artifacts,
   .article__sources {
     margin-top: var(--space-7);
     padding-top: var(--space-5);
@@ -302,12 +367,19 @@ const jsonLd = [
 
   .article__claims-list,
   .article__revisions-list,
+  .article__artifacts-list,
   .article__sources-list {
     padding-left: 0;
     list-style: none;
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
+  }
+
+  .article__artifact-kind {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
   }
 
   .article__claims-list li,
@@ -347,6 +419,7 @@ const jsonLd = [
     color: var(--evidence-supported);
   }
 
+  .article__artifacts-list,
   .article__sources-list {
     list-style: decimal;
     padding-left: 1.25em;

@@ -21,13 +21,20 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const [authorNames, topicNames, series, sourceEntries] = await Promise.all([
+const [authorNames, topicNames, series, sourceEntries, artifactEntries] = await Promise.all([
   resolveAuthorNames(entry),
   resolveTopicNames(entry),
   resolveSeries(entry),
   getEntries(entry.data.citations),
+  getEntries(entry.data.artifacts),
 ]);
 const sourceTitles = sourceEntries.map((s) => ({ id: s.id, title: s.data.title, url: s.data.url }));
+const artifactTitles = artifactEntries.map((a) => ({
+  id: a.id,
+  title: a.data.title,
+  url: a.data.url,
+  kind: a.data.kind,
+}));
 ---
 
 <ArticleLayout
@@ -36,6 +43,7 @@ const sourceTitles = sourceEntries.map((s) => ({ id: s.id, title: s.data.title, 
   topicNames={topicNames}
   series={series}
   sourceTitles={sourceTitles}
+  artifactTitles={artifactTitles}
   archived={isArchived(entry)}
 >
   <Content components={{ Callout, Figure }} />

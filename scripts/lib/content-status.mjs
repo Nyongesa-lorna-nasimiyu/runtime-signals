@@ -17,6 +17,11 @@ function isArchivedOrNoindex(frontmatter) {
   return false;
 }
 
+function frontmatterField(frontmatter, field) {
+  const match = frontmatter.match(new RegExp(`^${field}:\\s*(.+?)\\s*$`, 'm'));
+  return match ? match[1].replace(/^["']|["']$/g, '') : undefined;
+}
+
 /**
  * Returns the set of route paths (e.g. "/articles/foo") that must never appear in
  * the sitemap: archived content (kept routable for its stable URL per
@@ -46,4 +51,34 @@ export function excludedSitemapPaths(contentRoot = 'src/content') {
     }
   }
   return excluded;
+}
+
+/**
+ * Every article/brief's status and published_at, read directly off
+ * frontmatter for the same reason excludedSitemapPaths does: this runs in
+ * scripts/ci/run-scheduled-publish.mjs, outside Astro's content layer, and
+ * only needs two fields, not full schema validation.
+ */
+export function readEditorialRecords(contentRoot = 'src/content') {
+  const records = [];
+  const collections = ['articles', 'briefs'];
+  for (const dir of collections) {
+    let files = [];
+    try {
+      files = readdirSync(join(contentRoot, dir));
+    } catch {
+      continue;
+    }
+    for (const file of files) {
+      if (!['.md', '.mdx'].includes(extname(file))) continue;
+      const id = file.slice(0, -extname(file).length);
+      const source = readFileSync(join(contentRoot, dir, file), 'utf-8');
+      const frontmatter = frontmatterBlock(source);
+      const status = frontmatterField(frontmatter, 'status');
+      const publishedAtRaw = frontmatterField(frontmatter, 'published_at');
+      if (!status || !publishedAtRaw) continue;
+      records.push({ key: `${dir}/${id}`, status, published_at: new Date(publishedAtRaw) });
+    }
+  }
+  return records;
 }

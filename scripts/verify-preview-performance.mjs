@@ -27,6 +27,24 @@ const ROUTES = ['/', '/articles/model-handoff-as-distributed-state-transfer/'];
 // against), and 0.85 already fails a genuine regression while leaving room
 // to tighten once a real baseline of scores across routes exists.
 const MIN_PERFORMANCE_SCORE = 0.85;
+// Lighthouse's default mobile profile simulates a slow CPU/network via a
+// throttling *multiplier* applied to real measured timing - which means any
+// CI-runner CPU contention gets amplified, not just added. Confirmed for
+// real: PR #6 scored a perfect 1.0 on both routes; an unrelated docs-only PR
+// (#8) scored 0.78 on the homepage minutes later, on the same code. Using
+// `throttlingMethod: 'provided'` (measure actual observed timing, no
+// simulated slowdown) instead of the default `simulate` removes that
+// amplification - appropriate here since this is a small static site being
+// measured for real regressions, not modeled against an average mobile
+// user's real-world network.
+const LIGHTHOUSE_CONFIG = {
+  extends: 'lighthouse:default',
+  settings: {
+    throttlingMethod: 'provided',
+    formFactor: 'desktop',
+    screenEmulation: { disabled: true },
+  },
+};
 const auditPath = process.env.PREVIEW_PERF_AUDIT_PATH ?? 'preview-performance.json';
 
 function sleep(ms) {
@@ -60,12 +78,11 @@ try {
   const results = [];
   for (const route of ROUTES) {
     const url = `${DIST_URL}${route}`;
-    const runnerResult = await lighthouse(url, {
-      port: chrome.port,
-      output: 'json',
-      onlyCategories: ['performance'],
-      logLevel: 'error',
-    });
+    const runnerResult = await lighthouse(
+      url,
+      { port: chrome.port, output: 'json', onlyCategories: ['performance'], logLevel: 'error' },
+      LIGHTHOUSE_CONFIG,
+    );
     const score = runnerResult.lhr.categories.performance.score;
     results.push({ route, score });
   }

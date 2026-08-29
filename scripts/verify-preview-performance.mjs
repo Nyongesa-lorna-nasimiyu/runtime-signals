@@ -89,6 +89,6 @@ try {
   } catch {
     server.kill();
   }
-  await chrome?.kill();
+  chrome?.kill();
   process.exit(process.exitCode ?? 0);
 }

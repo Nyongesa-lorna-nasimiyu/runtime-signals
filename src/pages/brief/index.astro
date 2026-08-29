@@ -10,6 +10,7 @@ const briefs = await getCollection('briefs');
 const live = getPublishedEntries(briefs, BUILD_TIME);
 const cards = await Promise.all(
   live.map(async (entry) => ({
+    id: entry.id,
     path: articlePath(entry),
     title: entry.data.title,
     dek: entry.data.dek,

@@ -4,6 +4,7 @@ import EvidenceTag from '@/components/EvidenceTag.astro';
 import SignalTrace from '@/components/SignalTrace.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
 import { latestRevisionDate } from '@/lib/resolve';
+import { spanId } from '@/lib/span-id';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -74,16 +75,19 @@ const jsonLd = [
 >
   <article class="article" data-slug={entry.id} data-topics={JSON.stringify(topicNames)}>
     <header class="article__header">
-      <p class="eyebrow">
-        {
-          topicNames.map((name, i) => (
-            <>
-              {i > 0 && ' · '}
-              <span data-pagefind-filter="topic">{name}</span>
-            </>
-          ))
-        }
-      </p>
+      <div class="article__meta-row">
+        <p class="eyebrow">
+          {
+            topicNames.map((name, i) => (
+              <>
+                {i > 0 && ' · '}
+                <span data-pagefind-filter="topic">{name}</span>
+              </>
+            ))
+          }
+        </p>
+        <span class="span-id" aria-hidden="true">{spanId(entry.id)}</span>
+      </div>
       <h1 class="article__title">{title}</h1>
       <p class="article__dek">{dek}</p>
       <div class="article__byline">
@@ -283,6 +287,13 @@ const jsonLd = [
     max-width: var(--content-width);
     margin: 0 auto;
     padding: var(--space-6) var(--space-5) var(--space-9);
+  }
+
+  .article__meta-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
   }
 
   .article__title {

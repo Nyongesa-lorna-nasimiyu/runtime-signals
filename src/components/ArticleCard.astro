@@ -2,7 +2,10 @@
 // Styled as a structured log line - the genuine reverse-chronological, timestamped
 // shape of the content earns this treatment (see the hero's rationale in
 // src/pages/index.astro), not decoration for its own sake.
+import { spanId } from '@/lib/span-id';
+
 interface Props {
+  id: string;
   path: string;
   title: string;
   dek: string;
@@ -11,7 +14,8 @@ interface Props {
   dominantEvidence?: 'supported' | 'mixed' | 'inference' | 'opinion';
   archived?: boolean;
 }
-const { path, title, dek, publishedAt, topics, dominantEvidence, archived = false } = Astro.props;
+const { id, path, title, dek, publishedAt, topics, dominantEvidence, archived = false } =
+  Astro.props;
 const dateLabel = publishedAt.toISOString().slice(0, 10);
 ---
 
@@ -29,7 +33,10 @@ const dateLabel = publishedAt.toISOString().slice(0, 10);
       }
       {archived && <span class="signal-entry__archived">archived</span>}
     </div>
-    <h3 class="signal-entry__title">{title}</h3>
+    <h3 class="signal-entry__title">
+      <span class="span-id signal-entry__span-id" aria-hidden="true">{spanId(id)}</span>
+      {title}
+    </h3>
     <p class="signal-entry__dek">{dek}</p>
   </a>
 </article>
@@ -72,6 +79,12 @@ const dateLabel = publishedAt.toISOString().slice(0, 10);
     line-height: var(--leading-tight);
     margin: 0 0 var(--space-1);
     font-weight: 600;
+  }
+
+  .signal-entry__span-id {
+    margin-right: var(--space-2);
+    font-size: var(--text-xs);
+    vertical-align: 0.1em;
   }
   .signal-entry:hover .signal-entry__title {
     color: var(--signal);

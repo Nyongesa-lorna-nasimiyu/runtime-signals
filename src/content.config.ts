@@ -28,6 +28,22 @@ const seo = z
   })
   .default({ noindex: false });
 
+// A revision is a real, dated event after initial publication - not a single
+// "last updated" field. docs/architecture/content-model.md: "a correction does
+// not erase history: it creates a revision record, keeps the stable URL, and
+// adds a visible correction note." `type` distinguishes a factual correction
+// (something was wrong) from a routine update (something was added/refreshed) -
+// docs/corrections.astro and docs/editorial-policy.astro both describe this as
+// a real distinction, not just two labels for the same thing. published_at
+// already anchors "when this first went live," so revisions[] holds only
+// what happened after that - an article with no revisions has never been
+// touched since it published.
+const revision = z.object({
+  date: z.coerce.date(),
+  note: z.string().min(1),
+  type: z.enum(['correction', 'update']).default('update'),
+});
+
 // Shared shape for articles and briefs - both are long-form, reviewed, cited
 // editorial content per docs/architecture/content-model.md's entity inventory.
 const editorialFields = {
@@ -38,8 +54,7 @@ const editorialFields = {
   topics: z.array(reference('topics')).min(1),
   series: z.array(reference('series')).default([]),
   published_at: z.coerce.date(),
-  updated_at: z.coerce.date().optional(),
-  revision_note: z.string().optional(),
+  revisions: z.array(revision).default([]),
   reading_time_minutes: z.number().int().positive(),
   hero: z.string().optional(),
   canonical_url: z.url().optional(),

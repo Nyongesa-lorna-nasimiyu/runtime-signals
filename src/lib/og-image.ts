@@ -65,7 +65,26 @@ interface OgImageInput {
   seed?: number;
 }
 
+// A 1x1 transparent PNG, for SKIP_OG_RENDER builds only — see below.
+const PLACEHOLDER_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+  'base64',
+);
+
 export async function renderOgImage({ eyebrow, title, seed = 1 }: OgImageInput): Promise<Buffer> {
+  // Escape hatch for scripts/measure-build-at-scale.mjs only — never set in a
+  // real build (prebuild/CI never set this env var). Real OG generation
+  // (Satori font-shaping + resvg PNG encode, per document, sequential in
+  // Astro's static path generation) turned out to dominate build time at
+  // scale badly enough to need isolating from the Pagefind/content-build
+  // measurement that scale test actually cares about — see
+  // docs/poc/README.md's fixture-scaling results for the real numbers this
+  // produced (build time went 54s -> 578s from 100 to 1,000 documents, ~11x
+  // for a 10x document increase, while Pagefind itself scaled roughly
+  // linearly) and why OG-at-scale is now tracked as its own open item rather
+  // than silently accepted or silently fixed.
+  if (process.env.SKIP_OG_RENDER === 'true') return PLACEHOLDER_PNG;
+
   const tree = {
     type: 'div',
     props: {

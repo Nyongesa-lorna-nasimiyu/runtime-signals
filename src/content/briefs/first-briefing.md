@@ -5,8 +5,6 @@ status: published
 authors: [jordan-avery]
 topics: [reliability]
 published_at: 2026-06-05T07:00:00Z
-updated_at: 2026-06-05T07:00:00Z
-revision_note: Initial publication.
 reading_time_minutes: 3
 claims:
   - id: claim.astro.schema-validation

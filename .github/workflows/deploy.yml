@@ -1,0 +1,88 @@
+name: deploy
+
+# Runs only on push to main, which — given branch protection is configured to
+# require a pull request, the `publication-gate` check, and CODEOWNERS review
+# before merge (a required repository setting this workflow does not itself
+# enforce; it only re-verifies the outcome) — can only happen via a reviewed,
+# checked PR merge. That fact alone is still treated as a hint, not a proof:
+# every signal is independently re-verified against the GitHub API for the
+# exact commit below, in case branch protection is ever misconfigured or
+# disabled. See docs/editorial/publication-gates.md and
+# docs/research/architecture-research-report.md launch blocker #4.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  # Read-only: to look up check-run conclusions and PR review state for the
+  # commit being built. Never write access to anything.
+  checks: read
+  pull-requests: read
+
+concurrency:
+  group: deploy-production
+  # Never cancel a deploy mid-flight — an interrupted build/deploy is a worse
+  # state than a slightly delayed one.
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: build-and-deploy
+    runs-on: ubuntu-latest
+    # Deployment-environment authorization: this job does not start until a
+    # human reviewer configured on the `production` GitHub Environment
+    # approves the run — configure required reviewers on that environment in
+    # repository settings before this workflow is ever exercised for real.
+    # scripts/ci/generate-real-approval-manifest.mjs's
+    # deployment_environment_authorized: true is only correct because this key
+    # already gated everything below it.
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate the real approval manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          APPROVAL_MANIFEST_PATH: approval-manifest.production.json
+        run: node scripts/ci/generate-real-approval-manifest.mjs "${{ github.sha }}"
+
+      - name: Build against the real manifest
+        env:
+          APPROVAL_MANIFEST_PATH: approval-manifest.production.json
+        run: npm run build
+
+      - name: Draft/future/unapproved/archived exclusion (black-box, real manifest)
+        run: node scripts/verify-draft-exclusion.mjs
+
+      - name: Security and cache headers
+        run: node scripts/verify-security-headers.mjs
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/
+          retention-days: 30
+
+      # Intentionally a dry run, not a real deployment: no Cloudflare account,
+      # API token, or DNS has been configured for this project at any point in
+      # Phase 1 or 2 — see docs/research/phase-1-decision-pack.md and every
+      # prior checkpoint report. Change this to a real `wrangler deploy` step,
+      # with CLOUDFLARE_API_TOKEN configured as a secret on the `production`
+      # environment specifically (never a repository-wide secret — see
+      # docs/security/secrets-and-access.md), only after explicit launch
+      # approval authorizes creating that account and token.
+      - name: Deploy (dry run only — real deployment not yet authorized)
+        run: npx wrangler deploy --dry-run

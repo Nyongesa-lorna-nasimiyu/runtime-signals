@@ -6,8 +6,10 @@ kind: article
 authors: [jordan-avery]
 topics: [orchestration]
 published_at: 2026-03-01T07:00:00Z
-updated_at: 2026-07-01T07:00:00Z
-revision_note: Archived - superseded by later pieces; kept for the stable URL.
+revisions:
+  - date: 2026-07-01T07:00:00Z
+    note: Archived - superseded by later pieces; kept for the stable URL.
+    type: update
 reading_time_minutes: 4
 claims: []
 ---

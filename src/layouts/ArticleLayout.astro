@@ -3,6 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import EvidenceTag from '@/components/EvidenceTag.astro';
 import SignalTrace from '@/components/SignalTrace.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
+import { latestRevisionDate } from '@/lib/resolve';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -15,19 +16,27 @@ interface Props {
 }
 
 const { entry, authorNames, topicNames, series = [], sourceTitles, archived } = Astro.props;
-const { title, dek, published_at, updated_at, claims, seo } = entry.data;
+const { title, dek, published_at, revisions, claims, seo } = entry.data;
 const path = entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief/${entry.id}`;
 const sectionLabel = entry.collection === 'articles' ? 'Articles' : 'Brief';
+const lastRevised = latestRevisionDate(entry);
+// Corrections are the ones a reader most needs to actually see, not just a
+// history entry they might scroll past — surfaced separately from routine updates.
+const corrections = revisions.filter((r) => r.type === 'correction');
+const mostRecentCorrectionDate = corrections.reduce(
+  (latest: Date | null, r) => (!latest || r.date > latest ? r.date : latest),
+  null,
+);
 // Cache-busted by the content's own revision timestamp, not just the slug: the OG
 // PNG endpoint is served with a one-year immutable Cache-Control
-// (src/pages/og/[...slug].png.ts), which would otherwise let a browser or social
+// (public/_headers — see src/pages/og/[...slug].png.ts for why it can't live
+// in the endpoint code itself), which would otherwise let a browser or social
 // crawler hold onto a stale image after a title/content revision. Cloudflare
 // Workers Static Assets matches the file by pathname only, ignoring the query
-// string, so this never needs a second physical file — it only changes the cache
-// key, and only when an editor actually bumps updated_at for a real revision
+// string, so this never needs a second physical file — it only changes the
+// cache key, and only when a real revisions[] entry is added
 // (docs/architecture/content-model.md: material edits are recorded there).
-const ogVersion = (updated_at ?? published_at).getTime();
-const ogImagePath = `/og/${entry.collection === 'articles' ? 'articles' : 'brief'}/${entry.id}.png?v=${ogVersion}`;
+const ogImagePath = `/og/${entry.collection === 'articles' ? 'articles' : 'brief'}/${entry.id}.png?v=${lastRevised.getTime()}`;
 
 const jsonLd = [
   breadcrumbJsonLd([
@@ -40,7 +49,7 @@ const jsonLd = [
     description: seo.description ?? dek,
     path,
     publishedAt: published_at,
-    updatedAt: updated_at,
+    updatedAt: lastRevised,
     authorNames,
   }),
 ];
@@ -82,10 +91,13 @@ const jsonLd = [
           {published_at.toISOString().slice(0, 10)}
         </time>
         {
-          updated_at && updated_at.getTime() !== published_at.getTime() && (
+          revisions.length > 0 && (
             <>
               <span aria-hidden="true">·</span>
-              <span>updated {updated_at.toISOString().slice(0, 10)}</span>
+              <a href="#revision-history">
+                {corrections.length > 0 ? 'corrected' : 'updated'}{' '}
+                {lastRevised.toISOString().slice(0, 10)}
+              </a>
             </>
           )
         }
@@ -117,6 +129,20 @@ const jsonLd = [
       )
     }
 
+    {
+      corrections.length > 0 && (
+        <p class="article__correction-notice" role="note">
+          <strong>
+            {corrections.length > 1
+              ? 'This piece has been corrected more than once.'
+              : 'This piece has been corrected.'}
+          </strong>{' '}
+          Most recent correction: {mostRecentCorrectionDate?.toISOString().slice(0, 10)} — see{' '}
+          <a href="#revision-history">revision history</a> below for what changed.
+        </p>
+      )
+    }
+
     <div class="article__body">
       <slot />
     </div>
@@ -135,6 +161,36 @@ const jsonLd = [
               </li>
             ))}
           </ul>
+        </section>
+      )
+    }
+
+    {
+      revisions.length > 0 && (
+        <section class="article__revisions" id="revision-history">
+          <h2 class="eyebrow">Revision history</h2>
+          <ol class="article__revisions-list">
+            {[...revisions]
+              .sort((a, b) => b.date.getTime() - a.date.getTime())
+              .map((r) => (
+                <li>
+                  <span class="article__revision-badge" data-type={r.type}>
+                    {r.type}
+                  </span>
+                  <time datetime={r.date.toISOString()}>{r.date.toISOString().slice(0, 10)}</time>
+                  <span>{r.note}</span>
+                </li>
+              ))}
+            <li>
+              <span class="article__revision-badge" data-type="published">
+                published
+              </span>
+              <time datetime={published_at.toISOString()}>
+                {published_at.toISOString().slice(0, 10)}
+              </time>
+              <span>Initial publication.</span>
+            </li>
+          </ol>
         </section>
       )
     }
@@ -201,13 +257,15 @@ const jsonLd = [
     margin-top: var(--space-5);
   }
 
-  .article__archived-notice {
+  .article__archived-notice,
+  .article__correction-notice {
     font-family: var(--font-display);
     font-size: var(--text-sm);
     background: color-mix(in srgb, var(--evidence-mixed) 12%, var(--paper-raised));
     border-left: 3px solid var(--evidence-mixed);
     padding: var(--space-4);
     border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 0 0 var(--space-5);
   }
 
   .article__body {
@@ -235,6 +293,7 @@ const jsonLd = [
   }
 
   .article__claims,
+  .article__revisions,
   .article__sources {
     margin-top: var(--space-7);
     padding-top: var(--space-5);
@@ -242,6 +301,7 @@ const jsonLd = [
   }
 
   .article__claims-list,
+  .article__revisions-list,
   .article__sources-list {
     padding-left: 0;
     list-style: none;
@@ -250,10 +310,41 @@ const jsonLd = [
     gap: var(--space-3);
   }
 
-  .article__claims-list li {
+  .article__claims-list li,
+  .article__revisions-list li {
     display: flex;
     gap: var(--space-3);
     align-items: baseline;
+    flex-wrap: wrap;
+  }
+
+  .article__revisions-list time {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+
+  .article__revision-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 0.15em 0.5em;
+    border-radius: var(--radius);
+    border: 1px solid currentColor;
+  }
+
+  .article__revision-badge[data-type='correction'] {
+    color: var(--evidence-mixed);
+  }
+  .article__revision-badge[data-type='update'] {
+    color: var(--signal);
+  }
+  .article__revision-badge[data-type='published'] {
+    color: var(--evidence-supported);
   }
 
   .article__sources-list {

@@ -76,6 +76,8 @@ Implemented: build-time indexing scoped to real content (`data-pagefind-body`), 
 
 Explicitly deferred, not silently dropped: filter *controls* in the UI. The metadata is indexed and `pagefind.search()` already accepts a `filters` option against it, but `SearchIsland.tsx` doesn't expose topic/author/series/date controls yet — flagged by external review. Build when a concrete filtering need appears rather than speculatively.
 
+**Fixture scaling against this ADR's migration boundary**: measured for real at 100/1,000/5,000 documents — see `docs/poc/README.md` ("Fixture scaling: complete") for full numbers and methodology. Headline result: the fixed per-session search payload (engine + index metadata, not the whole archive) is ~382 KB gzip at 5,000 documents, comfortably under the "1-2 MB compressed" boundary this ADR set; Pagefind's own build and query-time cost scale sub-linearly. Not yet a reconsideration trigger. Re-measure again once the real archive reaches the low thousands rather than assuming these numbers hold indefinitely.
+
 ## Testing and launch checklist
 
 - Validate published-only indexing, slug deletion, redirects, filters, phrase queries, highlighting, keyboard navigation, no-JS browse, and malformed content.

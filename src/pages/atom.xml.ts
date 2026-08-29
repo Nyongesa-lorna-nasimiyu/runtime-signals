@@ -1,7 +1,7 @@
 import type { APIContext } from 'astro';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
-import { articlePath } from '@/lib/resolve';
+import { articlePath, latestRevisionDate } from '@/lib/resolve';
 import { absoluteUrl } from '@/lib/seo';
 
 function escapeXml(value: string): string {
@@ -28,7 +28,7 @@ export async function GET(_context: APIContext) {
     <title>${escapeXml(entry.data.title)}</title>
     <link href="${absoluteUrl(articlePath(entry))}" />
     <id>${absoluteUrl(articlePath(entry))}</id>
-    <updated>${(entry.data.updated_at ?? entry.data.published_at).toISOString()}</updated>
+    <updated>${latestRevisionDate(entry).toISOString()}</updated>
     <published>${entry.data.published_at.toISOString()}</published>
     <summary>${escapeXml(entry.data.dek)}</summary>
   </entry>`,

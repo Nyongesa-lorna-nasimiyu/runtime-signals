@@ -7,8 +7,10 @@ authors: [jordan-avery]
 topics: [orchestration, state]
 series: [agent-reliability-patterns]
 published_at: 2026-06-01T07:00:00Z
-updated_at: 2026-06-01T07:00:00Z
-revision_note: Initial publication.
+revisions:
+  - date: 2026-08-29T00:00:00Z
+    note: Added a minimal TypeScript example of an enforced transfer contract, illustrating "the practice" concretely.
+    type: update
 reading_time_minutes: 6
 claims:
   - id: claim.handoff.state-boundary

@@ -1,0 +1,67 @@
+name: publication-gate
+
+# The required status check every PR must pass before merge to main — the
+# branch-protection precondition the deploy workflow later relies on having
+# already been enforced by GitHub itself. See
+# docs/editorial/publication-gates.md ("Approval representation").
+on:
+  pull_request:
+    branches: [main]
+
+# Least-privilege: this job only ever reads the repo and runs local
+# validation. It never needs write access to anything and never sees a
+# deployment or provider secret — docs/security/secrets-and-access.md
+# ("narrowly scoped GitHub tokens... the content-validation job needs no
+# deployment or provider secret").
+permissions:
+  contents: read
+
+concurrency:
+  group: publication-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    # The check-run name GitHub branch protection is configured to require —
+    # do not rename this job without updating that branch-protection setting.
+    name: publication-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Documentation structure and internal links
+        run: npm run verify:docs
+
+      - name: Unit tests
+        run: npm test
+
+      # `npm run build`'s prebuild hook runs scripts/generate-approval-manifest.mjs
+      # — the local, trust-everything stand-in. That's the correct manifest for
+      # THIS check: publication-gate proves the site builds and the content
+      # schema is valid, not that this PR's specific changes are authorized to
+      # publish. Authorization is deploy.yml's job, using the real manifest
+      # generated from this exact check having passed.
+      - name: Build (astro check + astro build + Pagefind)
+        run: npm run build
+
+      - name: MDX import allow-list
+        run: npm run verify:mdx
+
+      - name: Draft/future/unapproved/archived exclusion (black-box against real dist/)
+        run: node scripts/verify-draft-exclusion.mjs

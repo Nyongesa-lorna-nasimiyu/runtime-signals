@@ -37,3 +37,20 @@ export function weakestEvidence(entry: Editorial): (typeof STRENGTH_ORDER)[numbe
 export function articlePath(entry: Editorial): string {
   return entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief/${entry.id}`;
 }
+
+/** The most recent real event for this piece — its latest revision, or its
+ * original publish date if it has never been revised since. Used anywhere
+ * "last modified" matters (RSS/Atom `updated`, JSON-LD dateModified, the
+ * OG-image cache-busting version): src/content.config.ts's `revisions[]`
+ * only holds post-publication events, so published_at is the correct anchor
+ * when that array is empty. */
+export function latestRevisionDate(entry: Editorial): Date {
+  // Seeded with published_at (not revisions[0], which noUncheckedIndexedAccess
+  // correctly flags as possibly undefined for an empty array) — any real
+  // revision necessarily postdates publication, so this is equally correct
+  // and needs no length check or array access at all.
+  return entry.data.revisions.reduce(
+    (latest, r) => (r.date > latest ? r.date : latest),
+    entry.data.published_at,
+  );
+}

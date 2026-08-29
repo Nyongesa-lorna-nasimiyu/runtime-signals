@@ -17,6 +17,7 @@ const orderedArticles = await getEntries(series.data.order);
 const live = orderedArticles.filter((entry) => canPublish(entry, undefined, BUILD_TIME));
 const cards = await Promise.all(
   live.map(async (entry) => ({
+    id: entry.id,
     path: articlePath(entry),
     title: entry.data.title,
     dek: entry.data.dek,

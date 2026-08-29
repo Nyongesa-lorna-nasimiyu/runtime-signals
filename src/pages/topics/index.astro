@@ -15,9 +15,12 @@ const topics = (await getCollection('topics')).sort((a, b) =>
     </header>
     <ul class="topic-grid">
       {
-        topics.map((topic) => (
+        topics.map((topic, i) => (
           <li>
             <a href={`/topics/${topic.id}`} class="topic-card unstyled-link">
+              <span class="topic-card__numeral" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
               <span class="topic-card__name">{topic.data.name}</span>
               <span class="topic-card__desc">{topic.data.description}</span>
             </a>
@@ -49,6 +52,9 @@ const topics = (await getCollection('topics')).sort((a, b) =>
   }
   .topic-card {
     display: block;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     border: 1px solid var(--hairline);
     border-radius: var(--radius);
     padding: var(--space-4);
@@ -56,6 +62,22 @@ const topics = (await getCollection('topics')).sort((a, b) =>
   }
   .topic-card:hover {
     border-color: var(--signal);
+  }
+  /* Pure texture, not content - low-contrast enough to never compete with
+     the card's actual name/description text, which stays in normal flow
+     and paints above it. */
+  .topic-card__numeral {
+    position: absolute;
+    z-index: -1;
+    right: var(--space-2);
+    bottom: -0.1em;
+    font-family: var(--font-display);
+    font-size: 3.75rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ink-muted);
+    opacity: 0.1;
+    pointer-events: none;
   }
   .topic-card__name {
     display: block;

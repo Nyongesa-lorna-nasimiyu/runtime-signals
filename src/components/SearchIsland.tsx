@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { track } from '@/lib/analytics';
+import { spanId } from '@/lib/span-id';
 
 // The one React island in this checkpoint, and it's justified: docs/adr/0001
 // requires the search index and UI load "only on the search page or after
@@ -16,6 +17,18 @@ interface PagefindModule {
 }
 
 let pagefindLoadPromise: Promise<PagefindModule> | null = null;
+
+/**
+ * Same span-ID visual treatment as ArticleCard/ArticleLayout (src/lib/span-id.ts),
+ * derived from a search result's URL rather than a CollectionEntry (the only
+ * thing Pagefind's result data actually gives this component). Only articles
+ * and briefs get one — a topic/series/methodology/etc. result's URL doesn't
+ * match either prefix, and undefined means "don't render a span ID."
+ */
+function entrySpanId(url: string): string | undefined {
+  const slug = /^\/(?:articles|brief)\/([^/]+)\/?$/.exec(url)?.[1];
+  return slug ? spanId(slug) : undefined;
+}
 
 /**
  * Loads /pagefind/pagefind.js via a browser-native <script type="module" src>
@@ -67,7 +80,9 @@ function loadPagefind(): Promise<PagefindModule> {
 // pattern extends naturally to search).
 export default function SearchIsland() {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<{ url: string; title: string; excerpt: string }[]>([]);
+  const [results, setResults] = useState<
+    { url: string; title: string; excerpt: string; spanId?: string }[]
+  >([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   // A slower earlier query resolving after a faster later one must not overwrite
   // fresher results - every request is tagged with a generation counter, and a
@@ -106,7 +121,12 @@ export default function SearchIsland() {
       const withData = await Promise.all(
         search.results.slice(0, 10).map(async (r) => {
           const data = await r.data();
-          return { url: data.url, title: data.meta.title ?? data.url, excerpt: data.excerpt };
+          return {
+            url: data.url,
+            title: data.meta.title ?? data.url,
+            excerpt: data.excerpt,
+            spanId: entrySpanId(data.url),
+          };
         }),
       );
       if (requestGeneration.current !== generation) return; // superseded while fetching results
@@ -151,7 +171,14 @@ export default function SearchIsland() {
         <ul className="search-island__results">
           {results.map((r) => (
             <li key={r.url}>
-              <a href={r.url}>{r.title}</a>
+              <a href={r.url}>
+                {r.spanId && (
+                  <span className="span-id search-island__span-id" aria-hidden="true">
+                    {r.spanId}
+                  </span>
+                )}
+                {r.title}
+              </a>
               {/* Pagefind's own excerpt-generation API, not raw query/content -
                   the exact boundary docs/adr/0001's XSS mitigation requires. */}
               <p dangerouslySetInnerHTML={{ __html: r.excerpt }} />

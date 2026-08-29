@@ -2,15 +2,27 @@
 // Allow-listed MDX component (docs/security/threat-model.md). `kind` maps to the
 // same evidence-strength vocabulary used elsewhere so a callout's color always means
 // the same thing across the site.
+//
+// The optional `evidence` prop is the same recurring evidence-color
+// left-border language used on .article__claims-list rows
+// (src/layouts/ArticleLayout.astro): a pull-quote or claim-carrying callout
+// can be tagged with a claim's evidence strength directly, which takes over
+// the border/background color from `kind` and always renders the existing
+// text-labeled EvidenceTag alongside it - color is reinforcement here, never
+// the only signal, matching the site's existing accessibility commitment.
+import EvidenceTag from '@/components/EvidenceTag.astro';
+
 interface Props {
   kind?: 'note' | 'warning' | 'evidence-gap';
+  evidence?: 'supported' | 'mixed' | 'inference' | 'opinion';
 }
-const { kind = 'note' } = Astro.props;
+const { kind = 'note', evidence } = Astro.props;
 ---
 
-<aside class="callout" data-kind={kind} role="note">
+<aside class="callout" data-kind={kind} data-evidence={evidence} role="note">
   <p class="callout__label eyebrow">
     {kind === 'warning' ? 'Caution' : kind === 'evidence-gap' ? 'Evidence gap' : 'Note'}
+    {evidence && <EvidenceTag evidence={evidence} />}
   </p>
   <div class="callout__body">
     <slot />
@@ -33,7 +45,28 @@ const { kind = 'note' } = Astro.props;
     border-left-color: var(--evidence-inference);
     background: color-mix(in srgb, var(--evidence-inference) 12%, var(--paper-raised));
   }
+  /* `evidence` wins over `kind`'s color when both are present - it's the more
+     specific, claim-linked signal. */
+  .callout[data-evidence='supported'] {
+    border-left-color: var(--evidence-supported);
+    background: color-mix(in srgb, var(--evidence-supported) 12%, var(--paper-raised));
+  }
+  .callout[data-evidence='mixed'] {
+    border-left-color: var(--evidence-mixed);
+    background: color-mix(in srgb, var(--evidence-mixed) 12%, var(--paper-raised));
+  }
+  .callout[data-evidence='inference'] {
+    border-left-color: var(--evidence-inference);
+    background: color-mix(in srgb, var(--evidence-inference) 12%, var(--paper-raised));
+  }
+  .callout[data-evidence='opinion'] {
+    border-left-color: var(--evidence-opinion);
+    background: color-mix(in srgb, var(--evidence-opinion) 12%, var(--paper-raised));
+  }
   .callout__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     margin: 0 0 var(--space-2);
   }
   .callout__body {

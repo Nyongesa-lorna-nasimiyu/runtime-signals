@@ -207,7 +207,7 @@ const jsonLd = [
           </h2>
           <ul class="article__claims-list">
             {claims.map((claim) => (
-              <li>
+              <li data-evidence={claim.evidence}>
                 <EvidenceTag evidence={claim.evidence} />
                 <span>{claim.text}</span>
               </li>
@@ -547,6 +547,28 @@ const jsonLd = [
     gap: var(--space-3);
     align-items: baseline;
     flex-wrap: wrap;
+  }
+
+  /* Evidence-color left-border, paired with (never instead of) the existing
+     text-labeled EvidenceTag badge on the same row - the accessibility
+     commitment already made for .evidence-tag (never color alone) extends to
+     this recurring visual language, so the border is always decorative
+     reinforcement, never the only signal. */
+  .article__claims-list li {
+    border-left: 2px solid var(--hairline);
+    padding-left: var(--space-3);
+  }
+  .article__claims-list li[data-evidence='supported'] {
+    border-left-color: var(--evidence-supported);
+  }
+  .article__claims-list li[data-evidence='mixed'] {
+    border-left-color: var(--evidence-mixed);
+  }
+  .article__claims-list li[data-evidence='inference'] {
+    border-left-color: var(--evidence-inference);
+  }
+  .article__claims-list li[data-evidence='opinion'] {
+    border-left-color: var(--evidence-opinion);
   }
 
   .article__revisions-list time {

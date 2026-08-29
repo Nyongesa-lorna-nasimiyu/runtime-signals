@@ -209,6 +209,7 @@
   .search-island,
   .signal-trace,
   .log__count,
+  .article__rail,
   [data-pagefind-ui] {
     display: none !important;
   }

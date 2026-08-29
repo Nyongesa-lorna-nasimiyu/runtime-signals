@@ -6,6 +6,7 @@ import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
 import { latestRevisionDate } from '@/lib/resolve';
 import { spanId } from '@/lib/span-id';
 import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
 
 interface Props {
   entry: CollectionEntry<'articles'> | CollectionEntry<'briefs'>;
@@ -15,6 +16,11 @@ interface Props {
   sourceTitles: { id: string; title: string; url: string }[];
   artifactTitles: { id: string; title: string; url: string; kind: string }[];
   archived: boolean;
+  // From astro:content's render(entry) - the article body's real, as-authored
+  // h2/h3 headings (with the same slugger-derived ids the rendered markup
+  // actually carries), used to build the step-progress rail below without
+  // hardcoding a fixed section-name list that wouldn't match every piece.
+  bodyHeadings?: MarkdownHeading[];
 }
 
 const {
@@ -25,7 +31,9 @@ const {
   sourceTitles,
   artifactTitles,
   archived,
+  bodyHeadings = [],
 } = Astro.props;
+
 const { title, dek, published_at, revisions, claims, seo } = entry.data;
 const path = entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief/${entry.id}`;
 const sectionLabel = entry.collection === 'articles' ? 'Articles' : 'Brief';
@@ -47,6 +55,20 @@ const mostRecentCorrectionDate = corrections.reduce(
 // cache key, and only when a real revisions[] entry is added
 // (docs/architecture/content-model.md: material edits are recorded there).
 const ogImagePath = `/og/${entry.collection === 'articles' ? 'articles' : 'brief'}/${entry.id}.png?v=${lastRevised.getTime()}`;
+
+// Structural step-progress rail (desktop only - see .article__rail media
+// query below): top-level body headings, in document order, followed by the
+// fixed trailing sections below that render conditionally. Every `id` here
+// is a real id already present on the rendered output - claims-heading,
+// revision-history, artifacts-heading, and sources-heading are the exact ids
+// those sections/headings already carry further down this file.
+const railSections = [
+  ...bodyHeadings.filter((h) => h.depth === 2).map((h) => ({ id: h.slug, label: h.text })),
+  ...(claims.length > 0 ? [{ id: 'claims-heading', label: 'Claims' }] : []),
+  ...(revisions.length > 0 ? [{ id: 'revision-history', label: 'Revisions' }] : []),
+  ...(artifactTitles.length > 0 ? [{ id: 'artifacts-heading', label: 'Artifacts' }] : []),
+  ...(sourceTitles.length > 0 ? [{ id: 'sources-heading', label: 'Sources' }] : []),
+];
 
 const jsonLd = [
   breadcrumbJsonLd([
@@ -73,6 +95,23 @@ const jsonLd = [
   jsonLd={jsonLd}
   ogImagePath={ogImagePath}
 >
+  {
+    railSections.length > 1 && (
+      <nav class="article__rail" aria-label="Article sections" data-progress-rail>
+        <ol>
+          {railSections.map((section) => (
+            <li>
+              <a href={`#${section.id}`} class="article__rail-tick" data-target={section.id}>
+                <span class="article__rail-mark" aria-hidden="true" />
+                <span class="visually-hidden">{section.label}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+    )
+  }
+
   <article class="article" data-slug={entry.id} data-topics={JSON.stringify(topicNames)}>
     <header class="article__header">
       <div class="article__meta-row">
@@ -282,11 +321,120 @@ const jsonLd = [
   }
 </script>
 
+<script>
+  // Progressive enhancement only: the rail (.article__rail below) already
+  // renders as a plain static list of anchor links with no JS at all - this
+  // just adds a current-section indicator on top. Scoped to the same
+  // min-width the CSS uses to show the rail in the first place, so a device
+  // that never sees the rail never pays for an observer either.
+  const rail = document.querySelector<HTMLElement>('[data-progress-rail]');
+  const desktopRail = window.matchMedia('(min-width: 1200px)');
+
+  if (rail && desktopRail.matches && 'IntersectionObserver' in window) {
+    const ticks = Array.from(rail.querySelectorAll<HTMLAnchorElement>('[data-target]'));
+    const targets = ticks
+      .map((tick) => document.getElementById(tick.dataset.target ?? ''))
+      .filter((el): el is HTMLElement => el !== null);
+
+    if (targets.length > 0) {
+      const setActive = (index: number) => {
+        ticks.forEach((tick, i) => {
+          tick.toggleAttribute('data-active', i === index);
+          tick.toggleAttribute('data-passed', i < index);
+        });
+      };
+
+      // Recomputed from real geometry on every intersection change, rather
+      // than trusted from the IntersectionObserver entries themselves - a
+      // heading can cross the "current" line without its own intersection
+      // record changing (e.g. a short section fully skipped by a fast
+      // scroll), so the source of truth is "which heading's top has already
+      // passed the reference line," checked across every target each time.
+      const REFERENCE_LINE = 140;
+      const recompute = () => {
+        let activeIndex = 0;
+        for (let i = 0; i < targets.length; i++) {
+          const target = targets[i];
+          if (target && target.getBoundingClientRect().top <= REFERENCE_LINE) activeIndex = i;
+        }
+        setActive(activeIndex);
+      };
+
+      const observer = new IntersectionObserver(recompute, { threshold: [0, 1] });
+      targets.forEach((target) => observer.observe(target));
+      recompute();
+    }
+  }
+</script>
+
 <style>
   .article {
     max-width: var(--content-width);
     margin: 0 auto;
     padding: var(--space-6) var(--space-5) var(--space-9);
+  }
+
+  /* Structural step-progress rail - trace-bar ticks, one per section, sitting
+     in the left margin outside the reading column. Hidden below the point
+     where that margin has real room (roughly the --wide-width layout
+     breakpoint); no mobile/tablet equivalent - the header's SignalTrace
+     divider is the substitute there, per design brief. Fixed positioning,
+     anchored from viewport center, works because .article itself is centered
+     with margin: 0 auto in a layout with no competing sidebar. */
+  .article__rail {
+    display: none;
+  }
+
+  @media (min-width: 1200px) {
+    .article__rail {
+      display: block;
+      position: fixed;
+      top: 50%;
+      left: calc(50% - (var(--content-width) / 2) - var(--space-7));
+      transform: translateY(-50%);
+    }
+  }
+
+  .article__rail ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .article__rail-tick {
+    display: block;
+    padding: var(--space-1) 0;
+  }
+
+  .article__rail-mark {
+    display: block;
+    width: 1.25rem;
+    height: 2px;
+    background: var(--ink-muted);
+    opacity: 0.35;
+  }
+
+  /* Passed: dimmer than upcoming would suggest, but still clearly "read" -
+     muted ink at full opacity rather than the signal color, which is
+     reserved for the current section alone. */
+  .article__rail-tick[data-passed] .article__rail-mark {
+    background: var(--ink-muted);
+    opacity: 0.7;
+  }
+
+  .article__rail-tick[data-active] .article__rail-mark {
+    background: var(--signal);
+    opacity: 1;
+    width: 1.75rem;
+  }
+
+  @media (prefers-contrast: more) {
+    .article__rail-mark {
+      opacity: 1;
+    }
   }
 
   .article__meta-row {

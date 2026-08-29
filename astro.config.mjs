@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
@@ -66,7 +67,11 @@ export default defineConfig({
   // code block under the site's real CSP and asserts zero violations.
   markdown: {
     syntaxHighlight: 'prism',
-    rehypePlugins: [rehypeFocusableCodeBlocks],
+    // markdown.rehypePlugins is deprecated in favor of a configured processor -
+    // caught by a real deprecation warning in `npm test`, not by reading changelogs.
+    processor: unified({
+      rehypePlugins: [rehypeFocusableCodeBlocks],
+    }),
   },
   vite: {
     resolve: {

@@ -1,134 +1,165 @@
 @import './tokens.css';
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+/* Declared once, upfront, so cascade priority is explicit rather than
+   incidental to source order. Astro's per-component <style> blocks are
+   unlayered, which the cascade spec always ranks above every layer here
+   regardless of specificity - so a component can override a utility class
+   without fighting it on specificity, and utilities still safely override the
+   reset. */
+@layer reset, tokens, base, utilities;
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  img,
+  svg {
+    max-width: 100%;
+    display: block;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
 }
 
-html {
-  color-scheme: light dark;
+@layer base {
+  a {
+    color: var(--signal);
+    text-underline-offset: 0.15em;
+  }
+
+  a:not(.unstyled-link) {
+    text-decoration-thickness: 1px;
+  }
+
+  /* Visible keyboard focus everywhere - never suppressed. */
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  @media (forced-colors: active) {
+    :focus-visible {
+      outline-color: Highlight;
+    }
+  }
 }
 
-body {
-  margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  line-height: var(--leading-relaxed);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
+@layer utilities {
+  .unstyled-link {
+    color: inherit;
+    text-decoration: none;
+  }
 
-img,
-svg {
-  max-width: 100%;
-  display: block;
-}
+  .skip-link {
+    position: absolute;
+    left: -999px;
+    top: 0;
+    z-index: 100;
+    background: var(--signal);
+    color: var(--signal-ink);
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+  }
 
-a {
-  color: var(--signal);
-  text-underline-offset: 0.15em;
-}
+  .skip-link:focus {
+    left: var(--space-4);
+    top: var(--space-4);
+  }
 
-a:not(.unstyled-link) {
-  text-decoration-thickness: 1px;
-}
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
 
-.unstyled-link {
-  color: inherit;
-  text-decoration: none;
-}
+  .evidence-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 0.15em 0.5em;
+    border-radius: var(--radius);
+    border: 1px solid currentColor;
+  }
 
-/* Visible keyboard focus everywhere - never suppressed. */
-:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
+  .evidence-tag::before {
+    content: '';
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: currentColor;
+  }
 
-.skip-link {
-  position: absolute;
-  left: -999px;
-  top: 0;
-  z-index: 100;
-  background: var(--signal);
-  color: var(--signal-ink);
-  padding: var(--space-2) var(--space-4);
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-}
+  .evidence-tag[data-evidence='supported'] {
+    color: var(--evidence-supported);
+  }
+  .evidence-tag[data-evidence='mixed'] {
+    color: var(--evidence-mixed);
+  }
+  .evidence-tag[data-evidence='inference'] {
+    color: var(--evidence-inference);
+  }
+  .evidence-tag[data-evidence='opinion'] {
+    color: var(--evidence-opinion);
+  }
 
-.skip-link:focus {
-  left: var(--space-4);
-  top: var(--space-4);
-}
-
-.eyebrow {
-  font-family: var(--font-display);
-  font-size: var(--text-xs);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-}
-
-.evidence-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-family: var(--font-display);
-  font-size: var(--text-xs);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  padding: 0.15em 0.5em;
-  border-radius: var(--radius);
-  border: 1px solid currentColor;
-}
-
-.evidence-tag::before {
-  content: '';
-  width: 0.5em;
-  height: 0.5em;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.evidence-tag[data-evidence='supported'] {
-  color: var(--evidence-supported);
-}
-.evidence-tag[data-evidence='mixed'] {
-  color: var(--evidence-mixed);
-}
-.evidence-tag[data-evidence='inference'] {
-  color: var(--evidence-inference);
-}
-.evidence-tag[data-evidence='opinion'] {
-  color: var(--evidence-opinion);
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-html {
-  scroll-behavior: smooth;
+  /* Hides content visually but keeps it in the accessibility tree. The
+     :not(:focus-within, :active) exception lets focusable hidden content
+     (a wrapped skip link, etc.) become visible on focus - unused by the plain
+     screen-reader-only text this utility is applied to today, but correct to
+     have so a future focusable use doesn't silently stay invisible. */
+  .visually-hidden:where(:not(:focus-within, :active)) {
+    position: absolute !important;
+    clip-path: inset(50%) !important;
+    overflow: hidden !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    white-space: nowrap !important;
+  }
 }
 
 /* Per-element reduced-motion override point. A blanket
    `animation-duration: 0.01ms !important` on * is a known anti-pattern — it can
    make some animations MORE jarring (an instant snap) rather than calmer. Any
    future animation should define its own `--animation-reduced` fallback
-   alongside the real one (see the guidance's Motion & Preferences section),
-   e.g.: `.spinner { animation: spin 1s linear infinite; --animation-reduced: none; }` */
+   alongside the real one, e.g.:
+   `.spinner { animation: spin 1s linear infinite; --animation-reduced: none; }` */
 @property --animation-reduced {
   syntax: '*';
   inherits: false;

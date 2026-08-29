@@ -93,6 +93,11 @@ const currentPath = Astro.url.pathname;
   }
 
   .site-nav__link {
+    /* min-block-size, not a fixed height, so a larger user font-size setting
+       can still grow the target - it just never shrinks below 24px (WCAG 2.5.8). */
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--touch-target-min);
     color: var(--ink-muted);
     text-decoration: none;
     padding-bottom: 0.2em;

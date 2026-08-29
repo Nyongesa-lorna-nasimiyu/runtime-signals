@@ -7,6 +7,13 @@
   serif for sustained long-form reading and zero font-loading cost.
 
   JetBrains Mono Variable, self-hosted (public/fonts/), SIL OFL 1.1.
+
+  Dark mode: a single light-dark() definition per token, not three copies of every
+  value (an earlier version duplicated light/dark pairs across a
+  prefers-color-scheme block AND a [data-theme='dark'] block AND a
+  [data-theme='light'] override - and that data-theme branching was reachable by
+  nothing, since no theme toggle exists in this build). color-scheme: light dark
+  on :root is what makes light-dark() follow the system preference automatically.
 */
 
 @font-face {
@@ -17,92 +24,65 @@
   font-display: swap;
 }
 
-:root {
-  /* Color - light (default) */
-  --paper: #f7f8fa;
-  --paper-raised: #ffffff;
-  --ink: #12161c;
-  --ink-muted: #4b5563;
-  --hairline: #d8dee7;
-  --signal: #2354c9;
-  --signal-ink: #ffffff;
-  --signal-dim: #e8eefe;
-  --focus-ring: #b6470a;
+@layer tokens {
+  :root {
+    color-scheme: light dark;
 
-  /* Evidence-strength semantics - these colors carry content meaning
-     (docs/architecture/content-model.md claim.evidence), not decoration. */
-  --evidence-supported: #0f7a56;
-  --evidence-mixed: #a3660a;
-  --evidence-inference: #5b4fa8;
-  --evidence-opinion: #5b6472;
+    /* Color */
+    --paper: light-dark(#f7f8fa, #0e1218);
+    --paper-raised: light-dark(#ffffff, #161b23);
+    --ink: light-dark(#12161c, #e8ebf1);
+    --ink-muted: light-dark(#4b5563, #9aa5b6);
+    --hairline: light-dark(#d8dee7, #2a313d);
+    --signal: light-dark(#2354c9, #7ea2f7);
+    --signal-ink: light-dark(#ffffff, #0e1218);
+    --signal-dim: light-dark(#e8eefe, #1a2740);
+    --focus-ring: light-dark(#b6470a, #f0975a);
 
-  /* Type */
-  --font-display:
-    'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
-    monospace;
-  --font-body: ui-serif, Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Times New Roman', serif;
-  --font-mono: var(--font-display);
+    /* Evidence-strength semantics - these colors carry content meaning
+       (docs/architecture/content-model.md claim.evidence), not decoration. */
+    --evidence-supported: light-dark(#0f7a56, #4bc794);
+    --evidence-mixed: light-dark(#a3660a, #e0a63c);
+    --evidence-inference: light-dark(#5b4fa8, #ab9ee8);
+    --evidence-opinion: light-dark(#5b6472, #9aa5b6);
 
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1.0625rem;
-  --text-lg: 1.25rem;
-  --text-xl: clamp(1.375rem, 1.15rem + 1vw, 1.875rem);
-  --text-2xl: clamp(1.875rem, 1.3rem + 2.4vw, 3rem);
-  --text-3xl: clamp(2.25rem, 1.4rem + 3.8vw, 4.25rem);
+    /* Type */
+    --font-display:
+      'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
+      monospace;
+    --font-body:
+      ui-serif, Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Times New Roman', serif;
+    --font-mono: var(--font-display);
 
-  --leading-tight: 1.15;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.7;
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1.0625rem;
+    --text-lg: 1.25rem;
+    --text-xl: clamp(1.375rem, 1.15rem + 1vw, 1.875rem);
+    --text-2xl: clamp(1.875rem, 1.3rem + 2.4vw, 3rem);
+    --text-3xl: clamp(2.25rem, 1.4rem + 3.8vw, 4.25rem);
 
-  /* Space (4px base) */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-7: 3rem;
-  --space-8: 4.5rem;
-  --space-9: 7rem;
+    --leading-tight: 1.15;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.7;
 
-  --content-width: 42rem;
-  --wide-width: 72rem;
-  --radius: 3px;
-}
+    /* Space (4px base) */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 3rem;
+    --space-8: 4.5rem;
+    --space-9: 7rem;
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --paper: #0e1218;
-    --paper-raised: #161b23;
-    --ink: #e8ebf1;
-    --ink-muted: #9aa5b6;
-    --hairline: #2a313d;
-    --signal: #7ea2f7;
-    --signal-ink: #0e1218;
-    --signal-dim: #1a2740;
-    --focus-ring: #f0975a;
+    --content-width: 42rem;
+    --wide-width: 72rem;
+    --radius: 3px;
 
-    --evidence-supported: #4bc794;
-    --evidence-mixed: #e0a63c;
-    --evidence-inference: #ab9ee8;
-    --evidence-opinion: #9aa5b6;
+    /* Minimum interactive target per WCAG 2.5.8 AA - enforced with min-inline/
+       block-size (can grow, never shrinks) rather than width/height. */
+    --touch-target-min: 24px;
   }
-}
-
-:root[data-theme='dark'] {
-  --paper: #0e1218;
-  --paper-raised: #161b23;
-  --ink: #e8ebf1;
-  --ink-muted: #9aa5b6;
-  --hairline: #2a313d;
-  --signal: #7ea2f7;
-  --signal-ink: #0e1218;
-  --signal-dim: #1a2740;
-  --focus-ring: #f0975a;
-
-  --evidence-supported: #4bc794;
-  --evidence-mixed: #e0a63c;
-  --evidence-inference: #ab9ee8;
-  --evidence-opinion: #9aa5b6;
 }

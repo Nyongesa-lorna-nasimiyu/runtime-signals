@@ -95,24 +95,25 @@ const jsonLd = [
   jsonLd={jsonLd}
   ogImagePath={ogImagePath}
 >
-  {
-    railSections.length > 1 && (
-      <nav class="article__rail" aria-label="Article sections" data-progress-rail>
-        <ol>
-          {railSections.map((section) => (
-            <li>
-              <a href={`#${section.id}`} class="article__rail-tick" data-target={section.id}>
-                <span class="article__rail-mark" aria-hidden="true" />
-                <span class="visually-hidden">{section.label}</span>
-              </a>
-            </li>
-          ))}
-        </ol>
-      </nav>
-    )
-  }
+  <div class="article-wrap">
+    {
+      railSections.length > 1 && (
+        <nav class="article__rail" aria-label="Article sections" data-progress-rail>
+          <ol>
+            {railSections.map((section) => (
+              <li>
+                <a href={`#${section.id}`} class="article__rail-tick" data-target={section.id}>
+                  <span class="article__rail-mark" aria-hidden="true" />
+                  <span class="visually-hidden">{section.label}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
 
-  <article class="article" data-slug={entry.id} data-topics={JSON.stringify(topicNames)}>
+    <article class="article" data-slug={entry.id} data-topics={JSON.stringify(topicNames)}>
     <header class="article__header">
       <div class="article__meta-row">
         <p class="eyebrow">
@@ -283,7 +284,8 @@ const jsonLd = [
         </section>
       )
     }
-  </article>
+    </article>
+  </div>
 </BaseLayout>
 
 <script>
@@ -368,6 +370,10 @@ const jsonLd = [
 </script>
 
 <style>
+  .article-wrap {
+    position: relative;
+  }
+
   .article {
     max-width: var(--content-width);
     margin: 0 auto;
@@ -378,9 +384,19 @@ const jsonLd = [
      in the left margin outside the reading column. Hidden below the point
      where that margin has real room (roughly the --wide-width layout
      breakpoint); no mobile/tablet equivalent - the header's SignalTrace
-     divider is the substitute there, per design brief. Fixed positioning,
-     anchored from viewport center, works because .article itself is centered
-     with margin: 0 auto in a layout with no competing sidebar. */
+     divider is the substitute there, per design brief.
+
+     Two-part positioning, not position: fixed: a fixed rail would stay
+     pinned to the viewport for the entire page, including past the end of
+     the article - scroll to the footer and it would still be floating
+     there, which is wrong (a real bug, caught by actually scrolling a real
+     page rather than only checking a single viewport-height screenshot).
+     Instead, .article__rail is an absolutely positioned column spanning the
+     full height of .article-wrap (i.e. the article's own height, so it
+     starts and ends with the article), and only the tick list inside it
+     (.article__rail ol) is position: sticky - the ordinary, layout-scoped
+     sidebar-nav pattern, tracking scroll only while the article is actually
+     in view. */
   .article__rail {
     display: none;
   }
@@ -388,14 +404,16 @@ const jsonLd = [
   @media (min-width: 1200px) {
     .article__rail {
       display: block;
-      position: fixed;
-      top: 50%;
+      position: absolute;
+      top: 0;
       left: calc(50% - (var(--content-width) / 2) - var(--space-7));
-      transform: translateY(-50%);
+      height: 100%;
     }
   }
 
   .article__rail ol {
+    position: sticky;
+    top: 35vh;
     list-style: none;
     margin: 0;
     padding: 0;

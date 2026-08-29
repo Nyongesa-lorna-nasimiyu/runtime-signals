@@ -1,0 +1,56 @@
+name: pr-editorial-report
+
+# Advisory-only editorial quality signal on every PR that touches content:
+# SEO preview, possible-duplicate-coverage detection, internal-link
+# suggestions, and a citation/source-coverage summary. Never blocks a build
+# or gates a merge - see docs/editorial/pr-editorial-report.md. Human review
+# and CODEOWNERS approval (publication-gate.yml, branch protection) remain
+# the actual authorization; this only helps a reviewer notice something
+# faster than reading every changed article by eye would.
+on:
+  pull_request:
+    paths:
+      - 'src/content/articles/**'
+      - 'src/content/briefs/**'
+
+permissions:
+  contents: read
+  # write is required to post/update the report comment - the only workflow
+  # in this repo with any write permission beyond contents, and scoped to
+  # exactly this one thing.
+  pull-requests: write
+
+concurrency:
+  group: pr-editorial-report-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+    name: pr-editorial-report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history, not the default shallow clone: the report needs a
+          # real `git diff` against the PR's base commit to know which
+          # articles/briefs changed.
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate and post the editorial quality report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/ci/run-editorial-report.mjs

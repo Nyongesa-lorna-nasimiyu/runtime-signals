@@ -77,6 +77,6 @@ whatever the transcript happens to contain.
 
 ## Limitations
 
-This applies to explicit multi-step orchestration; a single continuous context window doesn't have
+This applies to explicit multi-step [orchestration](/topics/orchestration); a single continuous context window doesn't have
 the same boundary. The simulation referenced above reproduces one failure shape, not an exhaustive
 survey of handoff designs.

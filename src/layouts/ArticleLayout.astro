@@ -114,176 +114,176 @@ const jsonLd = [
     }
 
     <article class="article" data-slug={entry.id} data-topics={JSON.stringify(topicNames)}>
-    <header class="article__header">
-      <div class="article__meta-row">
-        <p class="eyebrow">
+      <header class="article__header">
+        <div class="article__meta-row">
+          <p class="eyebrow">
+            {
+              topicNames.map((name, i) => (
+                <>
+                  {i > 0 && ' · '}
+                  <span data-pagefind-filter="topic">{name}</span>
+                </>
+              ))
+            }
+          </p>
+          <span class="span-id" aria-hidden="true">{spanId(entry.id)}</span>
+        </div>
+        <h1 class="article__title">{title}</h1>
+        <p class="article__dek">{dek}</p>
+        <div class="article__byline">
           {
-            topicNames.map((name, i) => (
+            authorNames.map((name, i) => (
               <>
-                {i > 0 && ' · '}
-                <span data-pagefind-filter="topic">{name}</span>
+                {i > 0 && ', '}
+                <span data-pagefind-filter="author">{name}</span>
               </>
             ))
           }
-        </p>
-        <span class="span-id" aria-hidden="true">{spanId(entry.id)}</span>
-      </div>
-      <h1 class="article__title">{title}</h1>
-      <p class="article__dek">{dek}</p>
-      <div class="article__byline">
-        {
-          authorNames.map((name, i) => (
-            <>
-              {i > 0 && ', '}
-              <span data-pagefind-filter="author">{name}</span>
-            </>
-          ))
-        }
-        <span aria-hidden="true">·</span>
-        <time datetime={published_at.toISOString()} data-pagefind-filter="date[datetime]">
-          {published_at.toISOString().slice(0, 10)}
-        </time>
-        {
-          revisions.length > 0 && (
-            <>
-              <span aria-hidden="true">·</span>
-              <a href="#revision-history">
-                {corrections.length > 0 ? 'corrected' : 'updated'}{' '}
-                {lastRevised.toISOString().slice(0, 10)}
-              </a>
-            </>
-          )
-        }
-      </div>
-      {
-        series.length > 0 && (
-          <p class="article__series">
-            Part of{' '}
-            {series.map((s, i) => (
+          <span aria-hidden="true">·</span>
+          <time datetime={published_at.toISOString()} data-pagefind-filter="date[datetime]">
+            {published_at.toISOString().slice(0, 10)}
+          </time>
+          {
+            revisions.length > 0 && (
               <>
-                {i > 0 && ', '}
-                <a href={`/series/${s.id}`} data-pagefind-filter="series">
-                  {s.name}
+                <span aria-hidden="true">·</span>
+                <a href="#revision-history">
+                  {corrections.length > 0 ? 'corrected' : 'updated'}{' '}
+                  {lastRevised.toISOString().slice(0, 10)}
                 </a>
               </>
-            ))}
+            )
+          }
+        </div>
+        {
+          series.length > 0 && (
+            <p class="article__series">
+              Part of{' '}
+              {series.map((s, i) => (
+                <>
+                  {i > 0 && ', '}
+                  <a href={`/series/${s.id}`} data-pagefind-filter="series">
+                    {s.name}
+                  </a>
+                </>
+              ))}
+            </p>
+          )
+        }
+        <SignalTrace seed={entry.id.length + published_at.getUTCDate()} class="article__trace" />
+      </header>
+
+      {
+        archived && (
+          <p class="article__archived-notice" role="note">
+            This piece is archived and no longer actively promoted. The analysis below is preserved
+            as published; it may reference tools, versions, or claims that are now out of date.
           </p>
         )
       }
-      <SignalTrace seed={entry.id.length + published_at.getUTCDate()} class="article__trace" />
-    </header>
 
-    {
-      archived && (
-        <p class="article__archived-notice" role="note">
-          This piece is archived and no longer actively promoted. The analysis below is preserved as
-          published; it may reference tools, versions, or claims that are now out of date.
-        </p>
-      )
-    }
+      {
+        corrections.length > 0 && (
+          <p class="article__correction-notice" role="note">
+            <strong>
+              {corrections.length > 1
+                ? 'This piece has been corrected more than once.'
+                : 'This piece has been corrected.'}
+            </strong>{' '}
+            Most recent correction: {mostRecentCorrectionDate?.toISOString().slice(0, 10)} — see{' '}
+            <a href="#revision-history">revision history</a> below for what changed.
+          </p>
+        )
+      }
 
-    {
-      corrections.length > 0 && (
-        <p class="article__correction-notice" role="note">
-          <strong>
-            {corrections.length > 1
-              ? 'This piece has been corrected more than once.'
-              : 'This piece has been corrected.'}
-          </strong>{' '}
-          Most recent correction: {mostRecentCorrectionDate?.toISOString().slice(0, 10)} — see{' '}
-          <a href="#revision-history">revision history</a> below for what changed.
-        </p>
-      )
-    }
+      <div class="article__body">
+        <slot />
+      </div>
 
-    <div class="article__body">
-      <slot />
-    </div>
-
-    {
-      claims.length > 0 && (
-        <section class="article__claims">
-          <h2 id="claims-heading" class="eyebrow">
-            Claims in this piece
-          </h2>
-          <ul class="article__claims-list">
-            {claims.map((claim) => (
-              <li data-evidence={claim.evidence}>
-                <EvidenceTag evidence={claim.evidence} />
-                <span>{claim.text}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )
-    }
-
-    {
-      revisions.length > 0 && (
-        <section class="article__revisions" id="revision-history">
-          <h2 class="eyebrow">Revision history</h2>
-          <ol class="article__revisions-list">
-            {[...revisions]
-              .sort((a, b) => b.date.getTime() - a.date.getTime())
-              .map((r) => (
-                <li>
-                  <span class="article__revision-badge" data-type={r.type}>
-                    {r.type}
-                  </span>
-                  <time datetime={r.date.toISOString()}>{r.date.toISOString().slice(0, 10)}</time>
-                  <span>{r.note}</span>
+      {
+        claims.length > 0 && (
+          <section class="article__claims">
+            <h2 id="claims-heading" class="eyebrow">
+              Claims in this piece
+            </h2>
+            <ul class="article__claims-list">
+              {claims.map((claim) => (
+                <li data-evidence={claim.evidence}>
+                  <EvidenceTag evidence={claim.evidence} />
+                  <span>{claim.text}</span>
                 </li>
               ))}
-            <li>
-              <span class="article__revision-badge" data-type="published">
-                published
-              </span>
-              <time datetime={published_at.toISOString()}>
-                {published_at.toISOString().slice(0, 10)}
-              </time>
-              <span>Initial publication.</span>
-            </li>
-          </ol>
-        </section>
-      )
-    }
+            </ul>
+          </section>
+        )
+      }
 
-    {
-      artifactTitles.length > 0 && (
-        <section class="article__artifacts">
-          <h2 id="artifacts-heading" class="eyebrow">
-            Artifacts
-          </h2>
-          <ol class="article__artifacts-list">
-            {artifactTitles.map((artifact) => (
+      {
+        revisions.length > 0 && (
+          <section class="article__revisions" id="revision-history">
+            <h2 class="eyebrow">Revision history</h2>
+            <ol class="article__revisions-list">
+              {[...revisions]
+                .sort((a, b) => b.date.getTime() - a.date.getTime())
+                .map((r) => (
+                  <li>
+                    <span class="article__revision-badge" data-type={r.type}>
+                      {r.type}
+                    </span>
+                    <time datetime={r.date.toISOString()}>{r.date.toISOString().slice(0, 10)}</time>
+                    <span>{r.note}</span>
+                  </li>
+                ))}
               <li>
-                <a href={artifact.url} data-artifact-id={artifact.id}>
-                  {artifact.title}
-                </a>{' '}
-                <span class="article__artifact-kind">({artifact.kind})</span>
+                <span class="article__revision-badge" data-type="published">
+                  published
+                </span>
+                <time datetime={published_at.toISOString()}>
+                  {published_at.toISOString().slice(0, 10)}
+                </time>
+                <span>Initial publication.</span>
               </li>
-            ))}
-          </ol>
-        </section>
-      )
-    }
+            </ol>
+          </section>
+        )
+      }
 
-    {
-      sourceTitles.length > 0 && (
-        <section class="article__sources">
-          <h2 id="sources-heading" class="eyebrow">
-            Sources
-          </h2>
-          <ol class="article__sources-list">
-            {sourceTitles.map((source) => (
-              <li>
-                <a href={source.url}>{source.title}</a>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )
-    }
+      {
+        artifactTitles.length > 0 && (
+          <section class="article__artifacts">
+            <h2 id="artifacts-heading" class="eyebrow">
+              Artifacts
+            </h2>
+            <ol class="article__artifacts-list">
+              {artifactTitles.map((artifact) => (
+                <li>
+                  <a href={artifact.url} data-artifact-id={artifact.id}>
+                    {artifact.title}
+                  </a>{' '}
+                  <span class="article__artifact-kind">({artifact.kind})</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )
+      }
+
+      {
+        sourceTitles.length > 0 && (
+          <section class="article__sources">
+            <h2 id="sources-heading" class="eyebrow">
+              Sources
+            </h2>
+            <ol class="article__sources-list">
+              {sourceTitles.map((source) => (
+                <li>
+                  <a href={source.url}>{source.title}</a>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )
+      }
     </article>
   </div>
 </BaseLayout>

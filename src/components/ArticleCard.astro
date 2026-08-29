@@ -14,8 +14,16 @@ interface Props {
   dominantEvidence?: 'supported' | 'mixed' | 'inference' | 'opinion';
   archived?: boolean;
 }
-const { id, path, title, dek, publishedAt, topics, dominantEvidence, archived = false } =
-  Astro.props;
+const {
+  id,
+  path,
+  title,
+  dek,
+  publishedAt,
+  topics,
+  dominantEvidence,
+  archived = false,
+} = Astro.props;
 const dateLabel = publishedAt.toISOString().slice(0, 10);
 ---
 

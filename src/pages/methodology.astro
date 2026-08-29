@@ -1,72 +1,55 @@
 ---
-import BaseLayout from '@/layouts/BaseLayout.astro';
+import ProseLayout from '@/layouts/ProseLayout.astro';
 import EvidenceTag from '@/components/EvidenceTag.astro';
 ---
 
-<BaseLayout
-  title="Methodology"
+<ProseLayout
+  eyebrow="Methodology"
+  title="How claims are sourced and labeled"
   description="How Runtime Signals sources, labels, and reviews claims before publication."
   canonicalPath="/methodology"
+  traceSeed={5}
 >
-  <article class="prose">
-    <p class="eyebrow">Methodology</p>
-    <h1>How claims are sourced and labeled</h1>
-    <p>
-      Every article names a real system problem, states the invariant it violates, explains the
-      failure mechanism, and gives an implementable practice - with limitations stated, not implied.
-      Every consequential claim gets one of four labels, shown on the article itself:
-    </p>
-    <ul class="evidence-key">
-      <li><EvidenceTag evidence="supported" /> - backed by a primary source, cited.</li>
-      <li><EvidenceTag evidence="mixed" /> - partially supported; the gap is stated.</li>
-      <li>
-        <EvidenceTag evidence="inference" /> - our reasoning from available evidence, not a direct source
-        claim.
-      </li>
-      <li><EvidenceTag evidence="opinion" /> - an editorial judgment, labeled as one.</li>
-    </ul>
-    <p>
-      A claim labeled <EvidenceTag evidence="supported" /> or <EvidenceTag evidence="mixed" /> is rejected
-      at the publication gate if it cites no source - this is enforced in the content schema, not just
-      editorial review.
-    </p>
+  <p>
+    Every article names a real system problem, states the invariant it violates, explains the
+    failure mechanism, and gives an implementable practice - with limitations stated, not implied.
+    Every consequential claim gets one of four labels, shown on the article itself:
+  </p>
+  <ul class="evidence-key">
+    <li><EvidenceTag evidence="supported" /> - backed by a primary source, cited.</li>
+    <li><EvidenceTag evidence="mixed" /> - partially supported; the gap is stated.</li>
+    <li>
+      <EvidenceTag evidence="inference" /> - our reasoning from available evidence, not a direct source
+      claim.
+    </li>
+    <li><EvidenceTag evidence="opinion" /> - an editorial judgment, labeled as one.</li>
+  </ul>
+  <p>
+    A claim labeled <EvidenceTag evidence="supported" /> or <EvidenceTag evidence="mixed" /> is rejected
+    at the publication gate if it cites no source - this is enforced in the content schema, not just editorial
+    review.
+  </p>
 
-    <h2>Source priority</h2>
-    <ol>
-      <li>
-        Standards, specifications, official documentation, source repositories, and original papers.
-      </li>
-      <li>Maintainer-authored engineering reports and reproducible production write-ups.</li>
-      <li>Benchmark and dataset documentation and code.</li>
-      <li>
-        Credible secondary analysis, for discovery or context - never as sole proof for a
-        consequential claim.
-      </li>
-    </ol>
-    <p>
-      Every source record keeps its access date, since pricing, limits, APIs, and policies change.
-      We recheck time-sensitive claims before publishing and before any claim likely to have moved.
-    </p>
-  </article>
-</BaseLayout>
+  <h2>Source priority</h2>
+  <p>Ranked, not arbitrary - each tier below only backs a claim when nothing higher applies.</p>
+  <ol class="priority-list">
+    <li>
+      Standards, specifications, official documentation, source repositories, and original papers.
+    </li>
+    <li>Maintainer-authored engineering reports and reproducible production write-ups.</li>
+    <li>Benchmark and dataset documentation and code.</li>
+    <li>
+      Credible secondary analysis, for discovery or context - never as sole proof for a
+      consequential claim.
+    </li>
+  </ol>
+  <p>
+    Every source record keeps its access date, since pricing, limits, APIs, and policies change. We
+    recheck time-sensitive claims before publishing and before any claim likely to have moved.
+  </p>
+</ProseLayout>
 
 <style>
-  .prose {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-5) var(--space-9);
-    line-height: var(--leading-relaxed);
-  }
-  .prose h1 {
-    font-family: var(--font-body);
-    font-size: var(--text-2xl);
-    margin: var(--space-2) 0 var(--space-5);
-  }
-  .prose h2 {
-    font-family: var(--font-body);
-    font-size: var(--text-xl);
-    margin-top: var(--space-7);
-  }
   .evidence-key {
     list-style: none;
     padding: 0;
@@ -74,5 +57,44 @@ import EvidenceTag from '@/components/EvidenceTag.astro';
     flex-direction: column;
     gap: var(--space-3);
     margin: var(--space-5) 0;
+  }
+
+  /* Ranked tiers, not a generic bullet list - a lower tier only applies when
+     every tier above it doesn't, so the numbering itself is the information
+     (the same "structure is information" reasoning as the editorial-policy
+     workflow trace, applied to a plain ordered list here since a ranked
+     priority doesn't need its own bespoke visual device to read as ranked). */
+  .priority-list {
+    padding-left: 0;
+    margin: var(--space-5) 0;
+    list-style: none;
+    counter-reset: priority;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .priority-list li {
+    counter-increment: priority;
+    padding-left: var(--space-6);
+    position: relative;
+  }
+
+  .priority-list li::before {
+    content: counter(priority);
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--signal);
+    border: 1px solid var(--signal);
+    border-radius: 50%;
+    width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>

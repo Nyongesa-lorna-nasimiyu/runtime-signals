@@ -1,40 +1,24 @@
 ---
-import BaseLayout from '@/layouts/BaseLayout.astro';
+import ProseLayout from '@/layouts/ProseLayout.astro';
 ---
 
-<BaseLayout
-  title="Newsletter"
+<ProseLayout
+  eyebrow="Newsletter"
+  title="Not live yet"
   description="The Runtime Signals newsletter is not live yet."
   canonicalPath="/newsletter"
+  traceSeed={23}
 >
-  <article class="prose">
-    <p class="eyebrow">Newsletter</p>
-    <h1>Not live yet</h1>
-    <p>
-      There's no signup form on this page. The newsletter architecture is decided - a managed
-      provider stays authoritative for subscriber state, this site never stores an email address,
-      and no webhook endpoint exists until there's a durable store that actually needs one - but the
-      provider itself hasn't been verified at the account level yet, and no production email will
-      send until DNS authentication and consent handling are confirmed.
-    </p>
-    <p>
-      Check back once that verification is complete, or watch <a href="/rss.xml">RSS</a> / <a
-        href="/atom.xml">Atom</a
-      > in the meantime.
-    </p>
-  </article>
-</BaseLayout>
-
-<style>
-  .prose {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-5) var(--space-9);
-    line-height: var(--leading-relaxed);
-  }
-  .prose h1 {
-    font-family: var(--font-body);
-    font-size: var(--text-2xl);
-    margin: var(--space-2) 0 var(--space-5);
-  }
-</style>
+  <p>
+    There's no signup form on this page. The newsletter architecture is decided - a managed provider
+    stays authoritative for subscriber state, this site never stores an email address, and no
+    webhook endpoint exists until there's a durable store that actually needs one - but the provider
+    itself hasn't been verified at the account level yet, and no production email will send until
+    DNS authentication and consent handling are confirmed.
+  </p>
+  <p>
+    Check back once that verification is complete, or watch <a href="/rss.xml">RSS</a> / <a
+      href="/atom.xml">Atom</a
+    > in the meantime.
+  </p>
+</ProseLayout>

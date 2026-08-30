@@ -1,3 +1,3 @@
 name: Orchestration
 description: How multi-step and multi-agent systems sequence work, hand off state, and recover from partial failure.
-pillar: true
+pillar: false

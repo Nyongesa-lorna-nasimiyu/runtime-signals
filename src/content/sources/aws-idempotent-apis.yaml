@@ -1,0 +1,10 @@
+title: Making retries safe with idempotent APIs
+url: https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/
+publisher: AWS
+accessed_at: 2026-08-30
+source_type: blog-post
+primary: true
+notes: >-
+  Scope: Amazon Builders' Library article on retries, side effects, request identity, late arrivals,
+  and same-key different-intent failures. Limit: idempotency depends on receiver participation and
+  does not make an arbitrary multi-service operation atomic.

@@ -83,6 +83,7 @@ const jsonLd = [
     publishedAt: published_at,
     updatedAt: lastRevised,
     authorNames,
+    imagePath: ogImagePath,
   }),
 ];
 ---
@@ -94,6 +95,7 @@ const jsonLd = [
   noindex={seo.noindex || archived}
   jsonLd={jsonLd}
   ogImagePath={ogImagePath}
+  ogType="article"
 >
   <div class="article-wrap">
     {

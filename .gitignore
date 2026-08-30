@@ -41,3 +41,6 @@ playwright-report/
 # (uploaded as a real workflow artifact in CI), never source.
 schedule-audit.json
 preview-performance.json
+
+# Superdesign component-conversion scratch files
+.superdesign/

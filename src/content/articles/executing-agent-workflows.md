@@ -23,6 +23,7 @@ claims:
 citations: [anthropic-building-effective-agents, temporal-durable-execution]
 related: [trace-causality-across-agent-boundaries, idempotent-tool-execution-with-leases]
 seo:
+  title: 'Agent execution: durable state and failure'
   description: A concrete model for agent execution as persisted state transitions across scheduling, model calls, tools, recovery, and stop conditions.
   noindex: false
 ---

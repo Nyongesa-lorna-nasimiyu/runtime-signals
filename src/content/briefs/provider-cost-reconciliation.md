@@ -6,6 +6,8 @@ authors: [jordan-avery]
 topics: [observability, evaluation]
 published_at: 2026-10-09T07:00:00Z
 reading_time_minutes: 3
+seo:
+  title: Reconcile provider and token costs
 claims:
   - id: claim.brief.cost-reconciliation
     text: Cost decisions require reconciling application-side usage records with provider-reported billing semantics.

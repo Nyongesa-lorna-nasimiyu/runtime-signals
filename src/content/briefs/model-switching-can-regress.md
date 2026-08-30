@@ -6,6 +6,8 @@ authors: [jordan-avery]
 topics: [evaluation, reliability]
 published_at: 2026-09-04T07:00:00Z
 reading_time_minutes: 3
+seo:
+  title: A stronger model can regress
 claims:
   - id: claim.brief.model-switch-system
     text: Model choice changes the behavior of a larger workflow whose tools, context, recovery, and evaluator also shape outcomes.

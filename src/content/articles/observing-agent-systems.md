@@ -23,6 +23,7 @@ claims:
 citations: [opentelemetry-traces, w3c-trace-context, opentelemetry-genai-semconv]
 related: [trace-causality-across-agent-boundaries]
 seo:
+  title: 'Agent observability: preserve causal context'
   description: A practical guide to tracing AI agents across model calls, tools, state stores, and schedulers while preserving causal context.
   noindex: false
 ---

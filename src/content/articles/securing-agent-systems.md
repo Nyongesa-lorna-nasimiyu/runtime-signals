@@ -23,6 +23,7 @@ claims:
 citations: [owasp-prompt-injection, nist-ai-rmf]
 related: [tool-results-are-data-not-authority]
 seo:
+  title: Contain authority in agent systems
   description: How to contain prompt injection and tool risk with explicit capabilities, provenance, approval, and independent authorization checks.
   noindex: false
 ---

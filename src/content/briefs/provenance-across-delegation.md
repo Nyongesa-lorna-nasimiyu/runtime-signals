@@ -6,6 +6,8 @@ authors: [jordan-avery]
 topics: [state, execution, evaluation]
 published_at: 2026-10-02T07:00:00Z
 reading_time_minutes: 3
+seo:
+  title: Evidence weakens across delegation
 claims:
   - id: claim.brief.provenance-transfer
     text: Provenance and confidence need an explicit transfer contract when work moves between agent steps.

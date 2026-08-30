@@ -24,6 +24,7 @@ claims:
 citations: [aws-idempotent-apis, temporal-durable-execution]
 related: [idempotent-tool-execution-with-leases]
 seo:
+  title: Agent reliability starts with invariants
   description: A field guide to designing reliable AI-agent systems with explicit invariants for retries, leases, idempotency, and recovery.
   noindex: false
 ---

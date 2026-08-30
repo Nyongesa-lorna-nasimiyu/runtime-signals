@@ -6,6 +6,8 @@ authors: [jordan-avery]
 topics: [evaluation, reliability]
 published_at: 2026-09-25T07:00:00Z
 reading_time_minutes: 3
+seo:
+  title: Task order can fake agent improvement
 claims:
   - id: claim.brief.eval-order
     text: Evaluation order can confound results when systems learn, cache, or become familiar with the task sequence.

@@ -23,6 +23,7 @@ claims:
 citations: [opentelemetry-traces, w3c-trace-context, opentelemetry-genai-semconv]
 related: [observing-agent-systems]
 seo:
+  title: Trace causality across agent boundaries
   description: Instrument agent runtimes with causal IDs for model calls, tool operations, state versions, and asynchronous recovery paths.
   noindex: false
 ---

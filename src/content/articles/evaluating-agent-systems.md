@@ -22,6 +22,7 @@ claims:
     sources: []
 citations: [openai-evals, anthropic-building-effective-agents]
 seo:
+  title: Evaluate committed agent work
   description: How to evaluate AI agents using task contracts, committed artifacts, failure taxonomies, and reproducible evidence instead of transcript quality alone.
   noindex: false
 ---

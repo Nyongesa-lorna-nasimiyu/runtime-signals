@@ -6,6 +6,8 @@ authors: [jordan-avery]
 topics: [observability, security]
 published_at: 2026-09-18T07:00:00Z
 reading_time_minutes: 3
+seo:
+  title: Trace visibility is not auditability
 claims:
   - id: claim.brief.auditability-boundary
     text: A trace is not automatically a complete, attributable, tamper-evident, and exportable audit record.

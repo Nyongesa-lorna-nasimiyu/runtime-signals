@@ -24,6 +24,7 @@ claims:
 citations: [aws-idempotent-apis]
 related: [reliable-agent-systems-invariants]
 seo:
+  title: Idempotent agent tool execution
   description: Implement idempotent agent tools with stable operation IDs, leases, fencing tokens, reconciliation, and bounded retries.
   noindex: false
 ---

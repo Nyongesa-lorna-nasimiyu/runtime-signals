@@ -6,6 +6,8 @@ authors: [jordan-avery]
 topics: [execution, reliability, security]
 published_at: 2026-10-30T07:00:00Z
 reading_time_minutes: 3
+seo:
+  title: Agent stop conditions
 claims:
   - id: claim.brief.stop-conditions
     text: More autonomous agent loops require explicit bounds on steps, authority, and recovery decisions.

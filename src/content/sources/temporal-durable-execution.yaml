@@ -1,0 +1,10 @@
+title: Durable Execution
+url: https://docs.temporal.io/encyclopedia/durable-execution
+publisher: Temporal
+accessed_at: 2026-08-30
+source_type: tool
+primary: true
+notes: >-
+  Scope: official explanation of resuming workflow execution after process failure by recording
+  execution history and replaying workflow code. Limit: durable workflow history does not make an
+  external tool side effect exactly-once or remove the need for idempotency and reconciliation.

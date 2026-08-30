@@ -1,0 +1,10 @@
+title: Traces
+url: https://opentelemetry.io/docs/concepts/signals/traces/
+publisher: OpenTelemetry
+accessed_at: 2026-08-30
+source_type: standard
+primary: true
+notes: >-
+  Scope: official concepts documentation for spans, traces, context propagation, and recording a
+  request's path through a distributed system. Limit: trace visibility alone does not establish
+  auditability, causality, authorization, or complete retention.

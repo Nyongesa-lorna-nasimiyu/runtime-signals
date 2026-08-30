@@ -1,0 +1,10 @@
+title: Building effective agents
+url: https://www.anthropic.com/research/building-effective-agents
+publisher: Anthropic
+accessed_at: 2026-08-30
+source_type: blog-post
+primary: true
+notes: >-
+  Scope: maintainer-authored guidance describing agentic workflows, the trade-off between simpler
+  workflows and more autonomous agents, and common composition patterns. Limit: it is conceptual
+  guidance, not a guarantee about a particular runtime's reliability or production behavior.

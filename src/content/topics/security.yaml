@@ -1,0 +1,6 @@
+name: Agent Security
+description: How agent systems contain tool authority, prompt injection, secrets, and untrusted data at every boundary.
+related:
+  - orchestration
+  - state
+pillar: true

@@ -1,0 +1,10 @@
+title: LLM01:2025 Prompt Injection
+url: https://genai.owasp.org/llmrisk/llm01-prompt-injection/
+publisher: OWASP Gen AI Security Project
+accessed_at: 2026-08-30
+source_type: standard
+primary: true
+notes: >-
+  Scope: OWASP risk entry covering direct and indirect prompt injection and the limits of relying on
+  model behavior alone for instruction separation. Limit: the risk entry catalogs threats and
+  mitigations; it does not certify a specific agent architecture as resistant.

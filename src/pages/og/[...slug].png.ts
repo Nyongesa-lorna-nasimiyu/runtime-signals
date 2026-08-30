@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getRoutableEntries } from '@/lib/publication';
-import { resolveTopicNames } from '@/lib/resolve';
+import { resolveTopicNames, evidenceCounts } from '@/lib/resolve';
 import { renderOgImage } from '@/lib/og-image';
 import { BUILD_TIME } from '@/lib/build-time';
 
@@ -25,15 +25,23 @@ export async function getStaticPaths() {
       const collectionSegment = entry.collection === 'articles' ? 'articles' : 'brief';
       return {
         params: { slug: `${collectionSegment}/${entry.id}` },
-        props: { title: entry.data.title, eyebrow: topics.join(' · ') || entry.collection },
+        props: {
+          title: entry.data.title,
+          eyebrow: topics.join(' · ') || entry.collection,
+          evidence: evidenceCounts([entry]),
+        },
       };
     }),
   );
 }
 
 export const GET: APIRoute = async ({ props }) => {
-  const { title, eyebrow } = props as { title: string; eyebrow: string };
-  const png = await renderOgImage({ title, eyebrow, seed: title.length });
+  const { title, eyebrow, evidence } = props as {
+    title: string;
+    eyebrow: string;
+    evidence: ReturnType<typeof evidenceCounts>;
+  };
+  const png = await renderOgImage({ title, eyebrow, evidence });
   // No headers set here beyond Content-Type: this Response is only used to
   // extract the PNG bytes for the static file Astro writes to dist/ at build
   // time — Cloudflare Workers Static Assets then serves that file with its own

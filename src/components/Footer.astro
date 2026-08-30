@@ -1,6 +1,4 @@
 ---
-import SignalTrace from './SignalTrace.astro';
-
 const links = [
   { href: '/series', label: 'Series' },
   { href: '/methodology', label: 'Methodology' },
@@ -14,7 +12,6 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <SignalTrace seed={19} class="site-footer__trace" />
   <div class="site-footer__row">
     <p class="site-footer__colophon">
       Runtime Signals - failure mechanism, invariant, engineering practice. Every consequential
@@ -42,11 +39,6 @@ const year = new Date().getFullYear();
     max-width: var(--wide-width);
     margin: var(--space-9) auto 0;
     padding: 0 var(--space-5) var(--space-6);
-  }
-
-  .site-footer__trace {
-    margin-bottom: var(--space-5);
-    opacity: 0.35;
   }
 
   .site-footer__row {

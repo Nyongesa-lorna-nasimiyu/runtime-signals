@@ -1,10 +1,17 @@
 /*
-  Design direction - "signal paper": a cool, precise engineering-notebook register,
-  not the warm-cream/serif or near-black/neon defaults. The one aesthetic risk is
-  using a monospace face as the DISPLAY voice (headlines, eyebrows, nav) rather than
-  reserving it for code - appropriate for a publication literally named for signals
-  and telemetry, read by engineers who live in monospace. Body copy stays a system
-  serif for sustained long-form reading and zero font-loading cost.
+  Design direction - "instrument register": a cool, precise engineering-notebook
+  register, not the warm-cream/serif, near-black/neon, or broadsheet defaults.
+  Two aesthetic choices carry the identity:
+
+  1. A monospace face as the DISPLAY voice (headlines, eyebrows, nav) rather than
+     reserving it for code - apt for a publication literally named for signals
+     and telemetry, read by engineers who live in monospace. Body copy stays a
+     system serif for sustained long-form reading and zero font-loading cost.
+  2. --signal is verdigris/oscilloscope-phosphor teal, not the generic "AI blue"
+     link color most sites reach for - it's the one hue that recurs everywhere
+     evidence is live or current (dates, counts, the Evidence Strip's strongest
+     channel). --focus-ring runs warm (grease-pencil red-orange) specifically so
+     it never gets lost against the cool teal/graphite field.
 
   JetBrains Mono Variable, self-hosted (public/fonts/), SIL OFL 1.1.
 
@@ -29,22 +36,27 @@
     color-scheme: light dark;
 
     /* Color */
-    --paper: light-dark(#f7f8fa, #0e1218);
-    --paper-raised: light-dark(#ffffff, #161b23);
-    --ink: light-dark(#12161c, #e8ebf1);
-    --ink-muted: light-dark(#4b5563, #9aa5b6);
-    --hairline: light-dark(#d8dee7, #2a313d);
-    --signal: light-dark(#2354c9, #7ea2f7);
-    --signal-ink: light-dark(#ffffff, #0e1218);
-    --signal-dim: light-dark(#e8eefe, #1a2740);
-    --focus-ring: light-dark(#b6470a, #f0975a);
+    --paper: light-dark(#f2f4f2, #0a0f0f);
+    --paper-raised: light-dark(#ffffff, #121a19);
+    --ink: light-dark(#121917, #e6ece9);
+    --ink-muted: light-dark(#556662, #93a5a0);
+    --hairline: light-dark(#d0d9d5, #21302c);
+    --signal: light-dark(#0f6e63, #57d9c4);
+    --signal-ink: light-dark(#ffffff, #0a0f0f);
+    --signal-dim: light-dark(#e2f2ee, #142722);
+    --focus-ring: light-dark(#b3311f, #ff8a68);
 
     /* Evidence-strength semantics - these colors carry content meaning
-       (docs/architecture/content-model.md claim.evidence), not decoration. */
-    --evidence-supported: light-dark(#0f7a56, #4bc794);
+       (docs/architecture/content-model.md claim.evidence), not decoration.
+       Retuned to sit against the verdigris signal color without competing
+       with it: supported stays the "confirmed" green family, mixed/inference/
+       opinion keep their original hues (amber/violet/gray) since those
+       already read correctly and changing them would cost legibility for
+       returning readers with no gain. */
+    --evidence-supported: light-dark(#146b46, #4bd99a);
     --evidence-mixed: light-dark(#a3660a, #e0a63c);
     --evidence-inference: light-dark(#5b4fa8, #ab9ee8);
-    --evidence-opinion: light-dark(#5b6472, #9aa5b6);
+    --evidence-opinion: light-dark(#5b6462, #93a5a0);
 
     /* Type */
     --font-display:

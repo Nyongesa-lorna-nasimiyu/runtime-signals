@@ -3,6 +3,8 @@
 // shape of the content earns this treatment (see the hero's rationale in
 // src/pages/index.astro), not decoration for its own sake.
 import { spanId } from '@/lib/span-id';
+import EvidenceStrip from './EvidenceStrip.astro';
+import type { EvidenceStrength } from '@/lib/resolve';
 
 interface Props {
   id: string;
@@ -11,7 +13,8 @@ interface Props {
   dek: string;
   publishedAt: Date;
   topics: string[];
-  dominantEvidence?: 'supported' | 'mixed' | 'inference' | 'opinion';
+  dominantEvidence?: EvidenceStrength;
+  evidence?: Record<EvidenceStrength, number>;
   archived?: boolean;
 }
 const {
@@ -22,9 +25,11 @@ const {
   publishedAt,
   topics,
   dominantEvidence,
+  evidence,
   archived = false,
 } = Astro.props;
 const dateLabel = publishedAt.toISOString().slice(0, 10);
+const hasEvidence = evidence ? Object.values(evidence).some((n) => n > 0) : false;
 ---
 
 <article class="signal-entry" data-archived={archived ? 'true' : undefined}>
@@ -39,6 +44,9 @@ const dateLabel = publishedAt.toISOString().slice(0, 10);
           </span>
         )
       }
+      {hasEvidence && (
+        <EvidenceStrip counts={evidence!} variant="mini" class="signal-entry__evidence" />
+      )}
       {archived && <span class="signal-entry__archived">archived</span>}
     </div>
     <h3 class="signal-entry__title">

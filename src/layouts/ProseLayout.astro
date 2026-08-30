@@ -1,14 +1,11 @@
 ---
 // Shared shell for the site's long-form policy/about pages (about,
-// methodology, corrections, editorial-policy, newsletter) - previously each
-// page duplicated the same `.prose` block verbatim with no shared signature
-// element, the one real design gap left after Signal Paper v2 (which
-// redesigned the reader-facing content pages but not these). A SignalTrace
-// divider under the header is the same baseline device ArticleLayout's
-// header, 404, and the footer already use - giving every page in the site
-// at least one shared signature touch, not just the flagship ones.
+// methodology, corrections, editorial-policy, newsletter). These pages carry
+// no claim data of their own, so - unlike the homepage and article pages -
+// they get no Evidence Strip; a plain hairline under the header is the
+// honest device here rather than reaching for a signature element that
+// would have nothing real to show.
 import BaseLayout from './BaseLayout.astro';
-import SignalTrace from '@/components/SignalTrace.astro';
 
 interface Props {
   eyebrow: string;
@@ -16,12 +13,9 @@ interface Props {
   description: string;
   canonicalPath: string;
   noindex?: boolean;
-  // Deterministic per page (not random) so server-rendered markup is stable
-  // across builds, matching every other SignalTrace call site's convention.
-  traceSeed: number;
 }
 
-const { eyebrow, title, description, canonicalPath, noindex, traceSeed } = Astro.props;
+const { eyebrow, title, description, canonicalPath, noindex } = Astro.props;
 ---
 
 <BaseLayout title={title} description={description} canonicalPath={canonicalPath} noindex={noindex}>
@@ -29,7 +23,6 @@ const { eyebrow, title, description, canonicalPath, noindex, traceSeed } = Astro
     <header class="prose__header">
       <p class="eyebrow">{eyebrow}</p>
       <h1><slot name="title">{title}</slot></h1>
-      <SignalTrace seed={traceSeed} class="prose__trace" />
     </header>
     <div class="prose__body">
       <slot />
@@ -45,15 +38,17 @@ const { eyebrow, title, description, canonicalPath, noindex, traceSeed } = Astro
     line-height: var(--leading-relaxed);
   }
 
+  .prose__header {
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--hairline);
+    margin-bottom: var(--space-6);
+  }
+
   .prose__header h1 {
     font-family: var(--font-body);
     font-size: var(--text-2xl);
     line-height: var(--leading-tight);
-    margin: var(--space-2) 0 var(--space-4);
-  }
-
-  .prose__trace {
-    margin: 0 0 var(--space-6);
+    margin: var(--space-2) 0 0;
   }
 
   .prose__body :global(h2) {

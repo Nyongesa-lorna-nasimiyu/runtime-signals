@@ -1,7 +1,7 @@
 ---
 title: 'Weekly Brief: A lease without fencing is only a timeout'
 dek: Check whether expired workers can still commit after a replacement has taken ownership.
-status: draft
+status: scheduled
 authors: [jordan-avery]
 topics: [reliability, execution]
 published_at: 2026-10-23T07:00:00Z

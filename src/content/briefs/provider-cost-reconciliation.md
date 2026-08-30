@@ -1,7 +1,7 @@
 ---
 title: 'Weekly Brief: Provider billing and local token telemetry disagree'
 dek: A reconciliation worksheet for usage buckets, rounding, retries, and cached work.
-status: draft
+status: scheduled
 authors: [jordan-avery]
 topics: [observability, evaluation]
 published_at: 2026-10-09T07:00:00Z

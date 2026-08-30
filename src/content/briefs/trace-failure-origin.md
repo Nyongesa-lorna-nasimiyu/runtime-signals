@@ -1,7 +1,7 @@
 ---
 title: 'Weekly Brief: Your trace shows the failure, not its origin'
 dek: A small instrumentation exercise for joining model, tool, state, and scheduler events.
-status: draft
+status: scheduled
 authors: [jordan-avery]
 topics: [observability, orchestration]
 published_at: 2026-09-11T07:00:00Z

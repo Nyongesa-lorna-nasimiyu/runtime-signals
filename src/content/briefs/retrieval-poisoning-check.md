@@ -1,7 +1,7 @@
 ---
 title: 'Weekly Brief: Retrieval is a security boundary'
 dek: A short review for detecting when retrieved content can steer tools instead of informing a decision.
-status: draft
+status: scheduled
 authors: [jordan-avery]
 topics: [security, execution]
 published_at: 2026-10-16T07:00:00Z

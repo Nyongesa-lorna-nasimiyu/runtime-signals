@@ -4,6 +4,24 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "runtime-signals",
   "compatibility_date": "2026-08-28",
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    // Wrangler 4.127.1 does not support a redact_query_string key here.
+    // Keep query-string redaction in the application/security policy until
+    // Cloudflare exposes a supported configuration field.
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
+  },
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"

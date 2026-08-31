@@ -1,0 +1,71 @@
+name: Feature request
+description: Propose a focused improvement to Runtime Signals
+title: '[Feature]: '
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem before prescribing a solution. New long-form editorial work requires prior maintainer agreement; see CONTRIBUTING.md.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the open and closed issues for a similar request.
+          required: true
+        - label: This request is narrow enough to review and test independently.
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Reader experience
+        - Accessibility
+        - Editorial workflow
+        - Search, feeds, or discovery
+        - Build, testing, or developer experience
+        - Security or operations
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Who encounters the problem, and what are they unable to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Explain the smallest change that would address the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Note any workaround or simpler option you considered.
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Supporting evidence
+      description: Add examples, measurements, references, or sketches that help evaluate the request.
+
+  - type: checkboxes
+    id: conduct
+    attributes:
+      label: Community agreement
+      options:
+        - label: I agree to follow the Code of Conduct.
+          required: true

@@ -1,0 +1,58 @@
+name: Editorial correction
+description: Report a factual error, outdated claim, or missing material limitation
+title: '[Correction]: '
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Runtime Signals corrects accepted errors in place and records a visible revision. Use this form for published content, not software bugs or security reports.
+
+  - type: input
+    id: url
+    attributes:
+      label: Published page
+      description: Link to the article, brief, or source page that needs review.
+      placeholder: https://runtimesignals.tech/articles/example
+    validations:
+      required: true
+
+  - type: textarea
+    id: claim
+    attributes:
+      label: Claim or passage
+      description: Quote only the minimum text needed to identify the issue and note its section.
+    validations:
+      required: true
+
+  - type: textarea
+    id: concern
+    attributes:
+      label: What is incorrect or incomplete?
+      description: Explain the factual error, outdated information, or missing limitation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: sources
+    attributes:
+      label: Supporting sources
+      description: Provide primary sources or official documentation where possible, including publication or access dates.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested_change
+    attributes:
+      label: Suggested correction
+      description: Optional wording or scope for the correction.
+
+  - type: checkboxes
+    id: rights
+    attributes:
+      label: Source and conduct checks
+      options:
+        - label: I have not included private, paywalled, or copyrighted material beyond what is necessary to identify the claim.
+          required: true
+        - label: I agree to follow the Code of Conduct.
+          required: true

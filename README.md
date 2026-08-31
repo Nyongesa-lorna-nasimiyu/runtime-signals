@@ -22,3 +22,17 @@ This repository is currently in Phase 1: research and decisions. The domain `run
 - [Implementation roadmap](docs/roadmap.md)
 
 Research snapshot: 2026-08-28. Availability, prices, framework status, and service limits are time-sensitive and must be rechecked before launch.
+
+## Contributing and security
+
+Contributions are welcome. Read the [contributing guide](CONTRIBUTING.md) and
+[Code of Conduct](CODE_OF_CONDUCT.md) before opening a pull request. Report
+security vulnerabilities privately by following the [security policy](SECURITY.md),
+not through a public issue.
+
+## License
+
+Repository software and technical project documentation are licensed under the
+[Apache License 2.0](LICENSE). Original editorial content in `src/content/` and
+the Runtime Signals name, wordmark, logo, and visual identity are excluded unless
+a file states otherwise. See [NOTICE](NOTICE) for the complete scope.

@@ -34,3 +34,25 @@ test('a real article with a fenced code block renders correctly under the site r
   violations.push(...collected);
   expect(violations, `CSP violations: ${JSON.stringify(violations)}`).toEqual([]);
 });
+
+test('evidence strips render without inline styles under the site real CSP', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.addEventListener('securitypolicyviolation', (e) => {
+      (window as unknown as { __cspViolations: string[] }).__cspViolations ??= [];
+      (window as unknown as { __cspViolations: string[] }).__cspViolations.push(
+        `${e.violatedDirective}: ${e.blockedURI}`,
+      );
+    });
+  });
+
+  for (const route of ['/', '/articles/model-handoff-as-distributed-state-transfer']) {
+    await page.goto(route);
+    await expect(page.locator('.evidence-strip').first()).toBeVisible();
+    await expect(page.locator('.evidence-strip[style], .evidence-strip [style]')).toHaveCount(0);
+
+    const violations = await page.evaluate(
+      () => (window as unknown as { __cspViolations?: string[] }).__cspViolations ?? [],
+    );
+    expect(violations, `${route} CSP violations: ${JSON.stringify(violations)}`).toEqual([]);
+  }
+});

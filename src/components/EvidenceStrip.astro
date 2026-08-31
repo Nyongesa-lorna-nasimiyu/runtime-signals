@@ -20,11 +20,18 @@ const { counts, variant = 'channels', label, class: className = '' } = Astro.pro
 
 const total = ORDER.reduce((sum, key) => sum + counts[key], 0);
 
-const rows = ORDER.map((evidence) => ({
-  evidence,
-  count: counts[evidence],
-  pct: total === 0 ? 0 : Math.round((counts[evidence] / total) * 100),
-}));
+let offset = 0;
+const rows = ORDER.map((evidence) => {
+  const count = counts[evidence];
+  const row = {
+    evidence,
+    count,
+    offset,
+    pct: total === 0 ? 0 : Math.round((count / total) * 100),
+  };
+  offset += count;
+  return row;
+});
 
 const summary =
   total === 0
@@ -45,13 +52,20 @@ const summary =
             <span class="evidence-strip__name" data-evidence={row.evidence}>
               {row.evidence}
             </span>
-            <span class="evidence-strip__track">
-              <span
+            <svg
+              class="evidence-strip__track"
+              viewBox="0 0 100 1"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <rect
                 class="evidence-strip__fill"
                 data-evidence={row.evidence}
-                style={`width: ${row.pct}%`}
+                width={row.pct}
+                height="1"
+                rx="0.1"
               />
-            </span>
+            </svg>
             <span class="evidence-strip__pct">{row.pct}%</span>
           </div>
         ))}
@@ -63,17 +77,24 @@ const summary =
       role="img"
       aria-label={summary}
     >
-      <span class="evidence-strip__bar" aria-hidden="true">
+      <svg
+        class="evidence-strip__bar"
+        viewBox={`0 0 ${Math.max(total, 1)} 1`}
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
         {rows
-          .filter((row) => row.pct > 0)
+          .filter((row) => row.count > 0)
           .map((row) => (
-            <span
+            <rect
               class="evidence-strip__segment"
               data-evidence={row.evidence}
-              style={`width: ${row.pct}%`}
+              x={row.offset}
+              width={row.count}
+              height="1"
             />
           ))}
-      </span>
+      </svg>
     </span>
   )
 }
@@ -106,6 +127,7 @@ const summary =
 
   .evidence-strip__track {
     display: block;
+    width: 100%;
     height: 0.6rem;
     background: var(--hairline);
     border-radius: 1px;
@@ -113,23 +135,20 @@ const summary =
   }
 
   .evidence-strip__fill {
-    display: block;
-    height: 100%;
-    border-radius: 1px;
-    transition: width 0.4s ease;
+    fill: var(--ink-muted);
   }
 
   .evidence-strip__fill[data-evidence='supported'] {
-    background: var(--evidence-supported);
+    fill: var(--evidence-supported);
   }
   .evidence-strip__fill[data-evidence='mixed'] {
-    background: var(--evidence-mixed);
+    fill: var(--evidence-mixed);
   }
   .evidence-strip__fill[data-evidence='inference'] {
-    background: var(--evidence-inference);
+    fill: var(--evidence-inference);
   }
   .evidence-strip__fill[data-evidence='opinion'] {
-    background: var(--evidence-opinion);
+    fill: var(--evidence-opinion);
   }
 
   .evidence-strip__pct {
@@ -149,7 +168,8 @@ const summary =
   }
 
   .evidence-strip__bar {
-    display: flex;
+    display: block;
+    width: 100%;
     height: 0.35rem;
     border-radius: 1px;
     overflow: hidden;
@@ -157,21 +177,15 @@ const summary =
   }
 
   .evidence-strip__segment[data-evidence='supported'] {
-    background: var(--evidence-supported);
+    fill: var(--evidence-supported);
   }
   .evidence-strip__segment[data-evidence='mixed'] {
-    background: var(--evidence-mixed);
+    fill: var(--evidence-mixed);
   }
   .evidence-strip__segment[data-evidence='inference'] {
-    background: var(--evidence-inference);
+    fill: var(--evidence-inference);
   }
   .evidence-strip__segment[data-evidence='opinion'] {
-    background: var(--evidence-opinion);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .evidence-strip__fill {
-      transition: none;
-    }
+    fill: var(--evidence-opinion);
   }
 </style>

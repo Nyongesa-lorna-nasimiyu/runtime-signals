@@ -1,0 +1,91 @@
+name: Bug report
+description: Report a reproducible problem with the site, build, or tooling
+title: '[Bug]: '
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Do not include secrets, personal data, or undisclosed security details. Use the private channel in SECURITY.md for vulnerabilities.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the open and closed issues for this problem.
+          required: true
+        - label: This report does not disclose a security vulnerability or private information.
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Public website
+        - Local development or build
+        - Search or generated feeds
+        - Accessibility
+        - Editorial tooling or content validation
+        - GitHub workflow or deployment tooling
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Page, file, or command
+      description: Link to the page or name the file or command where the problem occurs.
+      placeholder: https://runtimesignals.tech/topics or npm run build
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and include the exact error when available.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Give the smallest reliable sequence that reproduces the problem.
+      placeholder: |
+        1. Run ...
+        2. Open ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include the browser, operating system, Node version, and commit SHA when relevant.
+      placeholder: Chrome 140, Ubuntu 24.04, Node 24.15.0, commit abc1234
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs or screenshots
+      description: Attach useful evidence after removing secrets, tokens, and personal data.
+
+  - type: checkboxes
+    id: conduct
+    attributes:
+      label: Community agreement
+      options:
+        - label: I agree to follow the Code of Conduct.
+          required: true

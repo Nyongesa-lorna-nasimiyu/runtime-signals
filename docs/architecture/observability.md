@@ -30,7 +30,7 @@ For this checkpoint, “webhook boundary” means the real outbound handoff wher
 
 The shared setup in `scripts/lib/otel.mjs` registers a `ConsoleSpanExporter` directly. It does not read an OTLP endpoint, create an external account, use an API token, or send telemetry outside the local process. Running `npm run verify:otel` prints one sample span for manual inspection.
 
-This is the same deliberate dry-run posture used by deployment: `.github/workflows/deploy.yml` runs `wrangler deploy --dry-run` while no Cloudflare account or token is authorized. The local exporter makes the instrumentation testable now without creating an operational dependency or changing the privacy boundary of the site.
+Production deployment now uses authenticated `wrangler deploy` after the protected GitHub Environment approval. The OTel exporter remains console-only: no OTel account or collector is configured, so instrumentation stays testable without creating an operational dependency or changing the privacy boundary of the site.
 
 If a real backend is approved later, the change should be additive: keep span names, bounded attributes, privacy rules, and script boundaries stable, then replace or extend the exporter configuration in `scripts/lib/otel.mjs` with an explicitly approved exporter and secret-managed endpoint. That future change requires a separate account/secret approval and verification; it is not part of this checkpoint.
 

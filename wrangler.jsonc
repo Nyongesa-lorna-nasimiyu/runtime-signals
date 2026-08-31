@@ -1,6 +1,7 @@
 {
-  // Deployment configuration only - not deployed by this checkpoint. Validate locally
-  // with `npm run wrangler:dry-run` (wrangler deploy --dry-run), which never publishes.
+  // Production deployment runs through the protected `production` GitHub
+  // environment in `.github/workflows/deploy.yml`. Validate locally with
+  // `npm run wrangler:dry-run` (wrangler deploy --dry-run), which never publishes.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "runtime-signals",
   "compatibility_date": "2026-08-28",

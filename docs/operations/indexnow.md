@@ -29,9 +29,10 @@ have succeeded:
 4. The notifier receives the deployment commit range and the built `dist/`.
 5. IndexNow returns `200` or `202` for every batch.
 
-The current repository intentionally stops before step 2. Until a real
-Cloudflare deployment is explicitly authorized and its environment credentials
-are configured, no workflow should invoke the notifier against production.
+The production workflow now executes step 2 through authenticated Wrangler
+after the protected environment approval. This repository still does not invoke
+the notifier automatically; adding it remains a separate post-deployment change
+so URL submission can be reviewed and verified independently.
 
 Scheduled rebuilds have no content commit diff because the same commit becomes
 live when its `published_at` passes. A scheduled deployment should therefore

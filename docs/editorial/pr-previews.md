@@ -18,7 +18,7 @@ This is separate from `publication-gate.yml`, which already runs `npm run build`
 
 ## Why an artifact, not a live URL
 
-"Uncacheable or isolated preview URLs" was part of the original brief for this checkpoint. A live per-PR preview URL (e.g. Cloudflare Pages preview deployments, which support exactly this) needs a real Cloudflare account and API token - and none has been configured for this project at any point, the same constraint `deploy.yml`'s dry-run-only deploy step already documents honestly (see `docs/research/architecture-research-report.md`).
+"Uncacheable or isolated preview URLs" was part of the original brief for this checkpoint. A live per-PR preview URL (e.g. Cloudflare Pages preview deployments, which support exactly this) still needs a separate preview deployment target and credentials. Production Cloudflare credentials are intentionally not exposed to this pull-request workflow.
 
 Rather than fake a preview URL or silently skip this requirement, the workflow is built so a live URL is an additive change later, not a redesign: everything except the final "upload as artifact" vs. "deploy to a URL" step is already exactly what a real preview deployment needs (an isolated build, forced noindex, no secrets). A reviewer today downloads the `preview-pr-<number>` artifact and serves it locally (`npx serve dist -p 4321`, or opens `index.html` directly for pages with no client-side routing needs).
 

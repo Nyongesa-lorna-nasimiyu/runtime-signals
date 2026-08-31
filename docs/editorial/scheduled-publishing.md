@@ -40,7 +40,7 @@ The very first time this workflow ever runs successfully, there is no prior succ
 
 If a dispatched `deploy.yml` run's build or verification steps fail, nothing changes - the previous deployment stays live, because Cloudflare Workers Static Assets only serves a new version once a deploy actually succeeds and is promoted. There is no in-between "half-deployed" state to roll back from.
 
-If a *deployed* version turns out to be bad after the fact, rolling back to a previous Cloudflare Workers deployment (`wrangler rollback` or the dashboard's deployment history) is the intended mechanism - this is untested and unexercised so far, same as the rest of real (non-dry-run) deployment: no Cloudflare account or API token has been configured for this project at any point (see `docs/research/architecture-research-report.md`). This is tracked as part of the same real-deployment launch blocker, not a gap specific to scheduling.
+If a *deployed* version turns out to be bad after the fact, rolling back to a previous Cloudflare Workers deployment (`wrangler rollback` or the dashboard's deployment history) is the intended mechanism. Rollback remains untested and unexercised so far; the production deployment path is now authenticated and gated by the protected GitHub Environment. This is still a follow-up rehearsal, not a gap specific to scheduling.
 
 ## Audit trail
 

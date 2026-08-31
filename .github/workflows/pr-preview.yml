@@ -7,13 +7,12 @@ name: pr-preview
 # never uploads or inspects the output itself.
 #
 # Deliberately artifact-based, not a live hosted preview URL: a real preview
-# deployment (e.g. Cloudflare Pages preview URLs) needs a Cloudflare account
-# and API token, and none has been configured for this project at any point
-# (see docs/research/architecture-research-report.md) - same real constraint
-# deploy.yml's dry-run-only deploy step already documents honestly. This
-# workflow is designed so that adding a real deploy step later is additive,
-# not a redesign: everything except "upload as a GitHub artifact" vs. "deploy
-# to a live URL" is already exactly what a real preview deployment needs.
+# deployment (e.g. Cloudflare Pages preview URLs) needs a separate preview
+# target and credentials. Production credentials are intentionally not exposed
+# to this pull-request workflow. This workflow is designed so that adding a
+# real preview deploy step later is additive, not a redesign: everything
+# except "upload as a GitHub artifact" vs. "deploy to a live URL" is already
+# exactly what a real preview deployment needs.
 on:
   pull_request:
 

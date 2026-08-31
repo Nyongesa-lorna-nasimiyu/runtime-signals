@@ -16,6 +16,14 @@ Date: 2026-08-28
 - Require two-person review for canonical URL changes, public deletion, security-sensitive content, newsletter sends, and export of subscriber data.
 - See `docs/security/incident-response.md` for the procedure once a control above fails or a compromise is suspected.
 
+## Cloudflare deployment
+
+`.github/workflows/deploy.yml` runs only after the protected `production`
+environment's approval and reads `CLOUDFLARE_API_TOKEN` from that environment's
+secrets. The non-secret `CLOUDFLARE_ACCOUNT_ID` is read from the same
+environment's variables. Production credentials are not passed to pull-request
+or preview workflows.
+
 ## Account-compromise controls
 
 These, not signed commits, are what actually detects and contains a compromised GitHub account or stolen session - signed commits only prove provenance, per the note above.

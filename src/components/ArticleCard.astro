@@ -44,9 +44,11 @@ const hasEvidence = evidence ? Object.values(evidence).some((n) => n > 0) : fals
           </span>
         )
       }
-      {hasEvidence && (
-        <EvidenceStrip counts={evidence!} variant="mini" class="signal-entry__evidence" />
-      )}
+      {
+        hasEvidence && (
+          <EvidenceStrip counts={evidence!} variant="mini" class="signal-entry__evidence" />
+        )
+      }
       {archived && <span class="signal-entry__archived">archived</span>}
     </div>
     <h3 class="signal-entry__title">

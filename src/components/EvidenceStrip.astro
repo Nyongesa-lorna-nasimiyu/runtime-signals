@@ -58,7 +58,11 @@ const summary =
       </div>
     </div>
   ) : (
-    <span class:list={['evidence-strip evidence-strip--mini', className]} role="img" aria-label={summary}>
+    <span
+      class:list={['evidence-strip evidence-strip--mini', className]}
+      role="img"
+      aria-label={summary}
+    >
       <span class="evidence-strip__bar" aria-hidden="true">
         {rows
           .filter((row) => row.pct > 0)

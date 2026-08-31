@@ -1,4 +1,4 @@
-name: Agent Observability
+name: Observability
 description: How traces, events, metrics, and provenance make multi-step agent behavior explainable and diagnosable.
 related:
   - orchestration

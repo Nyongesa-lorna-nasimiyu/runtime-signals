@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import SignalTrace from '@/components/SignalTrace.astro';
 ---
 
 <BaseLayout
@@ -17,7 +16,6 @@ import SignalTrace from '@/components/SignalTrace.astro';
       unapproved content never gets a public URL at all - if you followed a link here from somewhere
       else, it's likely stale.
     </p>
-    <SignalTrace seed={42} class="not-found__trace" />
     <a href="/" class="not-found__home">Back to Runtime Signals →</a>
   </section>
 </BaseLayout>
@@ -39,11 +37,9 @@ import SignalTrace from '@/components/SignalTrace.astro';
     max-width: 50ch;
     margin: 0 auto;
   }
-  .not-found__trace {
-    margin: var(--space-6) 0;
-  }
   .not-found__home {
     display: inline-block;
+    margin-top: var(--space-6);
     font-family: var(--font-display);
     font-size: var(--text-sm);
   }

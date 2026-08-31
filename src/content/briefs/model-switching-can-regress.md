@@ -1,7 +1,7 @@
 ---
 title: 'Weekly Brief: A stronger model can still make the system worse'
 dek: A review checklist for separating model capability from end-to-end agent utility.
-status: draft
+status: scheduled
 authors: [jordan-avery]
 topics: [evaluation, reliability]
 published_at: 2026-09-04T07:00:00Z

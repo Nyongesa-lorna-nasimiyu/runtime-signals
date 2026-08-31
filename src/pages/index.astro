@@ -1,14 +1,16 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import ArticleCard from '@/components/ArticleCard.astro';
-import SignalTrace from '@/components/SignalTrace.astro';
+import EvidenceStrip from '@/components/EvidenceStrip.astro';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
-import { resolveTopicNames, weakestEvidence, articlePath } from '@/lib/resolve';
+import { resolveTopicNames, weakestEvidence, evidenceCounts, articlePath } from '@/lib/resolve';
 import { BUILD_TIME } from '@/lib/build-time';
 
 const [articles, briefs] = await Promise.all([getCollection('articles'), getCollection('briefs')]);
-const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME).slice(0, 12);
+const allLive = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
+const live = allLive.slice(0, 12);
+const corpusEvidence = evidenceCounts(allLive);
 
 const cards = await Promise.all(
   live.map(async (entry) => ({
@@ -19,12 +21,13 @@ const cards = await Promise.all(
     publishedAt: entry.data.published_at,
     topics: await resolveTopicNames(entry),
     dominantEvidence: weakestEvidence(entry),
+    evidence: evidenceCounts([entry]),
   })),
 );
 ---
 
 <BaseLayout
-  title="Runtime Signals"
+  title="Reliable AI-Agent Systems in Production"
   description="Systems analysis of evaluation, reliability, recovery, orchestration, state, memory, tool security, and observability for AI agents in production."
   canonicalPath="/"
 >
@@ -38,7 +41,11 @@ const cards = await Promise.all(
       engineering practice that holds under load. No unreviewed AI-generated articles. Every
       consequential claim is sourced or explicitly labeled as inference.
     </p>
-    <SignalTrace seed={3} class="hero__trace" />
+    <EvidenceStrip
+      counts={corpusEvidence}
+      label="Evidence across the corpus"
+      class="hero__evidence"
+    />
   </section>
 
   <section class="log">
@@ -86,8 +93,9 @@ const cards = await Promise.all(
     margin: 0;
   }
 
-  .hero__trace {
-    margin-top: var(--space-6);
+  .hero__evidence {
+    margin-top: var(--space-7);
+    max-width: 30rem;
   }
 
   .log {

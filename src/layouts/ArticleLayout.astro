@@ -1,9 +1,9 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import EvidenceTag from '@/components/EvidenceTag.astro';
-import SignalTrace from '@/components/SignalTrace.astro';
+import EvidenceStrip from '@/components/EvidenceStrip.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
-import { latestRevisionDate } from '@/lib/resolve';
+import { latestRevisionDate, evidenceCounts } from '@/lib/resolve';
 import { spanId } from '@/lib/span-id';
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
@@ -35,6 +35,7 @@ const {
 } = Astro.props;
 
 const { title, dek, published_at, revisions, claims, seo } = entry.data;
+const entryEvidence = evidenceCounts([entry]);
 const path = entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief/${entry.id}`;
 const sectionLabel = entry.collection === 'articles' ? 'Articles' : 'Brief';
 const lastRevised = latestRevisionDate(entry);
@@ -83,6 +84,7 @@ const jsonLd = [
     publishedAt: published_at,
     updatedAt: lastRevised,
     authorNames,
+    imagePath: ogImagePath,
   }),
 ];
 ---
@@ -94,6 +96,7 @@ const jsonLd = [
   noindex={seo.noindex || archived}
   jsonLd={jsonLd}
   ogImagePath={ogImagePath}
+  ogType="article"
 >
   <div class="article-wrap">
     {
@@ -170,7 +173,15 @@ const jsonLd = [
             </p>
           )
         }
-        <SignalTrace seed={entry.id.length + published_at.getUTCDate()} class="article__trace" />
+        {
+          claims.length > 0 && (
+            <EvidenceStrip
+              counts={entryEvidence}
+              label="Evidence in this piece"
+              class="article__evidence"
+            />
+          )
+        }
       </header>
 
       {
@@ -383,8 +394,8 @@ const jsonLd = [
   /* Structural step-progress rail - trace-bar ticks, one per section, sitting
      in the left margin outside the reading column. Hidden below the point
      where that margin has real room (roughly the --wide-width layout
-     breakpoint); no mobile/tablet equivalent - the header's SignalTrace
-     divider is the substitute there, per design brief.
+     breakpoint); no mobile/tablet equivalent - the header's Evidence Strip
+     is the substitute signature element there.
 
      Two-part positioning, not position: fixed: a fixed rail would stay
      pinned to the viewport for the entire page, including past the end of
@@ -500,8 +511,9 @@ const jsonLd = [
     color: var(--signal);
   }
 
-  .article__trace {
+  .article__evidence {
     margin-top: var(--space-5);
+    max-width: 24rem;
   }
 
   .article__archived-notice,

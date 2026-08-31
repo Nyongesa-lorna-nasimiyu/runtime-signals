@@ -61,7 +61,9 @@ Not a roadmap line item, but real, merged work: a design-token and flagship-page
 - Write five pillar pages.
 - Publish three complete launch articles plus the ten-brief backlog.
 - Prepare 30-day calendar, redirects, author pages, methodology, and corrections policy.
-- Register Search Console and Bing Webmaster, submit sitemap, evaluate IndexNow for publication events.
+- Register Search Console and Bing Webmaster, submit sitemap, and wire IndexNow only after the
+  authoritative production deploy succeeds. The route-selection and retry contract is implemented
+  in `scripts/ci/notify-indexnow.mjs`; CI activation remains gated by the real deployment approval.
 - Run Lighthouse, schema validation, link checks, accessibility audit, and visual QA.
 
 Gate: launch checklist approved; email remains disabled until deliverability checks pass.

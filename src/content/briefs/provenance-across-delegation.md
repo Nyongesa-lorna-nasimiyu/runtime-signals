@@ -1,7 +1,7 @@
 ---
 title: 'Weekly Brief: Weak evidence gets weaker at delegation boundaries'
 dek: Preserve provenance and confidence when one agent hands a claim to another.
-status: draft
+status: scheduled
 authors: [jordan-avery]
 topics: [state, execution, evaluation]
 published_at: 2026-10-02T07:00:00Z

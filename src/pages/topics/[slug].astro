@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import ArticleCard from '@/components/ArticleCard.astro';
 import { getPublishedEntries } from '@/lib/publication';
-import { resolveTopicNames, weakestEvidence, articlePath } from '@/lib/resolve';
+import { resolveTopicNames, weakestEvidence, evidenceCounts, articlePath } from '@/lib/resolve';
 import { BUILD_TIME } from '@/lib/build-time';
 
 export async function getStaticPaths() {
@@ -25,6 +25,7 @@ const cards = await Promise.all(
     publishedAt: entry.data.published_at,
     topics: await resolveTopicNames(entry),
     dominantEvidence: weakestEvidence(entry),
+    evidence: evidenceCounts([entry]),
   })),
 );
 ---

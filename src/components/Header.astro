@@ -1,10 +1,7 @@
 ---
-import SignalTrace from './SignalTrace.astro';
-
 const nav = [
   { href: '/articles', label: 'Articles' },
   { href: '/topics', label: 'Topics' },
-  { href: '/series', label: 'Series' },
   { href: '/brief', label: 'Brief' },
   { href: '/sources', label: 'Sources' },
   { href: '/about', label: 'About' },
@@ -38,14 +35,14 @@ const currentPath = Astro.url.pathname;
       </ul>
     </nav>
   </div>
-  <SignalTrace seed={7} class="site-header__trace" />
 </header>
 
 <style>
   .site-header {
-    padding: var(--space-5) var(--space-5) 0;
+    padding: var(--space-5) var(--space-5);
     max-width: var(--wide-width);
     margin-inline: auto;
+    border-bottom: 1px solid var(--hairline);
   }
 
   .site-header__row {
@@ -111,9 +108,5 @@ const currentPath = Astro.url.pathname;
   .site-nav__link[aria-current='page'] {
     color: var(--ink);
     border-bottom-color: var(--signal);
-  }
-
-  .site-header__trace {
-    margin-top: var(--space-4);
   }
 </style>

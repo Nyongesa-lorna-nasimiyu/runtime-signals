@@ -21,3 +21,12 @@ for (const [name, path] of ROUTES) {
     await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
   });
 }
+
+test('topic cards have equal heights', async ({ page }) => {
+  await page.goto('/topics');
+  const heights = await page
+    .locator('.topic-card')
+    .evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().height));
+
+  expect(new Set(heights).size).toBe(1);
+});

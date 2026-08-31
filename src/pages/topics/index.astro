@@ -48,10 +48,12 @@ const topics = (await getCollection('topics')).sort((a, b) =>
     padding: 0;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    grid-auto-rows: 1fr;
     gap: var(--space-4);
   }
   .topic-card {
     display: block;
+    block-size: 100%;
     position: relative;
     isolation: isolate;
     overflow: hidden;

@@ -72,9 +72,9 @@ The migration boundary above, a requirement for private/user-specific search, mo
 
 ## Status as of Phase 2 checkpoint 2
 
-Implemented: build-time indexing scoped to real content (`data-pagefind-body`), topic/author/series/date filter *metadata* on every article/brief (`data-pagefind-filter` in `ArticleLayout.astro`), draft/unapproved exclusion (proven black-box against real `dist/` output), keyboard-focusable results, a no-JS fallback via `/articles` and topic hubs, and a working search UI at `/search`.
+Implemented: build-time indexing scoped to real content (`data-pagefind-body`), topic/author/series/date filter *metadata* on every article/brief (`data-pagefind-filter` in `ArticleLayout.astro`), topic/author/series filter controls in `SearchIsland.tsx`, draft/unapproved exclusion (proven black-box against real `dist/` output), keyboard-focusable results, a no-JS fallback via `/articles` and topic hubs, and a working search UI at `/search`.
 
-Explicitly deferred, not silently dropped: filter *controls* in the UI. The metadata is indexed and `pagefind.search()` already accepts a `filters` option against it, but `SearchIsland.tsx` doesn't expose topic/author/series/date controls yet — flagged by external review. Build when a concrete filtering need appears rather than speculatively.
+Date filtering remains explicitly deferred, not silently dropped: the indexed date metadata is a full ISO timestamp, and no date-control UX is exposed until a concrete need justifies the added complexity. The topic/author/series controls are now implemented against Pagefind's `filters` option.
 
 **Fixture scaling against this ADR's migration boundary**: measured for real at 100/1,000/5,000 documents — see `docs/poc/README.md` ("Fixture scaling: complete") for full numbers and methodology. Headline result: the fixed per-session search payload (engine + index metadata, not the whole archive) is ~382 KB gzip at 5,000 documents, comfortably under the "1-2 MB compressed" boundary this ADR set; Pagefind's own build and query-time cost scale sub-linearly. Not yet a reconsideration trigger. Re-measure again once the real archive reaches the low thousands rather than assuming these numbers hold indefinitely.
 

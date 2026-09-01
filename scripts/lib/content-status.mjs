@@ -25,6 +25,38 @@ function frontmatterField(frontmatter, field) {
   return match ? match[1].replace(/^["']|["']$/g, '') : undefined;
 }
 
+function parseDate(value) {
+  if (!value) return undefined;
+  const date = new Date(value.replace(/^["']|["']$/g, ''));
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function revisionDates(frontmatter) {
+  const dates = [];
+  let inRevisions = false;
+  for (const line of frontmatter.split(/\r?\n/)) {
+    if (!inRevisions) {
+      const revisions = line.match(/^revisions:\s*(.*)$/);
+      if (revisions) inRevisions = revisions[1].trim() === '';
+      continue;
+    }
+    if (/^[A-Za-z_][A-Za-z0-9_-]*:\s*/.test(line)) break;
+    const date = line.match(/^[ \t]+(?:-\s*)?date:\s*(.+?)\s*$/);
+    const parsed = parseDate(date?.[1]);
+    if (parsed) dates.push(parsed);
+  }
+  return dates;
+}
+
+function latestEditorialDate(frontmatter) {
+  const publishedAt = parseDate(frontmatterField(frontmatter, 'published_at'));
+  if (!publishedAt) return undefined;
+  return revisionDates(frontmatter).reduce(
+    (latest, revision) => (revision > latest ? revision : latest),
+    publishedAt,
+  );
+}
+
 function bodyAfterFrontmatter(source) {
   const match = source.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?([\s\S]*)$/);
   return match ? match[1] : source;
@@ -59,6 +91,37 @@ export function excludedSitemapPaths(contentRoot = 'src/content') {
     }
   }
   return excluded;
+}
+
+/**
+ * Returns the source-controlled last-modified date for each editorial route.
+ * `published_at` is the initial publication event; revisions[] contains only
+ * later events, so the latest of those dates is the only honest sitemap value.
+ * Utility, listing, and source pages intentionally have no entry here and must
+ * therefore not receive a build-time timestamp from the sitemap integration.
+ */
+export function readEditorialLastmodDates(contentRoot = 'src/content') {
+  const lastmods = new Map();
+  const collections = [
+    ['articles', '/articles'],
+    ['briefs', '/brief'],
+  ];
+  for (const [dir, urlPrefix] of collections) {
+    let files = [];
+    try {
+      files = readdirSync(join(contentRoot, dir));
+    } catch {
+      continue;
+    }
+    for (const file of files) {
+      if (!['.md', '.mdx'].includes(extname(file))) continue;
+      const id = file.slice(0, -extname(file).length);
+      const source = readFileSync(join(contentRoot, dir, file), 'utf-8');
+      const lastmod = latestEditorialDate(frontmatterBlock(source));
+      if (lastmod) lastmods.set(`${urlPrefix}/${id}`, lastmod);
+    }
+  }
+  return lastmods;
 }
 
 /**

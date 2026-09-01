@@ -3,7 +3,10 @@ import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
-import { excludedSitemapPaths } from './scripts/lib/content-status.mjs';
+import {
+  excludedSitemapPaths,
+  readEditorialLastmodDates,
+} from './scripts/lib/content-status.mjs';
 import { rehypeFocusableCodeBlocks } from './scripts/lib/rehype-focusable-code-blocks.mjs';
 import { rehypeResponsiveTables } from './scripts/lib/rehype-responsive-tables.mjs';
 
@@ -16,6 +19,7 @@ import { rehypeResponsiveTables } from './scripts/lib/rehype-responsive-tables.m
 // was absent from the sitemap without the sitemap integration actually excluding
 // it, so nothing had ever checked it.
 const sitemapExclusions = excludedSitemapPaths();
+const sitemapLastmodDates = readEditorialLastmodDates();
 
 // Fully static output: no adapter. docs/architecture/overview.md ("Locked-by-default
 // boundaries") commits to public reading that never depends on a request-time backend,
@@ -55,6 +59,14 @@ export default defineConfig({
       filter: (page) => {
         const path = new URL(page).pathname.replace(/\/$/, '');
         return !page.includes('/404') && !sitemapExclusions.has(path);
+      },
+      // Only editorial routes have source-controlled modification events. Do
+      // not put a single build timestamp on utility, listing, or source pages.
+      serialize: (item) => {
+        const path = new URL(item.url).pathname.replace(/\/$/, '') || '/';
+        const lastmod = sitemapLastmodDates.get(path);
+        if (lastmod) item.lastmod = lastmod.toISOString();
+        return item;
       },
     }),
   ],

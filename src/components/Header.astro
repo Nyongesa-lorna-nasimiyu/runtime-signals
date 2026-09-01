@@ -99,14 +99,53 @@ const currentPath = Astro.url.pathname;
     text-decoration: none;
     padding-bottom: 0.2em;
     border-bottom: 1px solid transparent;
+    touch-action: manipulation;
   }
 
-  .site-nav__link:hover {
+  .site-nav__link:hover,
+  .site-nav__link:focus-visible {
     color: var(--ink);
   }
 
   .site-nav__link[aria-current='page'] {
     color: var(--ink);
     border-bottom-color: var(--signal);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .masthead,
+    .site-nav__link {
+      transition:
+        color var(--motion-duration-fast) var(--motion-ease-out),
+        border-color var(--motion-duration-fast) var(--motion-ease-out);
+    }
+  }
+
+  @media (max-width: 42rem) {
+    .site-header {
+      padding: var(--space-4);
+    }
+
+    .site-header__row {
+      gap: var(--space-3);
+    }
+
+    .site-nav {
+      flex-basis: 100%;
+    }
+
+    /* Keep the complete primary navigation visible, but make the two-row
+       mobile arrangement intentional instead of allowing a final orphaned
+       link to wrap by accident. */
+    .site-nav__list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-1) var(--space-2);
+    }
+
+    .site-nav__link {
+      width: 100%;
+      min-block-size: var(--touch-target-comfortable);
+    }
   }
 </style>

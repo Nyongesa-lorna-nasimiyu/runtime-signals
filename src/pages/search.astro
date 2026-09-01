@@ -38,6 +38,7 @@ import SearchIsland from '@/components/SearchIsland';
 <style is:global>
   .search-island__input {
     width: 100%;
+    min-block-size: var(--touch-target-comfortable);
     font-family: var(--font-display);
     font-size: var(--text-base);
     padding: var(--space-3) var(--space-4);
@@ -45,6 +46,13 @@ import SearchIsland from '@/components/SearchIsland';
     border-radius: var(--radius);
     background: var(--paper-raised);
     color: var(--ink);
+    touch-action: manipulation;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .search-island__input {
+      transition: border-color var(--motion-duration-fast) var(--motion-ease-out);
+    }
   }
   .search-island__status {
     font-family: var(--font-display);

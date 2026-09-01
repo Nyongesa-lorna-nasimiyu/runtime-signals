@@ -9,6 +9,7 @@ import { test, expect } from '@playwright/test';
 const ROUTES: [name: string, path: string][] = [
   ['home', '/'],
   ['article', '/articles/model-handoff-as-distributed-state-transfer'],
+  ['article-table', '/articles/executing-agent-workflows'],
   ['topics-index', '/topics'],
   ['methodology', '/methodology'],
   ['search-empty', '/search'],

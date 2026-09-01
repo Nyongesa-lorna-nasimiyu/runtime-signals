@@ -47,7 +47,7 @@ const cards = await Promise.all(
       ) : (
         <div class="listing__list">
           {cards.map((card) => (
-            <ArticleCard {...card} />
+            <ArticleCard {...card} headingLevel={2} />
           ))}
         </div>
       )

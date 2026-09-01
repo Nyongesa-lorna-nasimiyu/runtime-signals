@@ -144,7 +144,7 @@ export default function SearchIsland() {
   }
 
   return (
-    <div className="search-island" data-hydrated={hydrated}>
+    <div className="search-island" data-hydrated={hydrated} aria-busy={status === 'loading'}>
       <label htmlFor="search-input" className="visually-hidden">
         Search Runtime Signals
       </label>
@@ -152,20 +152,30 @@ export default function SearchIsland() {
         id="search-input"
         type="search"
         value={query}
-        placeholder="Search articles, briefs, and sources…"
+        placeholder="Search the archive…"
         onChange={(e) => handleChange(e.target.value)}
         className="search-island__input"
         autoComplete="off"
       />
-      {status === 'loading' && <p className="search-island__status">Loading search index…</p>}
+      {status === 'loading' && (
+        <p className="search-island__status" role="status" aria-live="polite">
+          Loading search index…
+        </p>
+      )}
       {status === 'error' && (
-        <p className="search-island__status search-island__status--error">
+        <p
+          className="search-island__status search-island__status--error"
+          role="status"
+          aria-live="polite"
+        >
           Search is unavailable right now. Browse <a href="/articles">all articles</a> or{' '}
           <a href="/topics">topics</a> instead.
         </p>
       )}
       {status === 'ready' && results.length === 0 && (
-        <p className="search-island__status">No results for &ldquo;{query}&rdquo;.</p>
+        <p className="search-island__status" role="status" aria-live="polite">
+          No results for &ldquo;{query}&rdquo;.
+        </p>
       )}
       {results.length > 0 && (
         <ul className="search-island__results">

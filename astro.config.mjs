@@ -5,6 +5,7 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import { excludedSitemapPaths } from './scripts/lib/content-status.mjs';
 import { rehypeFocusableCodeBlocks } from './scripts/lib/rehype-focusable-code-blocks.mjs';
+import { rehypeResponsiveTables } from './scripts/lib/rehype-responsive-tables.mjs';
 
 // Computed once at config-eval time - astro.config.mjs runs before the content
 // layer exists, so this can't use astro:content and instead reads frontmatter
@@ -70,7 +71,7 @@ export default defineConfig({
     // markdown.rehypePlugins is deprecated in favor of a configured processor -
     // caught by a real deprecation warning in `npm test`, not by reading changelogs.
     processor: unified({
-      rehypePlugins: [rehypeFocusableCodeBlocks],
+      rehypePlugins: [rehypeFocusableCodeBlocks, rehypeResponsiveTables],
     }),
   },
   vite: {

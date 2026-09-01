@@ -54,6 +54,9 @@ const topics = (await getCollection('topics')).sort((a, b) =>
   .topic-card {
     display: block;
     block-size: 100%;
+    /* The longest current hub description is four lines. Reserving that
+       measure keeps every row card equal without clamping reader-visible copy. */
+    min-block-size: 11.75rem;
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -62,7 +65,8 @@ const topics = (await getCollection('topics')).sort((a, b) =>
     padding: var(--space-4);
     color: inherit;
   }
-  .topic-card:hover {
+  .topic-card:hover,
+  .topic-card:focus-visible {
     border-color: var(--signal);
   }
   /* Pure texture, not content - low-contrast enough to never compete with
@@ -90,5 +94,13 @@ const topics = (await getCollection('topics')).sort((a, b) =>
   .topic-card__desc {
     color: var(--ink-muted);
     font-size: var(--text-sm);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .topic-card {
+      transition:
+        border-color var(--motion-duration-fast) var(--motion-ease-out),
+        background-color var(--motion-duration-fast) var(--motion-ease-out);
+    }
   }
 </style>

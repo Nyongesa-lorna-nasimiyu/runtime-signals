@@ -45,6 +45,9 @@ jobs:
       - name: Format check
         run: npm run format:check
 
+      - name: GitHub Action pin policy
+        run: npm run verify:action-pins
+
       - name: Documentation structure and internal links
         run: npm run verify:docs
 

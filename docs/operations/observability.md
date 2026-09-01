@@ -23,3 +23,18 @@ Editorial model calls may emit a separate AI trace namespace to Langfuse through
 - Unexpected analytics payload fields or PII test failure.
 
 Telemetry failure must be fail-open for reading and fail-closed for publication approval and webhook side effects.
+
+## Current verification and routing
+
+`.github/workflows/production-health.yml` runs daily and on demand with
+`npm run verify:production`. It performs public, read-only checks for HTTPS,
+canonical metadata, robots, both sitemap endpoints, RSS, Atom, the custom 404,
+trailing-slash redirects, and the deployed security headers. It has no
+Cloudflare or newsletter credentials and cannot deploy.
+
+The current incident route is the repository maintainer plus
+`security@runtimesignals.tech`. GitHub Actions failure notifications and a
+Cloudflare alert destination still need to be configured and tested, and an
+independent second incident contact is still required. Do not treat a green
+health probe as proof that backup, rollback, or provider reconciliation has
+been rehearsed.

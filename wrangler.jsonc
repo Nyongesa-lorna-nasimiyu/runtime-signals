@@ -25,6 +25,14 @@
   },
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
+    // Astro always emits directory-style output (e.g. articles/index.html)
+    // regardless of astro.config.mjs's trailingSlash setting - that setting
+    // only controls Astro's own canonical/sitemap/internal-link generation,
+    // which is no-slash ("never"). Without this, Workers Static Assets'
+    // default html_handling ("auto-trailing-slash") treats every route as a
+    // folder and 307-redirects the no-slash URL to a slash URL, fighting the
+    // canonical convention every internal link and the sitemap already use.
+    "html_handling": "drop-trailing-slash"
   }
 }

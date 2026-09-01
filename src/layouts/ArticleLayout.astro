@@ -1,10 +1,12 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import EvidenceTag from '@/components/EvidenceTag.astro';
-import SignalTrace from '@/components/SignalTrace.astro';
+import EvidenceStrip from '@/components/EvidenceStrip.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
-import { latestRevisionDate } from '@/lib/resolve';
+import { latestRevisionDate, evidenceCounts } from '@/lib/resolve';
+import { spanId } from '@/lib/span-id';
 import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
 
 interface Props {
   entry: CollectionEntry<'articles'> | CollectionEntry<'briefs'>;
@@ -12,11 +14,28 @@ interface Props {
   topicNames: string[];
   series?: { id: string; name: string }[];
   sourceTitles: { id: string; title: string; url: string }[];
+  artifactTitles: { id: string; title: string; url: string; kind: string }[];
   archived: boolean;
+  // From astro:content's render(entry) - the article body's real, as-authored
+  // h2/h3 headings (with the same slugger-derived ids the rendered markup
+  // actually carries), used to build the step-progress rail below without
+  // hardcoding a fixed section-name list that wouldn't match every piece.
+  bodyHeadings?: MarkdownHeading[];
 }
 
-const { entry, authorNames, topicNames, series = [], sourceTitles, archived } = Astro.props;
+const {
+  entry,
+  authorNames,
+  topicNames,
+  series = [],
+  sourceTitles,
+  artifactTitles,
+  archived,
+  bodyHeadings = [],
+} = Astro.props;
+
 const { title, dek, published_at, revisions, claims, seo } = entry.data;
+const entryEvidence = evidenceCounts([entry]);
 const path = entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief/${entry.id}`;
 const sectionLabel = entry.collection === 'articles' ? 'Articles' : 'Brief';
 const lastRevised = latestRevisionDate(entry);
@@ -38,6 +57,20 @@ const mostRecentCorrectionDate = corrections.reduce(
 // (docs/architecture/content-model.md: material edits are recorded there).
 const ogImagePath = `/og/${entry.collection === 'articles' ? 'articles' : 'brief'}/${entry.id}.png?v=${lastRevised.getTime()}`;
 
+// Structural step-progress rail (desktop only - see .article__rail media
+// query below): top-level body headings, in document order, followed by the
+// fixed trailing sections below that render conditionally. Every `id` here
+// is a real id already present on the rendered output - claims-heading,
+// revision-history, artifacts-heading, and sources-heading are the exact ids
+// those sections/headings already carry further down this file.
+const railSections = [
+  ...bodyHeadings.filter((h) => h.depth === 2).map((h) => ({ id: h.slug, label: h.text })),
+  ...(claims.length > 0 ? [{ id: 'claims-heading', label: 'Claims' }] : []),
+  ...(revisions.length > 0 ? [{ id: 'revision-history', label: 'Revisions' }] : []),
+  ...(artifactTitles.length > 0 ? [{ id: 'artifacts-heading', label: 'Artifacts' }] : []),
+  ...(sourceTitles.length > 0 ? [{ id: 'sources-heading', label: 'Sources' }] : []),
+];
+
 const jsonLd = [
   breadcrumbJsonLd([
     { name: 'Home', path: '/' },
@@ -51,6 +84,7 @@ const jsonLd = [
     publishedAt: published_at,
     updatedAt: lastRevised,
     authorNames,
+    imagePath: ogImagePath,
   }),
 ];
 ---
@@ -62,163 +96,388 @@ const jsonLd = [
   noindex={seo.noindex || archived}
   jsonLd={jsonLd}
   ogImagePath={ogImagePath}
+  ogType="article"
 >
-  <article class="article">
-    <header class="article__header">
-      <p class="eyebrow">
-        {
-          topicNames.map((name, i) => (
-            <>
-              {i > 0 && ' · '}
-              <span data-pagefind-filter="topic">{name}</span>
-            </>
-          ))
-        }
-      </p>
-      <h1 class="article__title">{title}</h1>
-      <p class="article__dek">{dek}</p>
-      <div class="article__byline">
-        {
-          authorNames.map((name, i) => (
-            <>
-              {i > 0 && ', '}
-              <span data-pagefind-filter="author">{name}</span>
-            </>
-          ))
-        }
-        <span aria-hidden="true">·</span>
-        <time datetime={published_at.toISOString()} data-pagefind-filter="date[datetime]">
-          {published_at.toISOString().slice(0, 10)}
-        </time>
-        {
-          revisions.length > 0 && (
-            <>
-              <span aria-hidden="true">·</span>
-              <a href="#revision-history">
-                {corrections.length > 0 ? 'corrected' : 'updated'}{' '}
-                {lastRevised.toISOString().slice(0, 10)}
-              </a>
-            </>
-          )
-        }
-      </div>
-      {
-        series.length > 0 && (
-          <p class="article__series">
-            Part of{' '}
-            {series.map((s, i) => (
+  <div class="article-wrap">
+    {
+      railSections.length > 1 && (
+        <nav class="article__rail" aria-label="Article sections" data-progress-rail>
+          <ol>
+            {railSections.map((section) => (
+              <li>
+                <a href={`#${section.id}`} class="article__rail-tick" data-target={section.id}>
+                  <span class="article__rail-mark" aria-hidden="true" />
+                  <span class="visually-hidden">{section.label}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+
+    <article class="article" data-slug={entry.id} data-topics={JSON.stringify(topicNames)}>
+      <header class="article__header">
+        <div class="article__meta-row">
+          <p class="eyebrow">
+            <span class="article__section-label">{sectionLabel}</span>
+            {
+              topicNames.map((name) => (
+                <>
+                  {' · '}
+                  <span data-pagefind-filter="topic">{name}</span>
+                </>
+              ))
+            }
+          </p>
+          <span class="span-id" aria-hidden="true">{spanId(entry.id)}</span>
+        </div>
+        <h1 class="article__title">{title}</h1>
+        <p class="article__dek">{dek}</p>
+        <div class="article__byline">
+          {
+            authorNames.map((name, i) => (
               <>
                 {i > 0 && ', '}
-                <a href={`/series/${s.id}`} data-pagefind-filter="series">
-                  {s.name}
+                <span data-pagefind-filter="author">{name}</span>
+              </>
+            ))
+          }
+          <span aria-hidden="true">·</span>
+          <time datetime={published_at.toISOString()} data-pagefind-filter="date[datetime]">
+            {published_at.toISOString().slice(0, 10)}
+          </time>
+          {
+            revisions.length > 0 && (
+              <>
+                <span aria-hidden="true">·</span>
+                <a href="#revision-history">
+                  {corrections.length > 0 ? 'corrected' : 'updated'}{' '}
+                  {lastRevised.toISOString().slice(0, 10)}
                 </a>
               </>
-            ))}
+            )
+          }
+        </div>
+        {
+          series.length > 0 && (
+            <p class="article__series">
+              Part of{' '}
+              {series.map((s, i) => (
+                <>
+                  {i > 0 && ', '}
+                  <a href={`/series/${s.id}`} data-pagefind-filter="series">
+                    {s.name}
+                  </a>
+                </>
+              ))}
+            </p>
+          )
+        }
+        {
+          claims.length > 0 && (
+            <EvidenceStrip
+              counts={entryEvidence}
+              label="Evidence in this piece"
+              class="article__evidence"
+            />
+          )
+        }
+      </header>
+
+      {
+        archived && (
+          <p class="article__archived-notice" role="note">
+            This piece is archived and no longer actively promoted. The analysis below is preserved
+            as published; it may reference tools, versions, or claims that are now out of date.
           </p>
         )
       }
-      <SignalTrace seed={entry.id.length + published_at.getUTCDate()} class="article__trace" />
-    </header>
 
-    {
-      archived && (
-        <p class="article__archived-notice" role="note">
-          This piece is archived and no longer actively promoted. The analysis below is preserved as
-          published; it may reference tools, versions, or claims that are now out of date.
-        </p>
-      )
-    }
+      {
+        corrections.length > 0 && (
+          <p class="article__correction-notice" role="note">
+            <strong>
+              {corrections.length > 1
+                ? 'This piece has been corrected more than once.'
+                : 'This piece has been corrected.'}
+            </strong>{' '}
+            Most recent correction: {mostRecentCorrectionDate?.toISOString().slice(0, 10)} — see{' '}
+            <a href="#revision-history">revision history</a> below for what changed.
+          </p>
+        )
+      }
 
-    {
-      corrections.length > 0 && (
-        <p class="article__correction-notice" role="note">
-          <strong>
-            {corrections.length > 1
-              ? 'This piece has been corrected more than once.'
-              : 'This piece has been corrected.'}
-          </strong>{' '}
-          Most recent correction: {mostRecentCorrectionDate?.toISOString().slice(0, 10)} — see{' '}
-          <a href="#revision-history">revision history</a> below for what changed.
-        </p>
-      )
-    }
+      <div class="article__body">
+        <slot />
+      </div>
 
-    <div class="article__body">
-      <slot />
-    </div>
-
-    {
-      claims.length > 0 && (
-        <section class="article__claims">
-          <h2 id="claims-heading" class="eyebrow">
-            Claims in this piece
-          </h2>
-          <ul class="article__claims-list">
-            {claims.map((claim) => (
-              <li>
-                <EvidenceTag evidence={claim.evidence} />
-                <span>{claim.text}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )
-    }
-
-    {
-      revisions.length > 0 && (
-        <section class="article__revisions" id="revision-history">
-          <h2 class="eyebrow">Revision history</h2>
-          <ol class="article__revisions-list">
-            {[...revisions]
-              .sort((a, b) => b.date.getTime() - a.date.getTime())
-              .map((r) => (
-                <li>
-                  <span class="article__revision-badge" data-type={r.type}>
-                    {r.type}
-                  </span>
-                  <time datetime={r.date.toISOString()}>{r.date.toISOString().slice(0, 10)}</time>
-                  <span>{r.note}</span>
+      {
+        claims.length > 0 && (
+          <section class="article__claims">
+            <h2 id="claims-heading" class="eyebrow">
+              Claims in this piece
+            </h2>
+            <ul class="article__claims-list">
+              {claims.map((claim) => (
+                <li data-evidence={claim.evidence}>
+                  <EvidenceTag evidence={claim.evidence} />
+                  <span>{claim.text}</span>
                 </li>
               ))}
-            <li>
-              <span class="article__revision-badge" data-type="published">
-                published
-              </span>
-              <time datetime={published_at.toISOString()}>
-                {published_at.toISOString().slice(0, 10)}
-              </time>
-              <span>Initial publication.</span>
-            </li>
-          </ol>
-        </section>
-      )
-    }
+            </ul>
+          </section>
+        )
+      }
 
-    {
-      sourceTitles.length > 0 && (
-        <section class="article__sources">
-          <h2 id="sources-heading" class="eyebrow">
-            Sources
-          </h2>
-          <ol class="article__sources-list">
-            {sourceTitles.map((source) => (
+      {
+        revisions.length > 0 && (
+          <section class="article__revisions" id="revision-history">
+            <h2 class="eyebrow">Revision history</h2>
+            <ol class="article__revisions-list">
+              {[...revisions]
+                .sort((a, b) => b.date.getTime() - a.date.getTime())
+                .map((r) => (
+                  <li>
+                    <span class="article__revision-badge" data-type={r.type}>
+                      {r.type}
+                    </span>
+                    <time datetime={r.date.toISOString()}>{r.date.toISOString().slice(0, 10)}</time>
+                    <span>{r.note}</span>
+                  </li>
+                ))}
               <li>
-                <a href={source.url}>{source.title}</a>
+                <span class="article__revision-badge" data-type="published">
+                  published
+                </span>
+                <time datetime={published_at.toISOString()}>
+                  {published_at.toISOString().slice(0, 10)}
+                </time>
+                <span>Initial publication.</span>
               </li>
-            ))}
-          </ol>
-        </section>
-      )
-    }
-  </article>
+            </ol>
+          </section>
+        )
+      }
+
+      {
+        artifactTitles.length > 0 && (
+          <section class="article__artifacts">
+            <h2 id="artifacts-heading" class="eyebrow">
+              Artifacts
+            </h2>
+            <ol class="article__artifacts-list">
+              {artifactTitles.map((artifact) => (
+                <li>
+                  <a href={artifact.url} data-artifact-id={artifact.id}>
+                    {artifact.title}
+                  </a>{' '}
+                  <span class="article__artifact-kind">({artifact.kind})</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )
+      }
+
+      {
+        sourceTitles.length > 0 && (
+          <section class="article__sources">
+            <h2 id="sources-heading" class="eyebrow">
+              Sources
+            </h2>
+            <ol class="article__sources-list">
+              {sourceTitles.map((source) => (
+                <li>
+                  <a href={source.url}>{source.title}</a>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )
+      }
+    </article>
+  </div>
 </BaseLayout>
 
+<script>
+  // ADR-0003's bounded interaction-event contract (see the 2026-08-29
+  // amendment) - article_view fires once per page load, engaged_read is
+  // wired up (sampled, time-plus-depth gated) by initEngagedRead itself, and
+  // artifact_open fires on a real click of a real artifact link, not
+  // speculatively.
+  //
+  // Reads slug/topics from the .article element's data attributes rather
+  // than Astro's define:vars: define:vars forces the script into a
+  // non-module inline IIFE, which cannot contain a top-level `import` -
+  // confirmed by inspecting real build output, where an earlier version of
+  // this script rendered as a plain (non-module) inline <script> containing
+  // a literal `import` statement, which would have thrown
+  // "Cannot use import statement outside a module" in a real browser. A
+  // genuine <script type="module"> (this one) is bundled normally by Astro/
+  // Vite, so the import below resolves correctly.
+  import { track, initEngagedRead } from '@/lib/analytics';
+
+  const articleEl = document.querySelector('.article');
+  const slug = articleEl?.getAttribute('data-slug');
+  const topics = JSON.parse(articleEl?.getAttribute('data-topics') ?? '[]');
+
+  if (slug) {
+    track({ name: 'article_view', properties: { slug, topics } });
+    initEngagedRead(slug);
+  }
+
+  for (const link of document.querySelectorAll('.article__artifacts-list a[data-artifact-id]')) {
+    link.addEventListener('click', () => {
+      const artifactId = link.getAttribute('data-artifact-id');
+      if (artifactId) track({ name: 'artifact_open', properties: { artifactId } });
+    });
+  }
+</script>
+
+<script>
+  // Progressive enhancement only: the rail (.article__rail below) already
+  // renders as a plain static list of anchor links with no JS at all - this
+  // just adds a current-section indicator on top. Scoped to the same
+  // min-width the CSS uses to show the rail in the first place, so a device
+  // that never sees the rail never pays for an observer either.
+  const rail = document.querySelector<HTMLElement>('[data-progress-rail]');
+  const desktopRail = window.matchMedia('(min-width: 1200px)');
+
+  if (rail && desktopRail.matches && 'IntersectionObserver' in window) {
+    const ticks = Array.from(rail.querySelectorAll<HTMLAnchorElement>('[data-target]'));
+    const targets = ticks
+      .map((tick) => document.getElementById(tick.dataset.target ?? ''))
+      .filter((el): el is HTMLElement => el !== null);
+
+    if (targets.length > 0) {
+      const setActive = (index: number) => {
+        ticks.forEach((tick, i) => {
+          tick.toggleAttribute('data-active', i === index);
+          tick.toggleAttribute('data-passed', i < index);
+        });
+      };
+
+      // Recomputed from real geometry on every intersection change, rather
+      // than trusted from the IntersectionObserver entries themselves - a
+      // heading can cross the "current" line without its own intersection
+      // record changing (e.g. a short section fully skipped by a fast
+      // scroll), so the source of truth is "which heading's top has already
+      // passed the reference line," checked across every target each time.
+      const REFERENCE_LINE = 140;
+      const recompute = () => {
+        let activeIndex = 0;
+        for (let i = 0; i < targets.length; i++) {
+          const target = targets[i];
+          if (target && target.getBoundingClientRect().top <= REFERENCE_LINE) activeIndex = i;
+        }
+        setActive(activeIndex);
+      };
+
+      const observer = new IntersectionObserver(recompute, { threshold: [0, 1] });
+      targets.forEach((target) => observer.observe(target));
+      recompute();
+    }
+  }
+</script>
+
 <style>
+  .article-wrap {
+    position: relative;
+  }
+
   .article {
     max-width: var(--content-width);
     margin: 0 auto;
     padding: var(--space-6) var(--space-5) var(--space-9);
+  }
+
+  /* Structural step-progress rail - trace-bar ticks, one per section, sitting
+     in the left margin outside the reading column. Hidden below the point
+     where that margin has real room (roughly the --wide-width layout
+     breakpoint); no mobile/tablet equivalent - the header's Evidence Strip
+     is the substitute signature element there.
+
+     Two-part positioning, not position: fixed: a fixed rail would stay
+     pinned to the viewport for the entire page, including past the end of
+     the article - scroll to the footer and it would still be floating
+     there, which is wrong (a real bug, caught by actually scrolling a real
+     page rather than only checking a single viewport-height screenshot).
+     Instead, .article__rail is an absolutely positioned column spanning the
+     full height of .article-wrap (i.e. the article's own height, so it
+     starts and ends with the article), and only the tick list inside it
+     (.article__rail ol) is position: sticky - the ordinary, layout-scoped
+     sidebar-nav pattern, tracking scroll only while the article is actually
+     in view. */
+  .article__rail {
+    display: none;
+  }
+
+  @media (min-width: 1200px) {
+    .article__rail {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: calc(50% - (var(--content-width) / 2) - var(--space-7));
+      height: 100%;
+    }
+  }
+
+  .article__rail ol {
+    position: sticky;
+    top: 35vh;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  /* WCAG 2.5.8 (Target Size, Minimum) AA - same --touch-target-min pattern
+     used site-wide (e.g. Header.astro's nav links): min-inline/block-size,
+     not width/height, so it can grow but never shrinks below 24px, even
+     though the visible tick mark itself stays a slim 2px line. */
+  .article__rail-tick {
+    display: flex;
+    align-items: center;
+    min-inline-size: var(--touch-target-min);
+    min-block-size: var(--touch-target-min);
+  }
+
+  .article__rail-mark {
+    display: block;
+    width: 1.25rem;
+    height: 2px;
+    background: var(--ink-muted);
+    opacity: 0.35;
+  }
+
+  /* Passed: dimmer than upcoming would suggest, but still clearly "read" -
+     muted ink at full opacity rather than the signal color, which is
+     reserved for the current section alone. */
+  .article__rail-tick[data-passed] .article__rail-mark {
+    background: var(--ink-muted);
+    opacity: 0.7;
+  }
+
+  .article__rail-tick[data-active] .article__rail-mark {
+    background: var(--signal);
+    opacity: 1;
+    width: 1.75rem;
+  }
+
+  @media (prefers-contrast: more) {
+    .article__rail-mark {
+      opacity: 1;
+    }
+  }
+
+  .article__meta-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
   }
 
   .article__title {
@@ -253,8 +512,9 @@ const jsonLd = [
     color: var(--signal);
   }
 
-  .article__trace {
+  .article__evidence {
     margin-top: var(--space-5);
+    max-width: 24rem;
   }
 
   .article__archived-notice,
@@ -292,8 +552,71 @@ const jsonLd = [
     font-size: 0.9em;
   }
 
+  .article__body :global(a) {
+    overflow-wrap: anywhere;
+  }
+
+  /* Preserve a readable data-table layout on narrow screens and move the
+     overflow to a labeled region rather than clipping the last column. The
+     wrapper is added by rehype-responsive-tables for every Markdown table. */
+  .article__body :global(.table-scroll) {
+    max-inline-size: 100%;
+    margin-block: var(--space-5);
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-gutter: stable;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+  }
+
+  .article__body :global(.table-scroll):focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .article__body :global(table) {
+    inline-size: 100%;
+    min-inline-size: 36rem;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+
+  .article__body :global(th),
+  .article__body :global(td) {
+    padding: var(--space-3) var(--space-4);
+    text-align: start;
+    vertical-align: top;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .article__body :global(th) {
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+
+  .article__body :global(td) {
+    overflow-wrap: anywhere;
+  }
+
+  .article__body :global(tbody tr:last-child td) {
+    border-bottom: 0;
+  }
+
+  @media (max-width: 42rem) {
+    .article__body :global(.table-scroll)::before {
+      content: 'Scroll horizontally to view all columns';
+      display: block;
+      padding: var(--space-2) var(--space-3);
+      border-bottom: 1px solid var(--hairline);
+      color: var(--ink-muted);
+      font-family: var(--font-display);
+      font-size: var(--text-xs);
+    }
+  }
+
   .article__claims,
   .article__revisions,
+  .article__artifacts,
   .article__sources {
     margin-top: var(--space-7);
     padding-top: var(--space-5);
@@ -302,6 +625,7 @@ const jsonLd = [
 
   .article__claims-list,
   .article__revisions-list,
+  .article__artifacts-list,
   .article__sources-list {
     padding-left: 0;
     list-style: none;
@@ -310,12 +634,40 @@ const jsonLd = [
     gap: var(--space-3);
   }
 
+  .article__artifact-kind {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+
   .article__claims-list li,
   .article__revisions-list li {
     display: flex;
     gap: var(--space-3);
     align-items: baseline;
     flex-wrap: wrap;
+  }
+
+  /* Evidence-color left-border, paired with (never instead of) the existing
+     text-labeled EvidenceTag badge on the same row - the accessibility
+     commitment already made for .evidence-tag (never color alone) extends to
+     this recurring visual language, so the border is always decorative
+     reinforcement, never the only signal. */
+  .article__claims-list li {
+    border-left: 2px solid var(--hairline);
+    padding-left: var(--space-3);
+  }
+  .article__claims-list li[data-evidence='supported'] {
+    border-left-color: var(--evidence-supported);
+  }
+  .article__claims-list li[data-evidence='mixed'] {
+    border-left-color: var(--evidence-mixed);
+  }
+  .article__claims-list li[data-evidence='inference'] {
+    border-left-color: var(--evidence-inference);
+  }
+  .article__claims-list li[data-evidence='opinion'] {
+    border-left-color: var(--evidence-opinion);
   }
 
   .article__revisions-list time {
@@ -347,6 +699,7 @@ const jsonLd = [
     color: var(--evidence-supported);
   }
 
+  .article__artifacts-list,
   .article__sources-list {
     list-style: decimal;
     padding-left: 1.25em;

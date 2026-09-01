@@ -26,7 +26,21 @@ approval-manifest.local.json
 .vscode/*
 !.vscode/extensions.json
 
+# Claude Code's own local tool-management state (e.g. worktrees for parallel
+# agent sessions) - not source, never meant to be tracked or scanned by
+# format/lint tooling.
+.claude/
+
 # test artifacts
 coverage/
 test-results/
 playwright-report/
+
+# Local/CI-run audit output from scripts/ci/run-scheduled-publish.mjs and
+# scripts/verify-preview-performance.mjs - generated fresh every run
+# (uploaded as a real workflow artifact in CI), never source.
+schedule-audit.json
+preview-performance.json
+
+# Superdesign component-conversion scratch files
+.superdesign/

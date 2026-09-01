@@ -3,18 +3,21 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import ArticleCard from '@/components/ArticleCard.astro';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
-import { resolveTopicNames, weakestEvidence, articlePath } from '@/lib/resolve';
+import { resolveTopicNames, weakestEvidence, evidenceCounts, articlePath } from '@/lib/resolve';
+import { BUILD_TIME } from '@/lib/build-time';
 
 const articles = await getCollection('articles');
-const live = getPublishedEntries(articles);
+const live = getPublishedEntries(articles, BUILD_TIME);
 const cards = await Promise.all(
   live.map(async (entry) => ({
+    id: entry.id,
     path: articlePath(entry),
     title: entry.data.title,
     dek: entry.data.dek,
     publishedAt: entry.data.published_at,
     topics: await resolveTopicNames(entry),
     dominantEvidence: weakestEvidence(entry),
+    evidence: evidenceCounts([entry]),
   })),
 );
 ---
@@ -35,7 +38,7 @@ const cards = await Promise.all(
       ) : (
         <div class="listing__list">
           {cards.map((card) => (
-            <ArticleCard {...card} />
+            <ArticleCard {...card} headingLevel={2} />
           ))}
         </div>
       )

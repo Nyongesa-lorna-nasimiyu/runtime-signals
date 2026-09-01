@@ -1,0 +1,10 @@
+title: AI Risk Management Framework
+url: https://www.nist.gov/itl/ai-risk-management-framework
+publisher: National Institute of Standards and Technology
+accessed_at: 2026-08-30
+source_type: report
+primary: true
+notes: >-
+  Scope: NIST framework landing page for managing AI risks across governance, mapping, measurement,
+  and management activities. Limit: a risk-management framework does not prescribe an agent runtime,
+  control implementation, or proof of safety.

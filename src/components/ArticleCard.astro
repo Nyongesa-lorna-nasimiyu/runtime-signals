@@ -2,17 +2,37 @@
 // Styled as a structured log line - the genuine reverse-chronological, timestamped
 // shape of the content earns this treatment (see the hero's rationale in
 // src/pages/index.astro), not decoration for its own sake.
+import { spanId } from '@/lib/span-id';
+import EvidenceStrip from './EvidenceStrip.astro';
+import type { EvidenceStrength } from '@/lib/resolve';
+
 interface Props {
+  id: string;
   path: string;
   title: string;
   dek: string;
   publishedAt: Date;
   topics: string[];
-  dominantEvidence?: 'supported' | 'mixed' | 'inference' | 'opinion';
+  dominantEvidence?: EvidenceStrength;
+  evidence?: Record<EvidenceStrength, number>;
   archived?: boolean;
+  headingLevel?: 2 | 3;
 }
-const { path, title, dek, publishedAt, topics, dominantEvidence, archived = false } = Astro.props;
+const {
+  id,
+  path,
+  title,
+  dek,
+  publishedAt,
+  topics,
+  dominantEvidence,
+  evidence,
+  archived = false,
+  headingLevel = 3,
+} = Astro.props;
 const dateLabel = publishedAt.toISOString().slice(0, 10);
+const hasEvidence = evidence ? Object.values(evidence).some((n) => n > 0) : false;
+const Heading = headingLevel === 2 ? 'h2' : 'h3';
 ---
 
 <article class="signal-entry" data-archived={archived ? 'true' : undefined}>
@@ -27,9 +47,17 @@ const dateLabel = publishedAt.toISOString().slice(0, 10);
           </span>
         )
       }
+      {
+        hasEvidence && (
+          <EvidenceStrip counts={evidence!} variant="mini" class="signal-entry__evidence" />
+        )
+      }
       {archived && <span class="signal-entry__archived">archived</span>}
     </div>
-    <h3 class="signal-entry__title">{title}</h3>
+    <Heading class="signal-entry__title">
+      <span class="span-id signal-entry__span-id" aria-hidden="true">{spanId(id)}</span>
+      {title}
+    </Heading>
     <p class="signal-entry__dek">{dek}</p>
   </a>
 </article>
@@ -46,6 +74,7 @@ const dateLabel = publishedAt.toISOString().slice(0, 10);
     display: block;
     text-decoration: none;
     color: inherit;
+    border-radius: var(--radius);
   }
   .signal-entry__meta {
     display: flex;
@@ -73,12 +102,25 @@ const dateLabel = publishedAt.toISOString().slice(0, 10);
     margin: 0 0 var(--space-1);
     font-weight: 600;
   }
-  .signal-entry:hover .signal-entry__title {
+
+  .signal-entry__span-id {
+    margin-right: var(--space-2);
+    font-size: var(--text-xs);
+    vertical-align: 0.1em;
+  }
+  .signal-entry:is(:hover, :focus-within) .signal-entry__title {
     color: var(--signal);
   }
   .signal-entry__dek {
     margin: 0;
     color: var(--ink-muted);
     max-width: 60ch;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .signal-entry__title,
+    .signal-entry__dek {
+      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+    }
   }
 </style>

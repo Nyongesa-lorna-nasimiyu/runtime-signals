@@ -1,51 +1,95 @@
 ---
-import BaseLayout from '@/layouts/BaseLayout.astro';
+import ProseLayout from '@/layouts/ProseLayout.astro';
 ---
 
-<BaseLayout
-  title="Corrections"
+<ProseLayout
+  eyebrow="Corrections"
+  title="How we correct the record"
   description="How Runtime Signals handles factual errors and material updates."
   canonicalPath="/corrections"
 >
-  <article class="prose">
-    <p class="eyebrow">Corrections</p>
-    <h1>How we correct the record</h1>
-    <p>
-      When a published claim turns out to be wrong, outdated, or missing an important limitation, we
-      fix it in place. The article keeps its URL. The fix carries a visible revision note and an
-      updated timestamp, and the original claim is never quietly edited away.
-    </p>
-    <p>
-      Retiring a piece - because a tool it covers no longer exists, or its practice no longer holds
-      - is a separate action from a correction. Retired pieces are marked archived, stay reachable
-      at their original URL with a notice, and drop out of the active feed and search index.
-    </p>
-    <p>
-      No article moves in either direction without human review; a routine content or dependency fix
-      does not require the same review a factual correction does, but neither is automated end to
-      end.
-    </p>
-    <p>
-      Every revision, correction or not, is recorded on the article itself under "Revision history"
-      - see, for example, <a
-        href="/articles/model-handoff-as-distributed-state-transfer#revision-history"
-        >the revision history on our handoff piece</a
-      >. No factual correction has been needed yet; when one is, it will carry a visible notice at
-      the top of the article, not just an entry at the bottom.
-    </p>
-  </article>
-</BaseLayout>
+  <p>
+    When a published claim turns out to be wrong, outdated, or missing an important limitation, we
+    fix it in place. The article keeps its URL. The fix carries a visible revision note and an
+    updated timestamp, and the original claim is never quietly edited away.
+  </p>
+  <p>
+    Every revision, correction or not, is recorded on the article itself under "Revision history"
+    with one of these badges, exactly as they appear there:
+  </p>
+  <ul class="badge-key">
+    <li><span class="revision-badge" data-type="published">published</span> the original piece.</li>
+    <li>
+      <span class="revision-badge" data-type="update">update</span> a routine content or dependency fix.
+    </li>
+    <li>
+      <span class="revision-badge" data-type="correction">correction</span> a factual error, fixed and
+      disclosed.
+    </li>
+  </ul>
+  <p>
+    See, for example, <a
+      href="/articles/model-handoff-as-distributed-state-transfer#revision-history"
+      >the revision history on our handoff piece</a
+    >. When a factual correction is needed, it carries a visible notice at the top of the article,
+    not just an entry at the bottom.
+  </p>
+  <p class="corrections-contact">
+    <strong>Found a factual error?</strong>
+    <a href="mailto:care@runtimesignals.tech?subject=Correction%20request%20-%20Runtime%20Signals"
+      >Report a correction</a
+    > with the article URL, the claim in question, and supporting evidence.
+  </p>
+  <p>
+    Retiring a piece - because a tool it covers no longer exists, or its practice no longer holds -
+    is a separate action from a correction. Retired pieces are marked archived, stay reachable at
+    their original URL with a notice, and drop out of the active feed and search index.
+  </p>
+  <p>
+    No article moves in either direction without human review; a routine content or dependency fix
+    does not require the same review a factual correction does, but neither is automated end to end.
+  </p>
+</ProseLayout>
 
 <style>
-  .prose {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-5) var(--space-9);
-    line-height: var(--leading-relaxed);
+  .badge-key {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: var(--space-5) 0;
   }
-  .prose h1 {
-    font-family: var(--font-body);
-    font-size: var(--text-2xl);
-    margin: var(--space-2) 0 var(--space-5);
+
+  /* Exactly ArticleLayout.astro's .article__revision-badge, reused here so a
+     reader sees the real badge before ever reaching an article - not a
+     reinvented look-alike. */
+  .revision-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 0.15em 0.5em;
+    border-radius: var(--radius);
+    border: 1px solid currentColor;
+    margin-right: var(--space-2);
+  }
+
+  .revision-badge[data-type='correction'] {
+    color: var(--evidence-mixed);
+  }
+  .revision-badge[data-type='update'] {
+    color: var(--signal);
+  }
+  .revision-badge[data-type='published'] {
+    color: var(--evidence-supported);
+  }
+
+  .corrections-contact {
+    border-left: 2px solid var(--signal);
+    padding-left: var(--space-4);
   }
 </style>

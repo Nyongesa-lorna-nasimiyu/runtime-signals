@@ -1,7 +1,6 @@
 ---
-import SignalTrace from './SignalTrace.astro';
-
 const links = [
+  { href: '/series', label: 'Series' },
   { href: '/methodology', label: 'Methodology' },
   { href: '/editorial-policy', label: 'Editorial policy' },
   { href: '/corrections', label: 'Corrections' },
@@ -13,7 +12,6 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <SignalTrace seed={19} class="site-footer__trace" />
   <div class="site-footer__row">
     <p class="site-footer__colophon">
       Runtime Signals - failure mechanism, invariant, engineering practice. Every consequential
@@ -41,11 +39,6 @@ const year = new Date().getFullYear();
     max-width: var(--wide-width);
     margin: var(--space-9) auto 0;
     padding: 0 var(--space-5) var(--space-6);
-  }
-
-  .site-footer__trace {
-    margin-bottom: var(--space-5);
-    opacity: 0.35;
   }
 
   .site-footer__row {
@@ -82,9 +75,11 @@ const year = new Date().getFullYear();
     align-items: center;
     min-block-size: var(--touch-target-min);
     color: var(--ink-muted);
+    touch-action: manipulation;
   }
 
-  .site-footer__list a:hover {
+  .site-footer__list a:hover,
+  .site-footer__list a:focus-visible {
     color: var(--ink);
   }
 
@@ -93,5 +88,28 @@ const year = new Date().getFullYear();
     font-size: var(--text-xs);
     color: var(--ink-muted);
     margin-top: var(--space-5);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .site-footer__list a {
+      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+    }
+  }
+
+  @media (max-width: 42rem) {
+    .site-footer {
+      padding-inline: var(--space-4);
+    }
+
+    .site-footer__list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-1) var(--space-4);
+      width: 100%;
+    }
+
+    .site-footer__list a {
+      min-block-size: var(--touch-target-comfortable);
+    }
   }
 </style>

@@ -2,9 +2,9 @@
 
 Runtime Signals is a proposed technical publication about engineering reliable AI-agent systems in production.
 
-This repository is currently in Phase 1: research and decisions. The domain `runtimesignals.tech` is user-confirmed secured; the architecture, hosting, newsletter provider, and public launch remain subject to approval.
+This repository is currently at Phase 4 Checkpoint 1: an offline local launch candidate for editorial content. The domain `runtimesignals.tech` is user-confirmed secured; external publication, hosting, newsletter provider, and public launch remain subject to the approval gates documented below.
 
-## Phase 1 documents
+## Foundation and launch documents
 
 - [Decision pack](docs/research/phase-1-decision-pack.md)
 - [Competitive analysis](docs/research/competitive-analysis.md)
@@ -18,6 +18,8 @@ This repository is currently in Phase 1: research and decisions. The domain `run
 - [Content model](docs/architecture/content-model.md)
 - [SEO and AI-search strategy](docs/seo/strategy.md)
 - [Editorial strategy](docs/editorial/strategy.md)
+- [30-day editorial calendar](docs/editorial/30-day-calendar.md)
+- [Launch-candidate checklist](docs/editorial/launch-candidate.md)
 - [Operations and cost model](docs/operations/cost-model.md)
 - [Implementation roadmap](docs/roadmap.md)
 

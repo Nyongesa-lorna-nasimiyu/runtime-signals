@@ -1,0 +1,10 @@
+title: OpenAI Evals
+url: https://github.com/openai/evals
+publisher: OpenAI
+accessed_at: 2026-08-30
+source_type: repository
+primary: true
+notes: >-
+  Scope: open-source framework and registry for evaluating language-model and system behavior,
+  including custom evaluations. Limit: an evaluation harness does not by itself establish that a
+  metric is valid, representative, or sufficient for production release.

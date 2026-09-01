@@ -58,6 +58,9 @@ const sources = (await getCollection('sources')).sort((a, b) =>
     color: inherit;
     flex-wrap: wrap;
   }
+  .source-list__item:is(:hover, :focus-visible) {
+    color: var(--signal);
+  }
   .source-list__type {
     font-family: var(--font-display);
     font-size: var(--text-xs);
@@ -71,5 +74,23 @@ const sources = (await getCollection('sources')).sort((a, b) =>
   .source-list__publisher {
     color: var(--ink-muted);
     font-size: var(--text-sm);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .source-list__item {
+      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+    }
+  }
+
+  @media (max-width: 39.99rem) {
+    .source-list__item {
+      display: grid;
+      gap: var(--space-1);
+      padding-block: var(--space-4);
+    }
+
+    .source-list__type {
+      min-width: 0;
+    }
   }
 </style>

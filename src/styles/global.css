@@ -19,9 +19,15 @@
     scroll-behavior: smooth;
   }
 
+  :target {
+    scroll-margin-block: var(--space-5);
+  }
+
   body {
     margin: 0;
-    background: var(--paper);
+    background-color: var(--paper);
+    /* --paper-texture is `none` in dark mode (tokens.css) - stays flat there. */
+    background-image: var(--paper-texture);
     color: var(--ink);
     font-family: var(--font-body);
     font-size: var(--text-base);
@@ -99,6 +105,18 @@
     font-size: var(--text-xs);
     letter-spacing: 0.06em;
     text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  /* A small, muted observability-style identifier (RS-014) attached to a
+     card/header title - same family/letter-spacing register as .eyebrow but
+     not uppercase, since it's an ID, not a label. Shared by ArticleCard,
+     ArticleLayout, and SearchIsland's result list (src/lib/span-id.ts is the
+     single source of the value itself). */
+  .span-id {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    letter-spacing: 0.04em;
     color: var(--ink-muted);
   }
 
@@ -195,8 +213,8 @@
   .site-footer,
   .skip-link,
   .search-island,
-  .signal-trace,
   .log__count,
+  .article__rail,
   [data-pagefind-ui] {
     display: none !important;
   }

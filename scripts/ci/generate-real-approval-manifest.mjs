@@ -13,6 +13,7 @@
 import { execFileSync } from 'node:child_process';
 import { readdirSync, writeFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
+import { withSpan } from '../lib/otel.mjs';
 import {
   allRequiredChecksPassed,
   hasApprovingReview,
@@ -61,64 +62,89 @@ function commitShaForFile(filePath) {
 }
 
 async function main() {
-  // 1. Required checks (e.g. `publication-gate`) actually passed for this
-  //    exact commit — not just "some check somewhere passed."
-  const checkRunsResponse = await githubApi(`/commits/${commitSha}/check-runs`);
-  const requiredChecksPassed = allRequiredChecksPassed(checkRunsResponse.check_runs ?? []);
+  await withSpan(
+    'publish.approval_manifest',
+    {
+      'vcs.commit.sha': commitSha,
+      'ci.repository': repo,
+    },
+    async (span) => {
+      // 1. A pull request whose merge produced this exact commit exists. Must
+      //    be established before we know which commit's checks to inspect: for
+      //    every non-fast-forward merge strategy (including GitHub's default
+      //    "Create a merge commit"), `commitSha` here is a commit GitHub
+      //    synthesized at merge time and was never itself built by CI —
+      //    `publication-gate` runs against the PR's HEAD commit only. Confirmed
+      //    against a real merge on this repo: the merge commit's check-runs
+      //    contained only this workflow's own `build-and-deploy` run, never
+      //    `publication-gate`, which existed solely on the PR head SHA.
+      const associatedPRs = await githubApi(`/commits/${commitSha}/pulls`);
+      const mergedPR = findMergedPullRequest(associatedPRs, commitSha);
 
-  // 2. A pull request whose merge produced this exact commit exists, and has
-  //    an APPROVED review (CODEOWNERS enforcement itself is GitHub's own
-  //    branch-protection setting — see github-checks.mjs).
-  const associatedPRs = await githubApi(`/commits/${commitSha}/pulls`);
-  const mergedPR = findMergedPullRequest(associatedPRs, commitSha);
-  let codeownersApproved = false;
-  if (mergedPR) {
-    const reviews = await githubApi(`/pulls/${mergedPR.number}/reviews`);
-    codeownersApproved = hasApprovingReview(reviews);
-  }
+      // 2. Required checks (e.g. `publication-gate`) actually passed — checked
+      //    against the PR's head commit, the commit CI actually built, not the
+      //    merge commit.
+      let requiredChecksPassed = false;
+      // 3. The PR has an APPROVED review (CODEOWNERS enforcement itself is
+      //    GitHub's own branch-protection setting — see github-checks.mjs).
+      let codeownersApproved = false;
+      if (mergedPR) {
+        const checkRunsResponse = await githubApi(`/commits/${mergedPR.head.sha}/check-runs`);
+        requiredChecksPassed = allRequiredChecksPassed(checkRunsResponse.check_runs ?? []);
 
-  // 3. Deployment-environment authorization: this script only ever runs
-  //    inside deploy.yml's `build-and-deploy` job, which does not start until
-  //    a human reviewer configured on the `production` GitHub Environment
-  //    approves the run. If this script is running at all, that gate already
-  //    passed — see the `environment: production` key in that workflow.
-  const deploymentEnvironmentAuthorized = true;
+        const reviews = await githubApi(`/pulls/${mergedPR.number}/reviews`);
+        codeownersApproved = hasApprovingReview(reviews);
+        span.setAttribute('github.pr.number', mergedPR.number);
+      }
 
-  if (!requiredChecksPassed || !mergedPR || !codeownersApproved) {
-    console.error('Authorization NOT established for this commit:');
-    console.error(`  required_checks_passed: ${requiredChecksPassed}`);
-    console.error(`  merged PR found: ${Boolean(mergedPR)}`);
-    console.error(`  codeowners_approved: ${codeownersApproved}`);
-    console.error('Writing an empty manifest — nothing will be authorized to publish.');
-    writeFileSync(outPath, '{}\n');
-    process.exit(1);
-  }
+      // 4. Deployment-environment authorization: this script only ever runs
+      //    inside deploy.yml's `build-and-deploy` job, which does not start until
+      //    a human reviewer configured on the `production` GitHub Environment
+      //    approves the run. If this script is running at all, that gate already
+      //    passed — see the `environment: production` key in that workflow.
+      const deploymentEnvironmentAuthorized = true;
+      const authorized = requiredChecksPassed && Boolean(mergedPR) && codeownersApproved;
+      span.setAttribute('publication.authorization_established', authorized);
 
-  const manifest = {};
-  for (const collection of COLLECTIONS) {
-    const dir = join(CONTENT_ROOT, collection);
-    let files = [];
-    try {
-      files = readdirSync(dir);
-    } catch {
-      continue;
-    }
-    for (const file of files) {
-      if (!['.md', '.mdx'].includes(extname(file))) continue;
-      const id = file.slice(0, -extname(file).length);
-      const key = `${collection}/${id}`;
-      manifest[key] = {
-        commit_sha: commitShaForFile(join(dir, file)),
-        required_checks_passed: requiredChecksPassed,
-        codeowners_approved: codeownersApproved,
-        deployment_environment_authorized: deploymentEnvironmentAuthorized,
-      };
-    }
-  }
+      if (!authorized) {
+        console.error('Authorization NOT established for this commit:');
+        console.error(`  required_checks_passed: ${requiredChecksPassed}`);
+        console.error(`  merged PR found: ${Boolean(mergedPR)}`);
+        console.error(`  codeowners_approved: ${codeownersApproved}`);
+        console.error('Writing an empty manifest — nothing will be authorized to publish.');
+        writeFileSync(outPath, '{}\n');
+        throw new Error('Approval authorization was not established');
+      }
 
-  writeFileSync(outPath, `${JSON.stringify(manifest, null, 2)}\n`);
-  console.log(
-    `Wrote ${Object.keys(manifest).length} entries to ${outPath} for commit ${commitSha} (PR #${mergedPR.number}).`,
+      const manifest = {};
+      for (const collection of COLLECTIONS) {
+        const dir = join(CONTENT_ROOT, collection);
+        let files = [];
+        try {
+          files = readdirSync(dir);
+        } catch {
+          continue;
+        }
+        for (const file of files) {
+          if (!['.md', '.mdx'].includes(extname(file))) continue;
+          const id = file.slice(0, -extname(file).length);
+          const key = `${collection}/${id}`;
+          manifest[key] = {
+            commit_sha: commitShaForFile(join(dir, file)),
+            required_checks_passed: requiredChecksPassed,
+            codeowners_approved: codeownersApproved,
+            deployment_environment_authorized: deploymentEnvironmentAuthorized,
+          };
+        }
+      }
+
+      const entryCount = Object.keys(manifest).length;
+      span.setAttribute('build.manifest.entries', entryCount);
+      writeFileSync(outPath, `${JSON.stringify(manifest, null, 2)}\n`);
+      console.log(
+        `Wrote ${entryCount} entries to ${outPath} for commit ${commitSha} (PR #${mergedPR.number}).`,
+      );
+    },
   );
 }
 

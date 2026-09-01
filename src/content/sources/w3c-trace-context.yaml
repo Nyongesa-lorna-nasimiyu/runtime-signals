@@ -1,0 +1,10 @@
+title: Trace Context
+url: https://www.w3.org/TR/trace-context/
+publisher: World Wide Web Consortium
+accessed_at: 2026-08-30
+source_type: standard
+primary: true
+notes: >-
+  Scope: W3C Recommendation defining interoperable trace-context propagation across distributed
+  services. Limit: transport-level trace context is not proof of business causality, identity,
+  authorization, or tamper resistance.

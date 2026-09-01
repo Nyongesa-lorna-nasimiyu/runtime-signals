@@ -9,6 +9,7 @@ import { test, expect } from '@playwright/test';
 const ROUTES: [name: string, path: string][] = [
   ['home', '/'],
   ['article', '/articles/model-handoff-as-distributed-state-transfer'],
+  ['article-table', '/articles/executing-agent-workflows'],
   ['topics-index', '/topics'],
   ['methodology', '/methodology'],
   ['search-empty', '/search'],
@@ -21,3 +22,12 @@ for (const [name, path] of ROUTES) {
     await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
   });
 }
+
+test('topic cards have equal heights', async ({ page }) => {
+  await page.goto('/topics');
+  const heights = await page
+    .locator('.topic-card')
+    .evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().height));
+
+  expect(new Set(heights).size).toBe(1);
+});

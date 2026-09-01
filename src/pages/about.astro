@@ -1,75 +1,140 @@
 ---
-import BaseLayout from '@/layouts/BaseLayout.astro';
+import ProseLayout from '@/layouts/ProseLayout.astro';
+
+// The site's actual thesis, stated in the copy below ("The editorial unit
+// here is a chain") - worth showing as a real chain, not just saying so in
+// prose. The one deliberate bit of boldness on this page; everything else
+// here stays as plain paragraphs.
+const chain = [
+  { label: 'Research claim', detail: 'What the literature or docs say, and its limitations' },
+  { label: 'Runtime invariant', detail: 'The rule that actually gets violated in production' },
+  { label: 'Operational evidence', detail: 'Traces, costs, failures, recovery behavior' },
+  { label: 'Reproducible artifact', detail: 'What a reader can run or inspect themselves' },
+];
 ---
 
-<BaseLayout
-  title="About"
+<ProseLayout
+  eyebrow="About"
+  title="What Runtime Signals is for"
   description="Runtime Signals connects research claims, runtime invariants, operational evidence, and reproducible artifacts."
   canonicalPath="/about"
 >
-  <article class="prose">
-    <p class="eyebrow">About</p>
-    <h1>What Runtime Signals is for</h1>
-    <p>
-      Runtime Signals is not an AI news site. It publishes system-level analysis of evaluation,
-      reliability, recovery, orchestration, state, memory, tool security, distributed execution,
-      observability, and failure analysis for AI agents running in production.
-    </p>
-    <p>
-      Most coverage of agent systems is either research summary or product announcement. Neither
-      connects the four layers that actually determine whether a system holds up under load:
-      research claims and their limitations, the runtime invariants that get violated (idempotency,
-      leases, fencing, authorization, state transfer), the operational evidence - traces, costs,
-      failures, recovery behavior - and reproducible implementation artifacts a reader can run or
-      inspect.
-    </p>
-    <p>
-      The editorial unit here is a chain: a real failure mechanism, the invariant it violates, and
-      the engineering practice that holds under load. That's narrower than general AI commentary,
-      and it's the whole point.
-    </p>
-    <h2>What we commit to</h2>
-    <ol>
-      <li>No unreviewed AI-generated articles are published.</li>
-      <li>
-        Every consequential factual claim has a source record or is explicitly marked inference or
-        opinion.
-      </li>
-      <li>
-        Source records preserve URL, publisher, publication date, access date, evidence type, and
-        what the source supports.
-      </li>
-      <li>Articles state limitations and workload or configuration boundaries.</li>
-      <li>
-        A human approves publication, meaningful updates, corrections, and syndicated versions.
-      </li>
-    </ol>
-    <p>
-      See <a href="/methodology">methodology</a> for how claims are labeled and sourced, and <a
-        href="/editorial-policy">editorial policy</a
-      > for the review process itself.
-    </p>
-  </article>
-</BaseLayout>
+  <p>
+    Runtime Signals is not an AI news site. It publishes system-level analysis of evaluation,
+    reliability, recovery, orchestration, state, memory, tool security, distributed execution,
+    observability, and failure analysis for AI agents running in production.
+  </p>
+  <p>
+    Most coverage of agent systems is either research summary or product announcement. Neither
+    connects the four layers that actually determine whether a system holds up under load:
+  </p>
+
+  <ol class="chain" aria-label="The four layers every piece connects, in order">
+    {
+      chain.map((link, i) => (
+        <li>
+          <span class="chain__index" aria-hidden="true">
+            {i + 1}
+          </span>
+          <div class="chain__content">
+            <span class="chain__label">{link.label}</span>
+            <span class="chain__detail">{link.detail}</span>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+
+  <p>
+    The editorial unit here is a chain: a real failure mechanism, the invariant it violates, and the
+    engineering practice that holds under load. That's narrower than general AI commentary, and it's
+    the whole point.
+  </p>
+  <h2>What we commit to</h2>
+  <ol>
+    <li>No unreviewed AI-generated articles are published.</li>
+    <li>
+      Every consequential factual claim has a source record or is explicitly marked inference or
+      opinion.
+    </li>
+    <li>
+      Source records preserve URL, publisher, publication date, access date, evidence type, and what
+      the source supports.
+    </li>
+    <li>Articles state limitations and workload or configuration boundaries.</li>
+    <li>A human approves publication, meaningful updates, corrections, and syndicated versions.</li>
+  </ol>
+  <p>
+    See <a href="/methodology">methodology</a> for how claims are labeled and sourced, and <a
+      href="/editorial-policy">editorial policy</a
+    > for the review process itself.
+  </p>
+</ProseLayout>
 
 <style>
-  .prose {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-5) var(--space-9);
-    line-height: var(--leading-relaxed);
+  .chain {
+    list-style: none;
+    margin: var(--space-6) 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
   }
-  .prose h1 {
-    font-family: var(--font-body);
-    font-size: var(--text-2xl);
-    margin: var(--space-2) 0 var(--space-5);
+
+  .chain li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+    position: relative;
   }
-  .prose h2 {
-    font-family: var(--font-body);
-    font-size: var(--text-xl);
-    margin-top: var(--space-7);
+
+  /* The connecting line: a hairline running through each index mark's
+     center, continuous from the first link to the last - the literal "chain"
+     the copy names. */
+  .chain li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 0.85rem;
+    top: 2.2rem;
+    bottom: -0.5rem;
+    width: 1px;
+    background: var(--hairline);
   }
-  .prose li {
-    margin-bottom: var(--space-2);
+
+  .chain__index {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    border: 1px solid var(--signal);
+    color: var(--signal);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    background: var(--paper);
+    position: relative;
+    z-index: 1;
+  }
+
+  .chain__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15em;
+    padding-top: 0.15em;
+  }
+
+  .chain__label {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-sm);
+    letter-spacing: 0.01em;
+  }
+
+  .chain__detail {
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
   }
 </style>

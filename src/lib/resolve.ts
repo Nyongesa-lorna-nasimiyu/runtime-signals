@@ -21,17 +21,36 @@ export async function resolveSeries(entry: Editorial): Promise<{ id: string; nam
 }
 
 const STRENGTH_ORDER = ['supported', 'mixed', 'inference', 'opinion'] as const;
+export type EvidenceStrength = (typeof STRENGTH_ORDER)[number];
 
 /** The weakest-backed claim on the piece - a conservative signal to surface on a
  * card, in keeping with docs/editorial/source-policy.md's evidence-first stance. */
-export function weakestEvidence(entry: Editorial): (typeof STRENGTH_ORDER)[number] | undefined {
-  let weakest: (typeof STRENGTH_ORDER)[number] | undefined;
+export function weakestEvidence(entry: Editorial): EvidenceStrength | undefined {
+  let weakest: EvidenceStrength | undefined;
   for (const claim of entry.data.claims) {
     if (!weakest || STRENGTH_ORDER.indexOf(claim.evidence) > STRENGTH_ORDER.indexOf(weakest)) {
       weakest = claim.evidence;
     }
   }
   return weakest;
+}
+
+/** Raw claim-evidence tally across one or more entries, in STRENGTH_ORDER -
+ * feeds the EvidenceStrip component, which renders this distribution
+ * directly rather than a decorative stand-in for it. */
+export function evidenceCounts(entries: Editorial[]): Record<EvidenceStrength, number> {
+  const counts: Record<EvidenceStrength, number> = {
+    supported: 0,
+    mixed: 0,
+    inference: 0,
+    opinion: 0,
+  };
+  for (const entry of entries) {
+    for (const claim of entry.data.claims) {
+      counts[claim.evidence]++;
+    }
+  }
+  return counts;
 }
 
 export function articlePath(entry: Editorial): string {

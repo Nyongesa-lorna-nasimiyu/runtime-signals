@@ -17,4 +17,14 @@ Record access date for time-sensitive pricing, limits, APIs, releases, and polic
 
 ## Citation record
 
-Structured citation fields: source ID, canonical URL, title, publisher, authors, publication date, access date, source class, supports/contradicts relationship, exact claim scope, quoted limits if any, and license notes. The prose may render a citation, but the source record remains the audit object.
+The publication-facing source collection requires a source ID, canonical URL, title, publisher,
+access date, source class, and primary/secondary classification. Add publication or version dates
+and named authors when the source exposes them; for living documentation, the access date and a
+current-status note are the authoritative time markers. Source `notes` must state the exact scope
+and important limits. The claim record carries the `supports` or `contradicts` relationship, while
+license notes are recorded when redistribution or quotation makes them material. Research-stage
+source cards may contain additional discovery, deduplication, and reproducibility fields without
+making all of them part of the reader-facing collection.
+
+The prose may render a citation, but the structured source and claim records remain the audit
+objects.

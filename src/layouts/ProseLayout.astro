@@ -1,0 +1,63 @@
+---
+// Shared shell for the site's long-form policy/about pages (about,
+// methodology, corrections, editorial-policy, newsletter). These pages carry
+// no claim data of their own, so - unlike the homepage and article pages -
+// they get no Evidence Strip; a plain hairline under the header is the
+// honest device here rather than reaching for a signature element that
+// would have nothing real to show.
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+  canonicalPath: string;
+  noindex?: boolean;
+}
+
+const { eyebrow, title, description, canonicalPath, noindex } = Astro.props;
+---
+
+<BaseLayout title={title} description={description} canonicalPath={canonicalPath} noindex={noindex}>
+  <article class="prose">
+    <header class="prose__header">
+      <p class="eyebrow">{eyebrow}</p>
+      <h1><slot name="title">{title}</slot></h1>
+    </header>
+    <div class="prose__body">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .prose {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+    line-height: var(--leading-relaxed);
+  }
+
+  .prose__header {
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--hairline);
+    margin-bottom: var(--space-6);
+  }
+
+  .prose__header h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    line-height: var(--leading-tight);
+    margin: var(--space-2) 0 0;
+  }
+
+  .prose__body :global(h2) {
+    font-family: var(--font-body);
+    font-size: var(--text-xl);
+    margin-top: var(--space-7);
+  }
+
+  .prose__body :global(li) {
+    margin-bottom: var(--space-2);
+  }
+</style>

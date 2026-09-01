@@ -1,0 +1,7 @@
+name: Execution
+description: How agent runtimes schedule work, transfer state, manage tools, and recover across process and model boundaries.
+related:
+  - orchestration
+  - state
+  - reliability
+pillar: true

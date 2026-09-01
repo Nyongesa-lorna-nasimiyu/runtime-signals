@@ -21,40 +21,55 @@ const bold = readFileSync(join(fontsDir, 'JetBrainsMono-Bold.ttf'));
 
 // The light palette only, spelled out — an OG image is a static raster served
 // to link-preview crawlers and chat apps, not a page with a live
-// prefers-color-scheme; light-dark() has no meaning here.
+// prefers-color-scheme; light-dark() has no meaning here. Mirrors tokens.css's
+// light values.
 const PALETTE = {
-  paper: '#f7f8fa',
-  ink: '#12161c',
-  inkMuted: '#4b5563',
-  signal: '#2354c9',
-  hairline: '#d8dee7',
+  paper: '#f2f4f2',
+  ink: '#121917',
+  inkMuted: '#556662',
+  signal: '#0f6e63',
+  hairline: '#d0d9d5',
+  evidenceSupported: '#146b46',
+  evidenceMixed: '#a3660a',
+  evidenceInference: '#5b4fa8',
+  evidenceOpinion: '#5b6462',
 };
 
 const WIDTH = 1200;
 const HEIGHT = 630;
 
-// A row of uneven bars stands in for the site's signal-trace motif
-// (src/components/SignalTrace.astro) — satori's layout engine is a
-// constrained flexbox subset with no arbitrary SVG path children, so the
-// polyline itself can't be reused directly; this reproduces the same visual
-// idea (an irregular pulse/step trace) within what satori can actually lay out.
-function signalBars(seed: number) {
-  let state = seed || 1;
-  const next = () => {
-    state = (state * 9301 + 49297) % 233280;
-    return state / 233280;
-  };
-  const bars = Array.from({ length: 28 }, () => 6 + Math.round(next() * 34));
+const EVIDENCE_ORDER = ['supported', 'mixed', 'inference', 'opinion'] as const;
+const EVIDENCE_COLOR: Record<(typeof EVIDENCE_ORDER)[number], string> = {
+  supported: PALETTE.evidenceSupported,
+  mixed: PALETTE.evidenceMixed,
+  inference: PALETTE.evidenceInference,
+  opinion: PALETTE.evidenceOpinion,
+};
+
+// The site's signature element (src/components/EvidenceStrip.astro) reproduced
+// for satori: this piece's own claim-evidence mix as a proportional segmented
+// bar, not a decorative stand-in for it — the same data the reader sees in the
+// article's own Evidence Strip, one layer removed for a link-preview crawler.
+function evidenceBar(counts: Record<(typeof EVIDENCE_ORDER)[number], number>) {
+  const total = EVIDENCE_ORDER.reduce((sum, key) => sum + counts[key], 0);
+  const segments =
+    total === 0
+      ? [{ type: 'div', props: { style: { flex: 1, background: PALETTE.hairline } } }]
+      : EVIDENCE_ORDER.filter((key) => counts[key] > 0).map((key) => ({
+          type: 'div',
+          props: { style: { flex: counts[key], background: EVIDENCE_COLOR[key] } },
+        }));
   return {
     type: 'div',
     props: {
-      style: { display: 'flex', alignItems: 'flex-end', gap: '6px', height: '40px' },
-      children: bars.map((h) => ({
-        type: 'div',
-        props: {
-          style: { width: '10px', height: `${h}px`, background: PALETTE.signal, opacity: 0.55 },
-        },
-      })),
+      style: {
+        display: 'flex',
+        height: '28px',
+        width: '100%',
+        borderRadius: '2px',
+        overflow: 'hidden',
+      },
+      children: segments,
     },
   };
 }
@@ -62,7 +77,7 @@ function signalBars(seed: number) {
 interface OgImageInput {
   eyebrow: string;
   title: string;
-  seed?: number;
+  evidence: Record<(typeof EVIDENCE_ORDER)[number], number>;
 }
 
 // A 1x1 transparent PNG, for SKIP_OG_RENDER builds only — see below.
@@ -71,7 +86,7 @@ const PLACEHOLDER_PNG = Buffer.from(
   'base64',
 );
 
-export async function renderOgImage({ eyebrow, title, seed = 1 }: OgImageInput): Promise<Buffer> {
+export async function renderOgImage({ eyebrow, title, evidence }: OgImageInput): Promise<Buffer> {
   // Escape hatch for scripts/measure-build-at-scale.mjs only — never set in a
   // real build (prebuild/CI never set this env var). Real OG generation
   // (Satori font-shaping + resvg PNG encode, per document, sequential in
@@ -170,7 +185,7 @@ export async function renderOgImage({ eyebrow, title, seed = 1 }: OgImageInput):
           props: {
             style: { display: 'flex', flexDirection: 'column', gap: '16px' },
             children: [
-              signalBars(seed),
+              evidenceBar(evidence),
               {
                 type: 'div',
                 props: {

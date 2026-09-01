@@ -37,8 +37,17 @@ const CHECKS = [
   },
 ];
 
+// detached: true puts wrangler in its own process group so the cleanup below
+// can signal the whole group, not just this one process. wrangler dev spawns
+// its own esbuild and workerd child processes; killing only the immediate
+// child leaves those running, which (a) keeps this script's stdout pipe open
+// so Node never sees it close and the process hangs forever, observed as an
+// 8-minute-plus stall in the real deploy.yml run that only ended when
+// GitHub's own job cleanup force-killed the orphaned esbuild/workerd
+// processes, and (b) leaks a process holding PORT locally.
 const wrangler = spawn('npx', ['wrangler', 'dev', '--port', String(PORT)], {
   stdio: ['ignore', 'pipe', 'pipe'],
+  detached: true,
 });
 
 let ready = false;
@@ -86,5 +95,17 @@ try {
     );
   }
 } finally {
-  wrangler.kill();
+  // Signal the whole process group (negative pid), not just wrangler's own
+  // process, so esbuild/workerd grandchildren actually die too. Falls back to
+  // killing just the direct child if the group signal itself errors (e.g.
+  // wrangler already exited on its own).
+  try {
+    process.kill(-wrangler.pid, 'SIGTERM');
+  } catch {
+    wrangler.kill();
+  }
+  // Force exit rather than letting the event loop drain naturally: even a
+  // correctly-signaled process group takes a moment to actually die, and
+  // this script's own work is already done by this point.
+  process.exit(process.exitCode ?? 0);
 }

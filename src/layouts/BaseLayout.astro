@@ -11,6 +11,7 @@ interface Props {
   noindex?: boolean;
   jsonLd?: object[];
   ogImagePath?: string;
+  ogType?: 'website' | 'article';
 }
 
 const {
@@ -20,10 +21,20 @@ const {
   noindex = false,
   jsonLd = [],
   ogImagePath = '/og-default.png',
+  ogType = 'website',
 } = Astro.props;
 const canonical = absoluteUrl(canonicalPath);
 const ogImage = absoluteUrl(ogImagePath);
 const allJsonLd = [websiteJsonLd(), ...jsonLd];
+// A PR preview build (.github/workflows/pr-preview.yml, PREVIEW_BUILD=true)
+// must never be indexable regardless of what any individual page's own
+// noindex prop says - it's showing content at a commit that hasn't gone
+// through review yet. Read via process.env, not import.meta.env, matching
+// src/lib/build-time.ts and src/lib/og-image.ts's SKIP_OG_RENDER - this runs
+// server-side at build time, and process.env is the value actually set by
+// the workflow's `env:` block.
+// See src/pages/robots.txt.ts for the matching site-wide Disallow.
+const isPreviewBuild = process.env.PREVIEW_BUILD === 'true';
 ---
 
 <!doctype html>
@@ -34,9 +45,9 @@ const allJsonLd = [websiteJsonLd(), ...jsonLd];
     <title>{title} - Runtime Signals</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {(noindex || isPreviewBuild) && <meta name="robots" content="noindex, nofollow" />}
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
@@ -45,6 +56,8 @@ const allJsonLd = [websiteJsonLd(), ...jsonLd];
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
 
     <link rel="alternate" type="application/rss+xml" title="Runtime Signals" href="/rss.xml" />

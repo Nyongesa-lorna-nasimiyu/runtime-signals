@@ -28,6 +28,12 @@ test('search works end to end under the site real CSP, with no unsafe-eval anywh
   expect(cspContent, 'the real page should carry a CSP meta tag').toBeTruthy();
   expect(cspContent).not.toContain('unsafe-eval');
 
+  // client:idle hydration can be delayed under CPU contention (this suite's
+  // parallel workers reproduced it directly: React not yet having attached
+  // its onChange handler when .fill() ran, silently losing the keystroke -
+  // see src/components/SearchIsland.tsx's data-hydrated flag, added for
+  // exactly this). Waiting for it is the real fix, not a longer timeout.
+  await expect(page.locator('.search-island[data-hydrated="true"]')).toBeVisible();
   const input = page.getByLabel('Search Runtime Signals');
   await input.fill('handoff');
   // "handoff" legitimately appears across several pages (the home feed teaser,

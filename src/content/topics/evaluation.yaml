@@ -1,0 +1,5 @@
+name: Evaluation
+description: How to design evaluations that measure completed work, expose regressions, and separate model behavior from system behavior.
+related:
+  - reliability
+pillar: true

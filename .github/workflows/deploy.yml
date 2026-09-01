@@ -1,6 +1,6 @@
 name: deploy
 
-# Runs only on push to main, which — given branch protection is configured to
+# Runs on push to main, which — given branch protection is configured to
 # require a pull request, the `publication-gate` check, and CODEOWNERS review
 # before merge (a required repository setting this workflow does not itself
 # enforce; it only re-verifies the outcome) — can only happen via a reviewed,
@@ -9,9 +9,17 @@ name: deploy
 # exact commit below, in case branch protection is ever misconfigured or
 # disabled. See docs/editorial/publication-gates.md and
 # docs/research/architecture-research-report.md launch blocker #4.
+#
+# Also runs on workflow_dispatch, always against main's current HEAD — this
+# is how .github/workflows/scheduled-publish.yml re-triggers a build when
+# scheduled content's published_at passes with no new commit to push. The
+# commit being (re)built is still whatever most recently merged, so the same
+# "find the merged PR, verify its checks and review" logic below resolves
+# identically regardless of which trigger fired.
 on:
   push:
     branches: [main]
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -76,13 +84,10 @@ jobs:
           path: dist/
           retention-days: 30
 
-      # Intentionally a dry run, not a real deployment: no Cloudflare account,
-      # API token, or DNS has been configured for this project at any point in
-      # Phase 1 or 2 — see docs/research/phase-1-decision-pack.md and every
-      # prior checkpoint report. Change this to a real `wrangler deploy` step,
-      # with CLOUDFLARE_API_TOKEN configured as a secret on the `production`
-      # environment specifically (never a repository-wide secret — see
-      # docs/security/secrets-and-access.md), only after explicit launch
-      # approval authorizes creating that account and token.
-      - name: Deploy (dry run only — real deployment not yet authorized)
-        run: npx wrangler deploy --dry-run
+      # The protected production environment gates access to this credential
+      # with its required reviewers. Keep it out of PR and preview workflows.
+      - name: Deploy to Cloudflare Workers
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy

@@ -1,0 +1,86 @@
+name: pr-preview
+
+# Builds the PR's actual content at its head commit and validates it the way
+# a human reviewer would - by looking at the rendered pages - not just by
+# running unit tests against source. Distinct from publication-gate.yml,
+# which already runs `npm run build` but only to prove the build succeeds,
+# never uploads or inspects the output itself.
+#
+# Deliberately artifact-based, not a live hosted preview URL: a real preview
+# deployment (e.g. Cloudflare Pages preview URLs) needs a separate preview
+# target and credentials. Production credentials are intentionally not exposed
+# to this pull-request workflow. This workflow is designed so that adding a
+# real preview deploy step later is additive, not a redesign: everything
+# except "upload as a GitHub artifact" vs. "deploy to a live URL" is already
+# exactly what a real preview deployment needs.
+on:
+  pull_request:
+
+# No write access to anything, and no secrets referenced anywhere in this
+# workflow - the "no production secrets or subscriber data" requirement is
+# satisfied structurally, not just by convention: there is nothing here to
+# leak. This also never runs scripts/ci/generate-real-approval-manifest.mjs;
+# it uses the same locally-trusting manifest stand-in `npm run build`'s
+# prebuild hook already generates for local dev, which is the correct
+# choice here - a PR's content hasn't been approved yet, and a preview
+# build's job is to show it, not to gate it.
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: pr-preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build (preview mode - site-wide noindex, see BaseLayout.astro)
+        env:
+          PREVIEW_BUILD: 'true'
+        run: npm run build
+
+      - name: Verify metadata (title, description, canonical, OG, JSON-LD)
+        run: node scripts/verify-preview-metadata.mjs
+
+      - name: Accessibility (axe, real browser)
+        run: npm run test:a11y
+
+      - name: Performance (real Lighthouse audit)
+        env:
+          PREVIEW_PERF_AUDIT_PATH: preview-performance.json
+        run: node scripts/verify-preview-performance.mjs
+
+      - name: Upload preview build
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: preview-pr-${{ github.event.pull_request.number }}
+          path: dist/
+          # Short-lived: previews are only useful for the life of the PR
+          # review, not a long-term artifact like deploy.yml's dist upload.
+          retention-days: 7
+
+      - name: Upload performance audit
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: preview-performance-${{ github.event.pull_request.number }}
+          path: preview-performance.json
+          retention-days: 7

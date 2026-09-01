@@ -32,12 +32,12 @@ function bodyAfterFrontmatter(source) {
 
 /**
  * Returns the set of route paths (e.g. "/articles/foo") that must never appear in
- * the sitemap: archived content (kept routable for its stable URL per
- * docs/architecture/content-model.md, but never promoted) and anything explicitly
- * marked seo.noindex.
+ * the sitemap: internal utility pages, archived content (kept routable for its
+ * stable URL per docs/architecture/content-model.md, but never promoted), and
+ * anything explicitly marked seo.noindex.
  */
 export function excludedSitemapPaths(contentRoot = 'src/content') {
-  const excluded = new Set();
+  const excluded = new Set(['/search', '/newsletter']);
   const collections = [
     ['articles', '/articles'],
     ['briefs', '/brief'],

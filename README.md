@@ -1,8 +1,11 @@
 # Runtime Signals
 
-Runtime Signals is a proposed technical publication about engineering reliable AI-agent systems in production.
+Runtime Signals is a technical publication about engineering reliable AI-agent systems in production.
 
-This repository is currently at Phase 4 Checkpoint 1: an offline local launch candidate for editorial content. The domain `runtimesignals.tech` is user-confirmed secured; external publication, hosting, newsletter provider, and public launch remain subject to the approval gates documented below.
+The repository is in Phase 5 production readiness. The public site is served
+from `runtimesignals.tech`; production deploys are authorized through the
+protected GitHub Actions `production` environment. Newsletter functionality
+remains disabled and is tracked as a separate security decision.
 
 ## Foundation and launch documents
 
@@ -13,6 +16,7 @@ This repository is currently at Phase 4 Checkpoint 1: an offline local launch ca
 - [Subsystem ADRs](docs/adr/)
 - [Architecture overview and data flows](docs/architecture/overview.md)
 - [Security and operations pack](docs/security/threat-model.md)
+- [Phase 5 readiness evidence](docs/operations/phase-5-readiness.md)
 - [Editorial workflow and publication gates](docs/editorial/workflow.md)
 - [Four-subsystem research report](docs/research/architecture-research-report.md)
 - [Content model](docs/architecture/content-model.md)

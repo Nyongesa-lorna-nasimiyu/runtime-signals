@@ -31,8 +31,14 @@ import ProseLayout from '@/layouts/ProseLayout.astro';
     See, for example, <a
       href="/articles/model-handoff-as-distributed-state-transfer#revision-history"
       >the revision history on our handoff piece</a
-    >. No factual correction has been needed yet; when one is, it will carry a visible notice at the
-    top of the article, not just an entry at the bottom.
+    >. When a factual correction is needed, it carries a visible notice at the top of the article,
+    not just an entry at the bottom.
+  </p>
+  <p class="corrections-contact">
+    <strong>Found a factual error?</strong>
+    <a href="mailto:care@runtimesignals.tech?subject=Correction%20request%20-%20Runtime%20Signals"
+      >Report a correction</a
+    > with the article URL, the claim in question, and supporting evidence.
   </p>
   <p>
     Retiring a piece - because a tool it covers no longer exists, or its practice no longer holds -
@@ -80,5 +86,10 @@ import ProseLayout from '@/layouts/ProseLayout.astro';
   }
   .revision-badge[data-type='published'] {
     color: var(--evidence-supported);
+  }
+
+  .corrections-contact {
+    border-left: 2px solid var(--signal);
+    padding-left: var(--space-4);
   }
 </style>

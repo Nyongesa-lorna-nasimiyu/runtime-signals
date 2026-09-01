@@ -54,6 +54,9 @@ const authors = (await getCollection('authors')).sort((a, b) =>
     border-top: 1px solid var(--hairline);
     color: inherit;
   }
+  .author-list__item:is(:hover, :focus-visible) {
+    color: var(--signal);
+  }
   .author-list__name {
     display: block;
     font-family: var(--font-display);
@@ -62,5 +65,11 @@ const authors = (await getCollection('authors')).sort((a, b) =>
   .author-list__bio {
     color: var(--ink-muted);
     font-size: var(--text-sm);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .author-list__item {
+      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+    }
   }
 </style>

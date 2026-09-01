@@ -60,6 +60,9 @@ const series = (await getCollection('series')).sort((a, b) =>
     border-top: 1px solid var(--hairline);
     color: inherit;
   }
+  .series-list__item:is(:hover, :focus-visible) {
+    color: var(--signal);
+  }
   /* Pure texture, not content - low-contrast enough to never compete with
      the row's actual name/description text, which stays in normal flow and
      paints above it. */
@@ -85,5 +88,11 @@ const series = (await getCollection('series')).sort((a, b) =>
   .series-list__desc {
     color: var(--ink-muted);
     font-size: var(--text-sm);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .series-list__item {
+      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+    }
   }
 </style>

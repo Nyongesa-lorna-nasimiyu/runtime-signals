@@ -54,7 +54,9 @@
        already read correctly and changing them would cost legibility for
        returning readers with no gain. */
     --evidence-supported: light-dark(#146b46, #4bd99a);
-    --evidence-mixed: light-dark(#a3660a, #e0a63c);
+    /* Dark enough for normal-sized labels to clear WCAG's 4.5:1 contrast
+       threshold against the light paper surface. */
+    --evidence-mixed: light-dark(#8c5a0a, #e0a63c);
     --evidence-inference: light-dark(#5b4fa8, #ab9ee8);
     --evidence-opinion: light-dark(#5b6462, #93a5a0);
 
@@ -93,6 +95,11 @@
     --wide-width: 72rem;
     --radius: 3px;
 
+    /* Shared interaction rhythm: restrained enough for an editorial surface,
+       but consistent anywhere a link or control changes state. */
+    --motion-duration-fast: 180ms;
+    --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
     /* Faint static paper-grain texture, light mode only - a tiny inline
        feTurbulence SVG (opacity baked into the SVG itself, since
        background-image has no separate CSS opacity control) layered under
@@ -107,6 +114,7 @@
     /* Minimum interactive target per WCAG 2.5.8 AA - enforced with min-inline/
        block-size (can grow, never shrinks) rather than width/height. */
     --touch-target-min: 24px;
+    --touch-target-comfortable: 2.75rem;
   }
 
   /* The one deliberate exception to this file's light-dark()-only rule (see

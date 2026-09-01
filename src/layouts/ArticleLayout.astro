@@ -120,10 +120,11 @@ const jsonLd = [
       <header class="article__header">
         <div class="article__meta-row">
           <p class="eyebrow">
+            <span class="article__section-label">{sectionLabel}</span>
             {
-              topicNames.map((name, i) => (
+              topicNames.map((name) => (
                 <>
-                  {i > 0 && ' · '}
+                  {' · '}
                   <span data-pagefind-filter="topic">{name}</span>
                 </>
               ))
@@ -549,6 +550,68 @@ const jsonLd = [
   .article__body :global(code) {
     font-family: var(--font-mono);
     font-size: 0.9em;
+  }
+
+  .article__body :global(a) {
+    overflow-wrap: anywhere;
+  }
+
+  /* Preserve a readable data-table layout on narrow screens and move the
+     overflow to a labeled region rather than clipping the last column. The
+     wrapper is added by rehype-responsive-tables for every Markdown table. */
+  .article__body :global(.table-scroll) {
+    max-inline-size: 100%;
+    margin-block: var(--space-5);
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-gutter: stable;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+  }
+
+  .article__body :global(.table-scroll):focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .article__body :global(table) {
+    inline-size: 100%;
+    min-inline-size: 36rem;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+
+  .article__body :global(th),
+  .article__body :global(td) {
+    padding: var(--space-3) var(--space-4);
+    text-align: start;
+    vertical-align: top;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .article__body :global(th) {
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+
+  .article__body :global(td) {
+    overflow-wrap: anywhere;
+  }
+
+  .article__body :global(tbody tr:last-child td) {
+    border-bottom: 0;
+  }
+
+  @media (max-width: 42rem) {
+    .article__body :global(.table-scroll)::before {
+      content: 'Scroll horizontally to view all columns';
+      display: block;
+      padding: var(--space-2) var(--space-3);
+      border-bottom: 1px solid var(--hairline);
+      color: var(--ink-muted);
+      font-family: var(--font-display);
+      font-size: var(--text-xs);
+    }
   }
 
   .article__claims,

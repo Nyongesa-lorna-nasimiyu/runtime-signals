@@ -8,6 +8,10 @@ import ProseLayout from '@/layouts/ProseLayout.astro';
   description="The Runtime Signals newsletter is not live yet."
   canonicalPath="/newsletter"
 >
+  <aside class="newsletter-status" aria-label="Newsletter status">
+    <span class="newsletter-status__label eyebrow">Status</span>
+    <p>Provider verification is still in progress. No subscriber data is collected here.</p>
+  </aside>
   <p>
     There's no signup form on this page. The newsletter architecture is decided - a managed provider
     stays authoritative for subscriber state, this site never stores an email address, and no
@@ -16,8 +20,28 @@ import ProseLayout from '@/layouts/ProseLayout.astro';
     DNS authentication and consent handling are confirmed.
   </p>
   <p>
-    Check back once that verification is complete, or watch <a href="/rss.xml">RSS</a> / <a
-      href="/atom.xml">Atom</a
-    > in the meantime.
+    Check back once that verification is complete. Until then, follow the publication with <a
+      href="/rss.xml">RSS</a
+    > or <a href="/atom.xml">Atom</a>.
   </p>
 </ProseLayout>
+
+<style>
+  .newsletter-status {
+    border: 1px solid var(--hairline);
+    border-left: 2px solid var(--signal);
+    padding: var(--space-3) var(--space-4);
+    margin: 0 0 var(--space-5);
+  }
+
+  .newsletter-status__label {
+    display: block;
+    margin-bottom: var(--space-1);
+  }
+
+  .newsletter-status p {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+  }
+</style>

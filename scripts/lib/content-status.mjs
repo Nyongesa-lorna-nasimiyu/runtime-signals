@@ -1,8 +1,8 @@
-// A dependency-free frontmatter status scanner for use in astro.config.mjs, which
-// runs before Astro's content layer exists - `astro:content` isn't importable
+// A frontmatter status and sitemap metadata scanner for use in astro.config.mjs,
+// which runs before Astro's content layer exists - `astro:content` isn't importable
 // there, so this reads status/noindex directly off the frontmatter block instead
-// of duplicating the full zod schema. It only needs to answer one narrow question
-// ("should this URL be excluded from the sitemap?"), not validate content.
+// of duplicating the full zod schema. It only needs to answer narrow sitemap
+// questions, not validate content.
 import { readdirSync, readFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { parse as parseYaml } from 'yaml';

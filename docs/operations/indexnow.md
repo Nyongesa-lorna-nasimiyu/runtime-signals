@@ -1,6 +1,6 @@
 # IndexNow operations
 
-Date: 2026-08-30
+Date: 2026-09-01
 
 ## Boundary
 
@@ -30,9 +30,17 @@ have succeeded:
 5. IndexNow returns `200` or `202` for every batch.
 
 The production workflow now executes step 2 through authenticated Wrangler
-after the protected environment approval. This repository still does not invoke
-the notifier automatically; adding it remains a separate post-deployment change
-so URL submission can be reviewed and verified independently.
+after the protected environment approval and invokes this notifier immediately
+afterward. Push-triggered deploys diff `github.event.before` against
+`github.sha`; the deployment checkout keeps full history so the prior SHA is
+available. A manually dispatched or scheduled deployment sets
+`INDEXNOW_FORCE_ALL=true` and submits every currently public route, because
+there may be no new content commit to diff.
+
+The notifier is deliberately `continue-on-error`: a transient IndexNow failure
+is recorded in the Actions log but does not roll back a deployment that already
+succeeded. A rerun can retry the submission after checking the key, host, and
+provider response.
 
 Scheduled rebuilds have no content commit diff because the same commit becomes
 live when its `published_at` passes. A scheduled deployment should therefore

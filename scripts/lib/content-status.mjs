@@ -1,10 +1,11 @@
-// A dependency-free frontmatter status scanner for use in astro.config.mjs, which
-// runs before Astro's content layer exists - `astro:content` isn't importable
+// A frontmatter status and sitemap metadata scanner for use in astro.config.mjs,
+// which runs before Astro's content layer exists - `astro:content` isn't importable
 // there, so this reads status/noindex directly off the frontmatter block instead
-// of duplicating the full zod schema. It only needs to answer one narrow question
-// ("should this URL be excluded from the sitemap?"), not validate content.
+// of duplicating the full zod schema. It only needs to answer narrow sitemap
+// questions, not validate content.
 import { readdirSync, readFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
+import { parse as parseYaml } from 'yaml';
 
 function frontmatterBlock(source) {
   const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -25,6 +26,32 @@ function frontmatterField(frontmatter, field) {
   return match ? match[1].replace(/^["']|["']$/g, '') : undefined;
 }
 
+function parseDate(value) {
+  if (!value) return undefined;
+  const date = new Date(value instanceof Date ? value : String(value));
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function parseFrontmatter(frontmatter) {
+  try {
+    const parsed = parseYaml(frontmatter);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function latestEditorialDate(frontmatter) {
+  const data = parseFrontmatter(frontmatter);
+  const publishedAt = parseDate(data.published_at);
+  if (!publishedAt) return undefined;
+  const revisions = Array.isArray(data.revisions) ? data.revisions : [];
+  return revisions.reduce((latest, revision) => {
+    const date = parseDate(revision?.date);
+    return date && date > latest ? date : latest;
+  }, publishedAt);
+}
+
 function bodyAfterFrontmatter(source) {
   const match = source.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?([\s\S]*)$/);
   return match ? match[1] : source;
@@ -32,12 +59,12 @@ function bodyAfterFrontmatter(source) {
 
 /**
  * Returns the set of route paths (e.g. "/articles/foo") that must never appear in
- * the sitemap: archived content (kept routable for its stable URL per
- * docs/architecture/content-model.md, but never promoted) and anything explicitly
- * marked seo.noindex.
+ * the sitemap: internal utility pages, archived content (kept routable for its
+ * stable URL per docs/architecture/content-model.md, but never promoted), and
+ * anything explicitly marked seo.noindex.
  */
 export function excludedSitemapPaths(contentRoot = 'src/content') {
-  const excluded = new Set();
+  const excluded = new Set(['/search', '/newsletter']);
   const collections = [
     ['articles', '/articles'],
     ['briefs', '/brief'],
@@ -59,6 +86,37 @@ export function excludedSitemapPaths(contentRoot = 'src/content') {
     }
   }
   return excluded;
+}
+
+/**
+ * Returns the source-controlled last-modified date for each editorial route.
+ * `published_at` is the initial publication event; revisions[] contains only
+ * later events, so the latest of those dates is the only honest sitemap value.
+ * Utility, listing, and source pages intentionally have no entry here and must
+ * therefore not receive a build-time timestamp from the sitemap integration.
+ */
+export function readEditorialLastmodDates(contentRoot = 'src/content') {
+  const lastmods = new Map();
+  const collections = [
+    ['articles', '/articles'],
+    ['briefs', '/brief'],
+  ];
+  for (const [dir, urlPrefix] of collections) {
+    let files = [];
+    try {
+      files = readdirSync(join(contentRoot, dir));
+    } catch {
+      continue;
+    }
+    for (const file of files) {
+      if (!['.md', '.mdx'].includes(extname(file))) continue;
+      const id = file.slice(0, -extname(file).length);
+      const source = readFileSync(join(contentRoot, dir, file), 'utf-8');
+      const lastmod = latestEditorialDate(frontmatterBlock(source));
+      if (lastmod) lastmods.set(`${urlPrefix}/${id}`, lastmod);
+    }
+  }
+  return lastmods;
 }
 
 /**

@@ -19,3 +19,11 @@ Date: 2026-08-28
 6. Test emergency unpublish by removing or changing content in Git, rebuilding, and validating `410`/redirect policy.
 
 No backup is a substitute for provider suppression reconciliation. Never restore an old subscriber export over newer unsubscribe or complaint events without comparing event timestamps and states.
+
+## Phase 5 rehearsal status
+
+The procedures above are documented but have not yet been exercised against a
+separate repository mirror or non-production Worker. The exact evidence and
+operator commands are tracked in [`phase-5-readiness.md`](phase-5-readiness.md).
+Keep the first rehearsal non-destructive: validate a clean-clone build and
+artifact checksums before attempting any Cloudflare rollback or correction.

@@ -12,9 +12,28 @@ interface PagefindResult {
   id: string;
   data: () => Promise<{ url: string; meta: { title?: string }; excerpt: string }>;
 }
-interface PagefindModule {
-  search: (query: string) => Promise<{ results: PagefindResult[] }>;
+interface PagefindSearchOptions {
+  filters?: Record<string, { any: string[] }>;
 }
+interface PagefindModule {
+  search: (
+    query: string | null,
+    options?: PagefindSearchOptions,
+  ) => Promise<{ results: PagefindResult[] }>;
+  filters: () => Promise<Record<string, Record<string, number>>>;
+}
+
+// The three facets exposed in the UI. `date[datetime]` is also indexed
+// (ArticleLayout.astro) but its filter value is a full ISO timestamp - one
+// distinct value per article - which makes it useless as a checkbox list
+// rather than a real range/year control; surfacing it as-is would just be a
+// list of unlabeled dates. Left out here, not silently dropped from the
+// index - the underlying data-pagefind-filter attribute is unchanged.
+const FACETS = ['topic', 'author', 'series'] as const;
+type Facet = (typeof FACETS)[number];
+const FACET_LABELS: Record<Facet, string> = { topic: 'Topic', author: 'Author', series: 'Series' };
+type SelectedFilters = Record<Facet, string[]>;
+const emptyFilters = (): SelectedFilters => ({ topic: [], author: [], series: [] });
 
 let pagefindLoadPromise: Promise<PagefindModule> | null = null;
 
@@ -71,19 +90,19 @@ function loadPagefind(): Promise<PagefindModule> {
   return pagefindLoadPromise;
 }
 
-// Filter UI (topic/author/series/date) is explicitly deferred, not silently
-// dropped: data-pagefind-filter attributes are already indexed (ArticleLayout.astro)
-// and pagefind.search() accepts a `filters` option against them, but no control
-// here exposes it yet. Flagged by external review of Checkpoint 2 — tracked
-// here rather than built speculatively; wire up when a real filtering need
-// appears (e.g. once /articles listing gets its own topic filter, the same
-// pattern extends naturally to search).
 export default function SearchIsland() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<
     { url: string; title: string; excerpt: string; spanId?: string }[]
   >([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [filterFacets, setFilterFacets] = useState<Record<string, Record<string, number>> | null>(
+    null,
+  );
+  const [filtersStatus, setFiltersStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>(
+    'idle',
+  );
+  const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>(emptyFilters);
   // A slower earlier query resolving after a faster later one must not overwrite
   // fresher results - every request is tagged with a generation counter, and a
   // response is applied only if it's still the most recent request in flight.
@@ -100,11 +119,28 @@ export default function SearchIsland() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
-  async function handleChange(value: string) {
-    setQuery(value);
+  const hasActiveFilters = FACETS.some((facet) => selectedFilters[facet].length > 0);
+
+  function buildFilters(filters: SelectedFilters): PagefindSearchOptions['filters'] {
+    const entries = FACETS.filter((facet) => filters[facet].length > 0).map((facet) => [
+      facet,
+      { any: filters[facet] },
+    ]);
+    return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+  }
+
+  // A query under 2 characters only bails out when no filter is active - once
+  // a filter is selected, an empty/short query is a legitimate "browse this
+  // filter" request (pagefind.search(null, {filters}) supports exactly this).
+  async function runSearch(value: string, filters: SelectedFilters) {
     const generation = ++requestGeneration.current;
 
-    if (value.trim().length < 2) {
+    if (
+      value.trim().length < 2 &&
+      !filters.topic.length &&
+      !filters.author.length &&
+      !filters.series.length
+    ) {
       setResults([]);
       setStatus('idle');
       return;
@@ -115,7 +151,9 @@ export default function SearchIsland() {
       const pagefind = await loadPagefind();
       if (requestGeneration.current !== generation) return; // superseded while loading
 
-      const search = await pagefind.search(value);
+      const search = await pagefind.search(value.trim().length >= 2 ? value : null, {
+        filters: buildFilters(filters),
+      });
       if (requestGeneration.current !== generation) return; // superseded while searching
 
       const withData = await Promise.all(
@@ -143,6 +181,43 @@ export default function SearchIsland() {
     }
   }
 
+  function handleChange(value: string) {
+    setQuery(value);
+    void runSearch(value, selectedFilters);
+  }
+
+  function toggleFilter(facet: Facet, value: string, checked: boolean) {
+    const next: SelectedFilters = {
+      ...selectedFilters,
+      [facet]: checked
+        ? [...selectedFilters[facet], value]
+        : selectedFilters[facet].filter((v) => v !== value),
+    };
+    setSelectedFilters(next);
+    void runSearch(query, next);
+  }
+
+  function clearFilters() {
+    setSelectedFilters(emptyFilters());
+    void runSearch(query, emptyFilters());
+  }
+
+  // Same lazy-load contract as the search input itself (docs/adr/0001: the
+  // index only loads on the search page after explicit interaction) - opening
+  // the filters panel is that interaction, same as a first keystroke.
+  async function handleFiltersToggle(open: boolean) {
+    if (!open || filterFacets || filtersStatus === 'loading') return;
+    setFiltersStatus('loading');
+    try {
+      const pagefind = await loadPagefind();
+      const facets = await pagefind.filters();
+      setFilterFacets(facets);
+      setFiltersStatus('ready');
+    } catch {
+      setFiltersStatus('error');
+    }
+  }
+
   return (
     <div className="search-island" data-hydrated={hydrated} aria-busy={status === 'loading'}>
       <label htmlFor="search-input" className="visually-hidden">
@@ -157,6 +232,51 @@ export default function SearchIsland() {
         className="search-island__input"
         autoComplete="off"
       />
+      <details
+        className="search-island__filters"
+        onToggle={(e) => void handleFiltersToggle(e.currentTarget.open)}
+      >
+        <summary>
+          Filters
+          {hasActiveFilters && ` (${FACETS.reduce((n, f) => n + selectedFilters[f].length, 0)})`}
+        </summary>
+        {filtersStatus === 'loading' && (
+          <p className="search-island__status" role="status" aria-live="polite">
+            Loading filters…
+          </p>
+        )}
+        {filtersStatus === 'error' && (
+          <p className="search-island__status search-island__status--error">
+            Filters are unavailable right now.
+          </p>
+        )}
+        {filtersStatus === 'ready' &&
+          filterFacets &&
+          FACETS.filter((facet) => Object.keys(filterFacets[facet] ?? {}).length > 0).map(
+            (facet) => (
+              <fieldset key={facet} className="search-island__facet">
+                <legend>{FACET_LABELS[facet]}</legend>
+                {Object.entries(filterFacets[facet] ?? {})
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([value, count]) => (
+                    <label key={value} className="search-island__facet-option">
+                      <input
+                        type="checkbox"
+                        checked={selectedFilters[facet].includes(value)}
+                        onChange={(e) => toggleFilter(facet, value, e.target.checked)}
+                      />
+                      {value} <span className="search-island__facet-count">({count})</span>
+                    </label>
+                  ))}
+              </fieldset>
+            ),
+          )}
+        {hasActiveFilters && (
+          <button type="button" className="search-island__clear-filters" onClick={clearFilters}>
+            Clear filters
+          </button>
+        )}
+      </details>
       {status === 'loading' && (
         <p className="search-island__status" role="status" aria-live="polite">
           Loading search index…
@@ -174,7 +294,11 @@ export default function SearchIsland() {
       )}
       {status === 'ready' && results.length === 0 && (
         <p className="search-island__status" role="status" aria-live="polite">
-          No results for &ldquo;{query}&rdquo;.
+          {query.trim().length >= 2 ? (
+            <>No results for &ldquo;{query}&rdquo;.</>
+          ) : (
+            'No results for the selected filters.'
+          )}
         </p>
       )}
       {results.length > 0 && (

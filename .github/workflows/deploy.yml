@@ -49,6 +49,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # IndexNow diffs github.event.before against github.sha after the
+          # deployment. Keep the prior production commit available; the
+          # checkout action's default shallow clone contains only github.sha.
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -91,3 +96,24 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler deploy
+
+      # Only runs once the step above has actually put the build on the live
+      # domain - a successful build doesn't mean the corresponding HTML is
+      # publicly serving yet (scripts/ci/notify-indexnow.mjs). A `push` event
+      # diffs the commit range to find just-changed content; the hourly
+      # scheduled-publish workflow re-triggers this via workflow_dispatch
+      # against the same commit with no new diff to read (content went live
+      # purely because published_at passed), so that path submits every
+      # currently-public route instead - IndexNow's endpoint is idempotent
+      # about re-submitting already-known URLs, so this is safe, not wasteful
+      # in any way that matters at this site's scale.
+      # continue-on-error: a transient IndexNow failure is not a failed
+      # deploy - the site is already live at this point - and must not make
+      # the production workflow go red for something search-engine-side.
+      - name: Notify IndexNow of newly public content
+        continue-on-error: true
+        env:
+          INDEXNOW_FORCE_ALL: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
+          INDEXNOW_FROM_SHA: ${{ github.event.before }}
+          INDEXNOW_TO_SHA: ${{ github.sha }}
+        run: node scripts/ci/notify-indexnow.mjs

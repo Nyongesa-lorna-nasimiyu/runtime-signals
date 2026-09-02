@@ -24,8 +24,8 @@ Gate: user approval of masthead/domain pursuit, architecture, hosting, and newsl
 - Add typed content collections, Markdown renderer, source records, claim validation, slug collision checks, and redirects. **Done** (checkpoint 1) - redirects specifically not yet exercised (no content has moved URLs yet to test against).
 - Add routes for home, articles, topics, series, authors, sources, about, methodology, policy, and 404. **Done** (checkpoint 1).
 - Generate metadata, JSON-LD, sitemap, robots, RSS, Atom, OG images, and print styles. **Done** - OG images and print styles landed in checkpoint 2; everything else in checkpoint 1.
-- Add search index foundation; keep initial search client-side/static if content volume is small. **Done**: Pagefind, lazy-loaded on `/search` only, `client:idle`. Filter metadata (topic/author/series/date) is indexed but has no UI controls yet - explicitly deferred, not silently dropped; see `docs/poc/README.md`.
-- Add tests for rendering, metadata, feeds, structured data, links, accessibility, and mobile layouts. **Done**: unit (33), a11y (axe), CSP, print, and draft-exclusion black-box tests all real and passing, plus visual regression (18 baselines across 6 routes x 3 viewport/color-scheme combinations, `tests/visual/`) and fixture-scale testing (100/1k/5k documents, real numbers in `docs/poc/README.md`) - both completed in checkpoint 2.
+- Add search index foundation; keep initial search client-side/static if content volume is small. **Done**: Pagefind, lazy-loaded on `/search` only, `client:idle`, with topic/author/series filter controls wired to the indexed metadata. Date remains metadata-only and is deferred until a concrete UX need appears; see `docs/poc/README.md`.
+- Add tests for rendering, metadata, feeds, structured data, links, accessibility, and mobile layouts. **Done**: unit (75), a11y (axe), CSP, print, and draft-exclusion black-box tests all real and passing, plus visual regression (21 baselines across 7 routes x 3 viewport/color-scheme combinations, `tests/visual/`) and fixture-scale testing (100/1k/5k documents, real numbers in `docs/poc/README.md`) - both completed in checkpoint 2.
 
 Gate: preview inspected at mobile and desktop sizes; quality gates green. **Fully satisfied as of 2026-08-29**: the repository is live at `github.com/Nyongesa-lorna-nasimiyu/runtime-signals`, with branch protection (required PR, `publication-gate` check, CODEOWNERS review, no bypass), a real `.github/CODEOWNERS`, and the `production` environment's required-reviewer approval all configured and exercised for real across multiple merged PRs - not just configured and left untested. Two real bugs were found and fixed only by running the actual workflow: the approval-manifest generator checked the wrong commit's check-runs (the merge commit, which never itself ran CI, instead of the PR head commit that did), and `verify-security-headers.mjs` hung for 8+ minutes in CI from an unkilled `wrangler dev` process tree (fixed by killing the whole process group). OG-image generation at scale (~216ms/image, several minutes at 1,000+ articles) remains a known, tracked, unfixed scaling risk - see `docs/poc/README.md`.
 
@@ -63,17 +63,28 @@ Not a roadmap line item, but real, merged work: a design-token and flagship-page
 - Prepare 30-day calendar, redirects, author pages, methodology, and corrections policy.
 - Register Search Console and Bing Webmaster, submit sitemap, and wire IndexNow only after the
   authoritative production deploy succeeds. The route-selection and retry contract is implemented
-  in `scripts/ci/notify-indexnow.mjs`; CI activation remains gated by the real deployment approval.
+  in `scripts/ci/notify-indexnow.mjs`, and the production workflow invokes it after the authenticated
+  Cloudflare deploy. Push deploys submit changed public content; manual or scheduled runs submit all
+  public routes. The deployment approval remains the gate before either step can run.
 - Run Lighthouse, schema validation, link checks, accessibility audit, and visual QA.
 
 Gate: launch checklist approved; email remains disabled until deliverability checks pass.
 
 ## Phase 5 - production readiness
 
-- Dependency and supply-chain audit.
-- Threat-model review and preview/authentication test.
-- Backup/restore and export rehearsal.
-- Build reproducibility check.
-- Observability and alert verification.
-- Deployment rollback and content correction rehearsal.
+- Dependency and supply-chain audit (baseline audit complete; Dependabot and
+  full-SHA Action pin verification are now repository controls).
+- Threat-model review and preview/authentication test (artifact preview is
+  structurally covered; authenticated live preview remains deferred).
+- Backup/restore and export rehearsal (runbook complete; operator rehearsal
+  outstanding).
+- Build reproducibility check (static output verified; Pagefind hash
+  nondeterminism documented as the remaining boundary).
+- Observability and alert verification (daily public health probe added; alert
+  routing and second incident contact outstanding).
+- Deployment rollback and content correction rehearsal (runbook complete;
+  non-production rehearsal outstanding).
 - Domain cutover and canonical verification only after explicit approval.
+
+See [`docs/operations/phase-5-readiness.md`](operations/phase-5-readiness.md)
+for the evidence register and the operator-only follow-up work.

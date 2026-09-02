@@ -3,10 +3,7 @@ import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
-import {
-  excludedSitemapPaths,
-  readEditorialLastmodDates,
-} from './scripts/lib/content-status.mjs';
+import { excludedSitemapPaths, readEditorialLastmodDates } from './scripts/lib/content-status.mjs';
 import { rehypeFocusableCodeBlocks } from './scripts/lib/rehype-focusable-code-blocks.mjs';
 import { rehypeResponsiveTables } from './scripts/lib/rehype-responsive-tables.mjs';
 

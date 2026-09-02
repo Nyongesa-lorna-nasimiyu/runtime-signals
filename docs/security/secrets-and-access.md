@@ -24,6 +24,13 @@ secrets. The non-secret `CLOUDFLARE_ACCOUNT_ID` is read from the same
 environment's variables. Production credentials are not passed to pull-request
 or preview workflows.
 
+## Rotation record
+
+The previously exposed Cloudflare API token was rolled by the account owner on
+2026-09-01. The token value is intentionally not recorded here. Keep the exact
+scope, owner, and next rotation date in the private credential inventory, and
+review the Cloudflare audit log after a rotation or suspected exposure.
+
 ## Account-compromise controls
 
 These, not signed commits, are what actually detects and contains a compromised GitHub account or stolen session - signed commits only prove provenance, per the note above.

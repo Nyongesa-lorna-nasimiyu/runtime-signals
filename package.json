@@ -30,8 +30,10 @@
     "verify:manifest": "node scripts/generate-approval-manifest.mjs",
     "verify:pagefind-size": "node scripts/measure-pagefind-index.mjs",
     "verify:headers": "node scripts/verify-security-headers.mjs",
+    "verify:action-pins": "node scripts/verify-action-pins.mjs",
     "verify:preview-metadata": "node scripts/verify-preview-metadata.mjs",
     "verify:preview-performance": "node scripts/verify-preview-performance.mjs",
+    "verify:production": "node scripts/verify-production-health.mjs",
     "wrangler:dry-run": "wrangler deploy --dry-run"
   },
   "dependencies": {
@@ -41,7 +43,8 @@
     "@astrojs/sitemap": "3.7.3",
     "astro": "7.2.9",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "yaml": "2.9.0"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

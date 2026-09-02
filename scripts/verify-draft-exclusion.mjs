@@ -69,6 +69,70 @@ for (const rel of surfacesThatMustExcludeArchived) {
   }
 }
 
+// Internal tools and unfinished pages should remain reachable for users, but
+// must not compete with editorial URLs in search indexes or the sitemap.
+const noindexUtilityPages = [
+  ['search/index.html', '/search'],
+  ['newsletter/index.html', '/newsletter'],
+];
+for (const [rel, route] of noindexUtilityPages) {
+  const p = join(DIST, rel);
+  if (!existsSync(p)) {
+    failures.push(`MISSING noindex utility page: ${rel}`);
+    continue;
+  }
+  const html = readFileSync(p, 'utf-8');
+  if (!/<meta name="robots" content="noindex, nofollow"/.test(html)) {
+    failures.push(`MISSING noindex directive: ${route}`);
+  }
+}
+
+// Editorial URLs have source-controlled publication/revision dates. The
+// sitemap must carry those dates, while utility/listing/source URLs may remain
+// without lastmod because this build has no honest modification event for them.
+const sitemapPath = join(DIST, 'sitemap-0.xml');
+if (existsSync(sitemapPath)) {
+  const sitemap = readFileSync(sitemapPath, 'utf-8');
+  const sitemapEntries = [...sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((match) => match[1]);
+  const expectedEditorialLastmods = new Map([
+    [
+      'https://runtimesignals.tech/articles/model-handoff-as-distributed-state-transfer',
+      '2026-08-29T00:00:00.000Z',
+    ],
+    [
+      'https://runtimesignals.tech/articles/tool-results-are-data-not-authority',
+      '2026-08-29T12:00:00.000Z',
+    ],
+    ['https://runtimesignals.tech/brief/first-briefing', '2026-06-05T07:00:00.000Z'],
+  ]);
+  for (const loc of expectedEditorialLastmods.keys()) {
+    if (!sitemapEntries.some((entry) => entry.includes(`<loc>${loc}</loc>`))) {
+      failures.push(`MISSING expected editorial sitemap URL: ${loc}`);
+    }
+  }
+  for (const entry of sitemapEntries) {
+    const loc = entry.match(/<loc>([^<]+)<\/loc>/)?.[1] ?? '';
+    if (/^https:\/\/runtimesignals\.tech\/(articles|brief)\//.test(loc)) {
+      if (!/<lastmod>[^<]+<\/lastmod>/.test(entry)) {
+        failures.push(`MISSING editorial sitemap lastmod: ${loc}`);
+      }
+      const expectedLastmod = expectedEditorialLastmods.get(loc);
+      if (expectedLastmod && !entry.includes(`<lastmod>${expectedLastmod}</lastmod>`)) {
+        failures.push(`INCORRECT editorial sitemap lastmod: ${loc}`);
+      }
+    } else if (/<lastmod>[^<]+<\/lastmod>/.test(entry)) {
+      failures.push(`UNEXPECTED non-editorial sitemap lastmod: ${loc}`);
+    }
+  }
+  for (const route of ['/search', '/newsletter']) {
+    if (sitemap.includes(`<loc>https://runtimesignals.tech${route}</loc>`)) {
+      failures.push(`LEAKED noindex utility into sitemap: ${route}`);
+    }
+  }
+} else {
+  failures.push(`MISSING surface to check: ${sitemapPath}`);
+}
+
 if (failures.length > 0) {
   console.error('Draft/future/unapproved/archived exclusion check FAILED:');
   for (const f of failures) console.error(`  - ${f}`);

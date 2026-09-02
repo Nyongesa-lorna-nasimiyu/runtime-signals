@@ -72,10 +72,19 @@ Gate: launch checklist approved; email remains disabled until deliverability che
 
 ## Phase 5 - production readiness
 
-- Dependency and supply-chain audit.
-- Threat-model review and preview/authentication test.
-- Backup/restore and export rehearsal.
-- Build reproducibility check.
-- Observability and alert verification.
-- Deployment rollback and content correction rehearsal.
+- Dependency and supply-chain audit (baseline audit complete; Dependabot and
+  full-SHA Action pin verification are now repository controls).
+- Threat-model review and preview/authentication test (artifact preview is
+  structurally covered; authenticated live preview remains deferred).
+- Backup/restore and export rehearsal (runbook complete; operator rehearsal
+  outstanding).
+- Build reproducibility check (static output verified; Pagefind hash
+  nondeterminism documented as the remaining boundary).
+- Observability and alert verification (daily public health probe added; alert
+  routing and second incident contact outstanding).
+- Deployment rollback and content correction rehearsal (runbook complete;
+  non-production rehearsal outstanding).
 - Domain cutover and canonical verification only after explicit approval.
+
+See [`docs/operations/phase-5-readiness.md`](operations/phase-5-readiness.md)
+for the evidence register and the operator-only follow-up work.

@@ -39,4 +39,16 @@ flowchart LR
 | External embed tracking | Reader privacy/performance harm | Prefer local diagrams; review every embed; CSP | Dependency/content review |
 | Accidental scheduled publish | Reputation harm | Future-date gate, required approval check, deployment audit | Unpublish by commit and redeploy |
 
+## Phase 5 review
+
+Reviewed 2026-09-01 against the current `main` workflows and live public
+deployment. No new application threat was identified. The preview workflow is
+read-only and secret-free by construction; the production workflow is the only
+path that reads the Cloudflare credential and is protected by the `production`
+environment approval. Dependency advisories returned zero high-severity
+findings for the pinned lockfile. Remaining risk is operational: backup,
+rollback, external alert routing, and assignment of an independent second
+incident contact still require an operator rehearsal (see
+`docs/operations/phase-5-readiness.md`).
+
 See `docs/security/incident-response.md` for the response procedure, severity tiers, and escalation path once any row above is triggered.

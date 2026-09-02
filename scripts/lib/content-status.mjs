@@ -5,6 +5,7 @@
 // ("should this URL be excluded from the sitemap?"), not validate content.
 import { readdirSync, readFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
+import { parse as parseYaml } from 'yaml';
 
 function frontmatterBlock(source) {
   const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -27,34 +28,28 @@ function frontmatterField(frontmatter, field) {
 
 function parseDate(value) {
   if (!value) return undefined;
-  const date = new Date(value.replace(/^["']|["']$/g, ''));
+  const date = new Date(value instanceof Date ? value : String(value));
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
-function revisionDates(frontmatter) {
-  const dates = [];
-  let inRevisions = false;
-  for (const line of frontmatter.split(/\r?\n/)) {
-    if (!inRevisions) {
-      const revisions = line.match(/^revisions:\s*(.*)$/);
-      if (revisions) inRevisions = revisions[1].trim() === '';
-      continue;
-    }
-    if (/^[A-Za-z_][A-Za-z0-9_-]*:\s*/.test(line)) break;
-    const date = line.match(/^[ \t]+(?:-\s*)?date:\s*(.+?)\s*$/);
-    const parsed = parseDate(date?.[1]);
-    if (parsed) dates.push(parsed);
+function parseFrontmatter(frontmatter) {
+  try {
+    const parsed = parseYaml(frontmatter);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
   }
-  return dates;
 }
 
 function latestEditorialDate(frontmatter) {
-  const publishedAt = parseDate(frontmatterField(frontmatter, 'published_at'));
+  const data = parseFrontmatter(frontmatter);
+  const publishedAt = parseDate(data.published_at);
   if (!publishedAt) return undefined;
-  return revisionDates(frontmatter).reduce(
-    (latest, revision) => (revision > latest ? revision : latest),
-    publishedAt,
-  );
+  const revisions = Array.isArray(data.revisions) ? data.revisions : [];
+  return revisions.reduce((latest, revision) => {
+    const date = parseDate(revision?.date);
+    return date && date > latest ? date : latest;
+  }, publishedAt);
 }
 
 function bodyAfterFrontmatter(source) {

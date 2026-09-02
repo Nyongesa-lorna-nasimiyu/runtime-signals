@@ -120,6 +120,8 @@ if (existsSync(sitemapPath)) {
       if (expectedLastmod && !entry.includes(`<lastmod>${expectedLastmod}</lastmod>`)) {
         failures.push(`INCORRECT editorial sitemap lastmod: ${loc}`);
       }
+    } else if (/<lastmod>[^<]+<\/lastmod>/.test(entry)) {
+      failures.push(`UNEXPECTED non-editorial sitemap lastmod: ${loc}`);
     }
   }
   for (const route of ['/search', '/newsletter']) {

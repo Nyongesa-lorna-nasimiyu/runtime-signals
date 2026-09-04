@@ -1,5 +1,5 @@
 ---
-title: 'Agent Engineering Brief — 14 August 2026'
+title: 'Agent Engineering Brief - 14 August 2026'
 dek: Auditing, telemetry sufficiency, production evaluation, distributed evidence, and cost reconciliation.
 status: scheduled
 authors: [jordan-avery]
@@ -7,7 +7,7 @@ topics: [evaluation, observability, reliability, security, execution]
 published_at: 2026-08-14T07:00:00Z
 reading_time_minutes: 8
 seo:
-  title: Agent Engineering Brief — 14 August 2026
+  title: Agent Engineering Brief - 14 August 2026
 claims:
   - id: claim.brief.a2e-auditing-engine
     text: A²E separates agent-harness evaluation from benchmark tasks, automatically captures standardized traces, and measures capabilities beyond correctness.
@@ -39,7 +39,7 @@ citations:
 artifacts: [a2e]
 ---
 
-## A²E: An End-to-End Agent Auditing Engine — 10 Aug
+## A²E: An End-to-End Agent Auditing Engine - 10 Aug
 
 A²E decouples benchmarks from agent harnesses, captures OpenTelemetry/OpenInference trajectories
 automatically, and evaluates planning, tools, memory, correctness, efficiency, and safety separately.
@@ -53,7 +53,7 @@ Apply it: borrow its task–harness adapter boundary and persistent trace store 
 evaluation lane. Retain traces so new evaluators can score historical executions without rerunning
 expensive agents.
 
-## TelemetrySuffBench: Is Agent Telemetry Sufficient for Failure-Origin Diagnosis? — 8 Aug
+## TelemetrySuffBench: Is Agent Telemetry Sufficient for Failure-Origin Diagnosis? - 8 Aug
 
 OTel-compatible and OpenInference-compatible trace views preserved 99.5–100% failure-detection F1
 but achieved at most 0.5% fault-origin accuracy; removing decision content reduced localization
@@ -69,7 +69,7 @@ provenance: selected alternatives, rejected alternatives, tool-result identifier
 IDs, retry causes, and parent decision IDs. Test whether an evaluator can localize injected faults,
 not merely detect failed runs.
 
-## Nubank's evaluation-driven agents at 100M-user scale — KDD 2026
+## Nubank's evaluation-driven agents at 100M-user scale - KDD 2026
 
 Across five production deployments, offline failure-rate improvements correlated with online gains;
 its card-delivery agent gained 37 percentage points in transactional NPS and 29 points in self-service
@@ -83,7 +83,7 @@ Apply it: version instructions, routines, tool schemas, macros, and working memo
 Keep deterministic multi-API sequences in code, make action tools transactional and idempotent, and
 gate promotion on both offline evaluations and a small production canary.
 
-## When Truth Is Distributed: misinformation derails collective fact recovery — 4 Aug
+## When Truth Is Distributed: misinformation derails collective fact recovery - 4 Aug
 
 In 120 controlled five-agent environments, one deceptive evidence holder reduced collective truth
 recovery from 72.5% to 14.17%; the false claim continued propagating through honest agents after the
@@ -94,7 +94,7 @@ Its synthetic environment limits direct production generalization, but the failu
 cleanly onto distributed agent systems.
 
 Apply it: attach immutable provenance to inter-agent claims and distinguish first-hand tool evidence
-from relayed assertions. Consensus should be weighted by independent evidence roots—not message
+from relayed assertions. Consensus should be weighted by independent evidence roots-not message
 count or repeated agreement.
 
 ## OTel → Langfuse implementation watch: cost telemetry can silently diverge

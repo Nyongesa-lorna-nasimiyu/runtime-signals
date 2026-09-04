@@ -1,16 +1,16 @@
 name: deploy
 
-# Runs on push to main, which — given branch protection is configured to
+# Runs on push to main, which - given branch protection is configured to
 # require a pull request, the `publication-gate` check, and CODEOWNERS review
 # before merge (a required repository setting this workflow does not itself
-# enforce; it only re-verifies the outcome) — can only happen via a reviewed,
+# enforce; it only re-verifies the outcome) - can only happen via a reviewed,
 # checked PR merge. That fact alone is still treated as a hint, not a proof:
 # every signal is independently re-verified against the GitHub API for the
 # exact commit below, in case branch protection is ever misconfigured or
 # disabled. See docs/editorial/publication-gates.md and
 # docs/research/architecture-research-report.md launch blocker #4.
 #
-# Also runs on workflow_dispatch, always against main's current HEAD — this
+# Also runs on workflow_dispatch, always against main's current HEAD - this
 # is how .github/workflows/scheduled-publish.yml re-triggers a build when
 # scheduled content's published_at passes with no new commit to push. The
 # commit being (re)built is still whatever most recently merged, so the same
@@ -30,7 +30,7 @@ permissions:
 
 concurrency:
   group: deploy-production
-  # Never cancel a deploy mid-flight — an interrupted build/deploy is a worse
+  # Never cancel a deploy mid-flight - an interrupted build/deploy is a worse
   # state than a slightly delayed one.
   cancel-in-progress: false
 
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     # Deployment-environment authorization: this job does not start until a
     # human reviewer configured on the `production` GitHub Environment
-    # approves the run — configure required reviewers on that environment in
+    # approves the run - configure required reviewers on that environment in
     # repository settings before this workflow is ever exercised for real.
     # scripts/ci/generate-real-approval-manifest.mjs's
     # deployment_environment_authorized: true is only correct because this key

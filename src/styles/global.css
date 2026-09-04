@@ -173,7 +173,7 @@
 }
 
 /* Per-element reduced-motion override point. A blanket
-   `animation-duration: 0.01ms !important` on * is a known anti-pattern — it can
+   `animation-duration: 0.01ms !important` on * is a known anti-pattern - it can
    make some animations MORE jarring (an instant snap) rather than calmer. Any
    future animation should define its own `--animation-reduced` fallback
    alongside the real one, e.g.:

@@ -40,7 +40,7 @@ const path = entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief
 const sectionLabel = entry.collection === 'articles' ? 'Articles' : 'Brief';
 const lastRevised = latestRevisionDate(entry);
 // Corrections are the ones a reader most needs to actually see, not just a
-// history entry they might scroll past — surfaced separately from routine updates.
+// history entry they might scroll past - surfaced separately from routine updates.
 const corrections = revisions.filter((r) => r.type === 'correction');
 const mostRecentCorrectionDate = corrections.reduce(
   (latest: Date | null, r) => (!latest || r.date > latest ? r.date : latest),
@@ -48,11 +48,11 @@ const mostRecentCorrectionDate = corrections.reduce(
 );
 // Cache-busted by the content's own revision timestamp, not just the slug: the OG
 // PNG endpoint is served with a one-year immutable Cache-Control
-// (public/_headers — see src/pages/og/[...slug].png.ts for why it can't live
+// (public/_headers - see src/pages/og/[...slug].png.ts for why it can't live
 // in the endpoint code itself), which would otherwise let a browser or social
 // crawler hold onto a stale image after a title/content revision. Cloudflare
 // Workers Static Assets matches the file by pathname only, ignoring the query
-// string, so this never needs a second physical file — it only changes the
+// string, so this never needs a second physical file - it only changes the
 // cache key, and only when a real revisions[] entry is added
 // (docs/architecture/content-model.md: material edits are recorded there).
 const ogImagePath = `/og/${entry.collection === 'articles' ? 'articles' : 'brief'}/${entry.id}.png?v=${lastRevised.getTime()}`;
@@ -202,7 +202,7 @@ const jsonLd = [
                 ? 'This piece has been corrected more than once.'
                 : 'This piece has been corrected.'}
             </strong>{' '}
-            Most recent correction: {mostRecentCorrectionDate?.toISOString().slice(0, 10)} — see{' '}
+            Most recent correction: {mostRecentCorrectionDate?.toISOString().slice(0, 10)} - see{' '}
             <a href="#revision-history">revision history</a> below for what changed.
           </p>
         )

@@ -1,7 +1,7 @@
 import { visit } from 'unist-util-visit';
 
 /**
- * A horizontally-scrollable <pre> (any code block wider than its container —
+ * A horizontally-scrollable <pre> (any code block wider than its container -
  * see .article__body pre { overflow-x: auto } in ArticleLayout.astro) must be
  * reachable by keyboard, or a sighted keyboard-only user simply cannot read the
  * part that scrolled off-screen. This is WCAG 2.1.1/2.1.3, caught by axe-core's

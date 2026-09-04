@@ -53,6 +53,17 @@ seo:
   noindex: false
 ```
 
+## Archive pagination and related articles
+
+Archive pagination is a presentation and routing concern, not a content-model
+relationship. The `/articles` and `/brief` indexes show page 1 with a page size
+of 10, filtering to live entries; overflow pages use `/articles/page/{n}` and
+`/brief/page/{n}`. Topic, series, and author pages are not paginated currently.
+
+The existing `related` field contains article references (`reference('articles')`).
+It currently has no runtime call site, so related-article recommendations are
+not implemented.
+
 ## Typed relationships
 
 Use source IDs and relationship records, not a graph database:
@@ -79,4 +90,3 @@ Earlier drafts of this document, `docs/editorial/workflow.md`, and the frontmatt
 **Approval is neither state.** It is external CI evidence - protected-branch review, required check-run results, CODEOWNERS approval, and deployment-environment authorization, captured in a build-time approval manifest keyed by canonical URL and commit SHA (see `docs/editorial/publication-gates.md` and `docs/poc/publication-gate/validate.mjs`). `publication_state` can only advance into `published` when both `editorial_state` has reached `editorial-complete` *and* the approval manifest has a matching, fully-authorized entry for the exact commit being built. A `status: scheduled` frontmatter field expresses intent; it cannot grant permission.
 
 A correction does not erase history: it creates a revision record, keeps the stable URL, and adds a visible correction note, all while `publication_state` remains `published`.
-

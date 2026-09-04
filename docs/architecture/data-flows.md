@@ -22,6 +22,18 @@ sequenceDiagram
   CF-->>PR: deployment URL / status
 ```
 
+## Archive pagination
+
+`/articles` and `/brief` are the first archive pages and render up to 10 live entries each. The
+existing `getPublishedEntries` gate supplies the approved, currently live, newest-first set. Astro
+generates `/articles/page/{n}` and `/brief/page/{n}` with `getStaticPaths` at build time, and only
+when the live set requires page 2 or later. Pagination controls and entry links are regular anchors,
+so the archive remains crawlable without JavaScript. Each page passes a page-specific title,
+description, and canonical path to `BaseLayout`.
+
+This archive is separate from the homepage's latest-12 feed. Topic, series, and author listings are
+also separate and are currently unpaginated.
+
 ## Subscription (future)
 
 ```mermaid

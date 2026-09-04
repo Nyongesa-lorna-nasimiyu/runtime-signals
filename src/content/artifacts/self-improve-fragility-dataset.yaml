@@ -1,0 +1,4 @@
+title: Self-improve fragility released trajectories
+kind: dataset
+url: https://huggingface.co/datasets/Salesforce/self-improve-fragility
+description: Released trajectory data for the self-improving-agent fragility evaluation.

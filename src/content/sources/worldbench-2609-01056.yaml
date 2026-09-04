@@ -1,0 +1,8 @@
+title: 'WorldBench: Culturally Grounded Benchmark for Multilingual Agents'
+url: https://arxiv.org/abs/2609.01056
+publisher: arXiv
+published_at: 2026-09-01
+accessed_at: 2026-09-04
+source_type: paper
+primary: true
+notes: Introduces Constrained Task Success with state-preservation constraints across 1,600 multilingual, persona-grounded tasks. The claimed OmniAILab/WorldBench repository was unavailable (404) when checked on 2026-09-04.

@@ -1,7 +1,7 @@
 ---
 title: 'Weekly Brief: Treat content schema as a publication control'
 dek: Use typed claims and source references to stop unsupported assertions before a route exists.
-status: scheduled
+status: draft
 authors: [jordan-avery]
 topics: [reliability, evaluation]
 published_at: 2026-11-06T07:00:00Z

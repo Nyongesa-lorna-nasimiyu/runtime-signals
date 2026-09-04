@@ -1,0 +1,7 @@
+title: OpenTelemetry integration for Langfuse
+url: https://langfuse.com/integrations/native/opentelemetry
+publisher: Langfuse
+accessed_at: 2026-09-04
+source_type: blog-post
+primary: true
+notes: Documents Langfuse's native OTLP integration, attribute precedence, and Collector-based routing guidance.

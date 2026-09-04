@@ -1,0 +1,4 @@
+title: Self-improve fragility experiment code
+kind: repository
+url: https://github.com/SalesforceAIResearch/self-improve-fragility
+description: Experiment code for evaluating variance, task order, and underspecification in self-improving agents.

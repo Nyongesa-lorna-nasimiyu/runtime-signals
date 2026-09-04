@@ -1,9 +1,9 @@
 # 30-day editorial calendar
 
 This calendar is the local launch-candidate schedule for 2026-09-01 through 2026-09-30. It maps
-the five topic pillars to the eight launch articles and all ten draft weekly briefs: five briefs
-have scheduled slots and five remain explicitly linked backlog inputs. A row is a planned editorial
-slot, not authorization to publish: the brief records remain `draft`, and every published article
+the five topic pillars to the eight launch articles and the weekly brief pipeline. A row is a
+planned editorial slot, not authorization to publish: unfinished brief records remain `draft`
+until their evidence and bodies are ready. A completed brief may be marked `scheduled`, but it
 still needs the real protected-branch approval gate described in
 [publication-gates.md](publication-gates.md).
 
@@ -17,7 +17,7 @@ not cover.
 | 1 | 2026-09-01 | Article | Reliability | [Reliable agent systems start with invariants](../../src/content/articles/reliable-agent-systems-invariants.md) | Retry and late-arrival claims checked against AWS source; invariant and limits reviewed. |
 | 2 | 2026-09-02 | Article | Reliability / execution | [Make agent tool execution idempotent with leases](../../src/content/articles/idempotent-tool-execution-with-leases.md) | Duplicate, timeout-after-commit, stale-owner, and new-intent cases tested or explicitly bounded. |
 | 3 | 2026-09-03 | Article | Evaluation | [Evaluate the work an agent commits](../../src/content/articles/evaluating-agent-systems.md) | Artifact checker, transcript layer, evaluator version, and fixture boundaries documented. |
-| 4 | 2026-09-04 | Brief | Evaluation / reliability | [A stronger model can still make the system worse](../../src/content/briefs/model-switching-can-regress.md) | Same fixtures and tools for both model runs; changed outcomes classified. |
+| 4 | 2026-09-04 | Brief | Evaluation / reliability | [Agent Engineering Brief — 4 September 2026](../../src/content/briefs/model-switching-can-regress.md) | Paper claims linked to source records; protected-state, skill-policy, and monitoring recommendations reviewed. |
 | 5 | 2026-09-05 | Evidence maintenance | All clusters | Source and claim audit | Canonical URLs, access dates, and every supported/mixed claim rechecked. |
 | 6 | 2026-09-06 | Editorial maintenance | All clusters | Calendar and backlog review | No filler slot added; draft boundary and next evidence owner confirmed. |
 | 7 | 2026-09-07 | Article | Observability | [Observability for agents is a causal context problem](../../src/content/articles/observing-agent-systems.md) | OpenTelemetry and W3C propagation claims verified; privacy and sampling limits reviewed. |

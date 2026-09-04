@@ -1,0 +1,7 @@
+title: OpenTelemetry semantic conventions for GenAI repository
+url: https://github.com/open-telemetry/semantic-conventions-genai
+publisher: OpenTelemetry
+accessed_at: 2026-09-04
+source_type: repository
+primary: true
+notes: Repository for the GenAI semantic-conventions work; the August 21 brief records that its schema URL was unresolved at the time of review.

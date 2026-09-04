@@ -1,0 +1,8 @@
+title: 'Building Customer Support AI Agents at 100M-User Scale: An Evaluation-Driven Framework'
+url: https://arxiv.org/abs/2606.08867
+publisher: arXiv
+published_at: 2026-06-13
+accessed_at: 2026-09-04
+source_type: paper
+primary: true
+notes: Describes evaluation-driven customer-support agents at Nubank, including five production deployments and offline-to-online validation.

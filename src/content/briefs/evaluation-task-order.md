@@ -1,7 +1,7 @@
 ---
 title: 'Weekly Brief: Task order can fake improvement'
 dek: A test-design note on learning effects, cache warmth, and evaluation order.
-status: scheduled
+status: draft
 authors: [jordan-avery]
 topics: [evaluation, reliability]
 published_at: 2026-09-25T07:00:00Z

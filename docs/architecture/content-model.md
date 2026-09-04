@@ -57,12 +57,25 @@ seo:
 
 Archive pagination is a presentation and routing concern, not a content-model
 relationship. The `/articles` and `/brief` indexes show page 1 with a page size
-of 10, filtering to live entries; overflow pages use `/articles/page/{n}` and
-`/brief/page/{n}`. Topic, series, and author pages are not paginated currently.
+of 10, filtering to approved, currently live entries; overflow pages use
+`/articles/page/{n}` and `/brief/page/{n}`. Topic, series, and author pages are
+not paginated currently.
 
-The existing `related` field contains article references (`reference('articles')`).
-It currently has no runtime call site, so related-article recommendations are
-not implemented.
+Each article or brief may declare up to three `related` references, typed as
+`reference('articles')` in `src/content.config.ts`. At build time,
+`src/lib/related.ts` resolves those references in declared order and filters
+candidates through `getPublishedEntries`, so only live and approved articles
+can appear. It excludes the current article and duplicates. For article detail
+pages, the next eligible article is also selected from the referenced series'
+`order` and rendered separately as “Continue the series”. Remaining related-
+reading slots are filled with live articles sharing topics, ranked by shared
+topic count descending, `published_at` descending, then article ID ascending;
+this deterministic fallback fills the combined related-reading list to a
+maximum of three cards.
+
+The article and brief detail routes compute this result in `getStaticPaths` and
+pass it to `ArticleLayout`. `RelatedContent.astro` renders non-empty series
+continuation and related-reading sections as static article cards.
 
 ## Typed relationships
 

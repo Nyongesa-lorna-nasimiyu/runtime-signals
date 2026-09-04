@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import EvidenceTag from '@/components/EvidenceTag.astro';
 import EvidenceStrip from '@/components/EvidenceStrip.astro';
+import RelatedContent from '@/components/RelatedContent.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
 import { latestRevisionDate, evidenceCounts } from '@/lib/resolve';
 import { spanId } from '@/lib/span-id';
@@ -16,6 +17,11 @@ interface Props {
   sourceTitles: { id: string; title: string; url: string }[];
   artifactTitles: { id: string; title: string; url: string; kind: string }[];
   archived: boolean;
+  relatedContent?: {
+    curated: CollectionEntry<'articles'>[];
+    seriesNext?: CollectionEntry<'articles'>;
+    fallback: CollectionEntry<'articles'>[];
+  };
   // From astro:content's render(entry) - the article body's real, as-authored
   // h2/h3 headings (with the same slugger-derived ids the rendered markup
   // actually carries), used to build the step-progress rail below without
@@ -31,6 +37,7 @@ const {
   sourceTitles,
   artifactTitles,
   archived,
+  relatedContent,
   bodyHeadings = [],
 } = Astro.props;
 
@@ -296,6 +303,8 @@ const jsonLd = [
           </section>
         )
       }
+
+      <RelatedContent relatedContent={relatedContent} />
     </article>
   </div>
 </BaseLayout>

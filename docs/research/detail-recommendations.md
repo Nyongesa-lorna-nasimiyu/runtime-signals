@@ -1,65 +1,55 @@
 # Runtime Signals detail-page related content
 
-> **Status: Proposed - not implemented.** This note records a v1 recommendation; it does not
-> authorize or include code changes.
+> **Status: Implemented.** This note describes the current build-time implementation and
+> separates future improvements from shipped behavior.
 
-## Repository facts
+## Current implementation
 
-- The shared editorial schema in `src/content.config.ts` has `related`, but it is an
-  article-only `reference('articles')` array. There is currently no runtime call site for it;
-  `docs/architecture/content-model.md` records the same limitation.
-- Series metadata has an authoritative article sequence in `src/content.config.ts` as
-  `series.order`. `src/pages/series/[slug].astro` resolves that sequence and deliberately
-  preserves its authorial reading order.
-- Both detail routes (`src/pages/articles/[...slug].astro` and
-  `src/pages/brief/[...slug].astro`) use `ArticleLayout.astro`. The rendered detail page currently
-  ends with conditional claims, revision history, artifacts, and sources sections.
-- The existing publication boundary distinguishes live content from merely routable archived
-  content. v1 should reuse the build-time live/approval decision (`canPublish` with `BUILD_TIME`),
-  so recommendations cannot expose drafts, not-yet-due scheduled content, or unapproved content.
+`getRelatedContent` in `src/lib/related.ts` runs at build time from both detail routes and
+passes its result to `ArticleLayout.astro`. The shared `related` field in
+`src/content.config.ts` is capped at three article references.
 
-## v1 recommendation
+The related-reading selection works as follows:
 
-Append optional related-content sections after the existing sources section. Build the lists from
-content collections at build time, and apply this order:
+1. **Curated references first:** resolve the entry's article references in their declared order.
+   Candidates are filtered through the build-time publication and approval gate
+   (`getPublishedEntries(..., BUILD_TIME)` / `canPublish`), so only live, approved articles are
+   eligible. Missing references, self-links, and duplicates are skipped without changing the
+   order of the remaining references.
+2. **Same-topic fallback:** consider other live, approved articles that share at least one topic,
+   excluding the current entry, curated entries, and the series continuation. Rank them by shared
+   topic count descending, publication date descending, then stable article ID ascending. Fill only
+   the remaining related-reading slots, for a maximum of three entries in total.
 
-1. **Related reading:** resolve `entry.data.related` and retain its explicit authorial order.
-2. **Continue the series:** when the entry belongs to a series, use that series' `order` as the
-   authoritative sequence and show subsequent eligible article(s) in a separate section. Do not
-   mix this continuation into scored topic recommendations.
-3. **More on these topics:** fill with up to three remaining live articles that share at least one
-   topic. Sort fallbacks by shared-topic count descending, `published_at` descending, then stable
-   `id` ascending.
-
-Across the combined output, exclude the current entry, duplicates, drafts, future scheduled
-entries, unapproved entries, and archived entries. Apply the same eligibility rule to explicit
-related and series candidates; an authored reference is not a publication override. If a section
-has no candidates after filtering, omit the section and its heading rather than rendering an empty
-shell.
-
-For briefs, recommend live articles by shared topic only. The current `related` contract cannot
-represent brief-to-brief recommendations because it references `articles` exclusively.
+For an article only, the implementation also selects one next eligible article from the first
+matching series' declared `series.order`, preserving the author's sequence. This is a separate
+“Continue the series” item and does not consume the three related-reading slots. Non-live
+candidates—including drafts, not-yet-due scheduled entries, unapproved entries, and archived
+entries—are excluded from every selection. Briefs can link to articles through this same
+article-only recommendation path; they do not produce brief-to-brief recommendations.
 
 ## Rendering and crawlability
 
-Use a semantic `<section>` with an `<h2>` for each non-empty group, such as “Continue the series”
-and “Related reading”. Render each item through the existing `ArticleCard` with its default
-heading level 3, and provide its normal article or brief path as a plain server-rendered `<a
-href="...">` link. Do not add client-side fetching, ranking, or JavaScript navigation. This keeps
-descriptive internal links present in the HTML, consistent with [Google's crawlable,
-descriptive-link guidance](https://developers.google.com/search/docs/crawling-indexing/links-crawlable).
+The related-content component is rendered after the existing Sources section in
+`src/layouts/ArticleLayout.astro`. It omits empty groups, uses an `<h2>` for each emitted section,
+and renders each item through the existing `ArticleCard` with heading level 3. Cards contain normal
+server-rendered article links, with no JavaScript for fetching, ranking, or navigation.
 
 The build-time approach fits the current Astro static route model: content collections expose
 typed references and `getEntries()`, while `getStaticPaths()` supplies collection entries to
 prerendered pages. See [Astro content collections and static route
 generation](https://docs.astro.build/en/guides/content-collections/).
 
-## Acceptance checks for implementation
+The plain descriptive links in the generated HTML also follow [Google's crawlable,
+descriptive-link guidance](https://developers.google.com/search/docs/crawling-indexing/links-crawlable).
 
-- Explicit related items retain declared order; series continuation remains a distinct,
-  `series.order`-ordered group.
-- Fallback ranking is deterministic and capped at three, with self/duplicate and every listed
-  non-live state excluded.
-- Brief pages recommend articles by topic and never assume `related` can point to briefs.
-- Empty groups emit no section or heading; emitted groups have an `<h2>`, cards retain `<h3>`,
-  and links are present without JavaScript.
+## Future improvements
+
+The following are not part of the current implementation:
+
+- Extend the curated-reference contract if the product needs brief-to-brief or other
+  cross-content recommendations; `related` currently accepts article references only.
+- Revisit the three-item cap and fallback ranking after editorial review or observed usage provides
+  evidence for different limits or signals.
+- Add dedicated regression and rendered-HTML coverage for ordering, publication filtering,
+  duplicate handling, and the no-JavaScript output.

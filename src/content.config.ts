@@ -61,7 +61,7 @@ const editorialFields = {
   claims: z.array(claim).default([]),
   citations: z.array(reference('sources')).default([]),
   artifacts: z.array(reference('artifacts')).default([]),
-  related: z.array(reference('articles')).default([]),
+  related: z.array(reference('articles')).max(3).default([]),
   seo,
 };
 

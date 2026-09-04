@@ -17,7 +17,7 @@ citations: [opentelemetry-genai-semconv]
 ---
 
 Draft brief for the execution cluster. A delegated claim should carry its source reference,
-retrieval time, transformation history, and confidence—not just the sentence that summarizes it.
+retrieval time, transformation history, and confidence-not just the sentence that summarizes it.
 OpenTelemetry's [GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/)
 offer a useful precedent for naming context around model and agent operations; the provenance
 contract is an application design to test.

@@ -1,5 +1,5 @@
 ---
-title: 'Agent Engineering Brief — 4 September 2026'
+title: 'Agent Engineering Brief - 4 September 2026'
 dek: Five research signals for detecting agent failure, preserving unrelated state, and governing runtime policy.
 status: scheduled
 authors: [jordan-avery]
@@ -7,7 +7,7 @@ topics: [evaluation, reliability, security, observability, execution]
 published_at: 2026-09-04T07:00:00Z
 reading_time_minutes: 7
 seo:
-  title: Agent Engineering Brief — 4 September 2026
+  title: Agent Engineering Brief - 4 September 2026
 claims:
   - id: claim.brief.observable-trajectory-monitoring
     text: Observable trajectory signals can support prefix-level failure prediction and early intervention without model-internal signals.
@@ -40,9 +40,9 @@ artifacts: [safeevolve, civ6-mcp]
 
 ## Monitoring agents without model internals
 
-Observable trajectory features—loops, execution errors, action diversity, intention/action
-consistency, and environment feedback—can predict failure early enough to stop bad executions,
-without logits or hidden-state access. [Paper — 2 Sep](https://arxiv.org/abs/2609.02057)
+Observable trajectory features-loops, execution errors, action diversity, intention/action
+consistency, and environment feedback-can predict failure early enough to stop bad executions,
+without logits or hidden-state access. [Paper - 2 Sep](https://arxiv.org/abs/2609.02057)
 
 This was evaluated on WebArena-Lite and Online Mind2Web across five open and closed models, using
 a key-step label that correctly treats valid prefixes of eventually failed runs as healthy. The
@@ -50,16 +50,16 @@ evaluation explicitly measures detection against false-cut budgets.
 
 Practical takeaway: add an online Hermes monitor over ordinary OTel-visible events: repeated
 actions, unchanged state, tool-error streaks, goal/action divergence, and budget consumption.
-Train or calibrate intervention at the first unrecovered decisive error—not from the final run
+Train or calibrate intervention at the first unrecovered decisive error-not from the final run
 label copied onto every span.
 
 Limitation: no released implementation or trajectory dataset was identified.
 
-## WorldBench — success must include preserving unrelated state
+## WorldBench - success must include preserving unrelated state
 
 All nine evaluated agents scored lower on Constrained Task Success than ordinary pass rate because
 apparently successful runs frequently modified unrelated files; the strongest agent reached only
-49.2% CTS. [Paper — 1 Sep](https://arxiv.org/abs/2609.01056)
+49.2% CTS. [Paper - 1 Sep](https://arxiv.org/abs/2609.01056)
 
 WorldBench contains 1,600 persona-grounded tasks across seven languages and eight cultures,
 executable evaluators, distractors, and explicit state-preservation checks. Collateral edits
@@ -79,7 +79,7 @@ AND protected state is unchanged
 AND no unauthorized side effect occurred
 ```
 
-For Duit/Hermes actions, snapshot protected records and compare write sets—not merely the
+For Duit/Hermes actions, snapshot protected records and compare write sets-not merely the
 requested entity.
 
 Code/data warning: the paper claims a public `OmniAILab/WorldBench` repository, but that link
@@ -89,7 +89,7 @@ returned **404 on 4 September**. Treat the benchmark as currently not independen
 
 Carefully manipulated skills shifted agent decisions toward attacker objectives in 81% of commerce
 cases and 63% of software-dependency cases while retaining 100% valid output, transferring across
-models and evading the evaluated skill scanners. [Paper — 2 Sep](https://arxiv.org/abs/2609.02564)
+models and evading the evaluated skill scanners. [Paper - 2 Sep](https://arxiv.org/abs/2609.02564)
 
 This identifies a failure that correctness tests miss: a skill can preserve the task, action schema,
 and valid output while covertly altering how alternatives are ranked.
@@ -105,11 +105,11 @@ Practical takeaway: treat skills like supply-chain artifacts:
 This is the strongest Runtime Signals article candidate this week: _Your agent skill is not
 documentation. It is a policy dependency._
 
-## SafeEvolve — harness improvements need immutable external gates
+## SafeEvolve - harness improvements need immutable external gates
 
 Co-evolving the model and its safety harness reduced AgentDojo attack success approximately threefold
 for Qwen3.5-4B while slightly improving benign utility, but transferring the harness to other model
-sizes produced inconsistent safety–utility tradeoffs. [Paper — 2 Sep](https://arxiv.org/abs/2609.02786) ·
+sizes produced inconsistent safety–utility tradeoffs. [Paper - 2 Sep](https://arxiv.org/abs/2609.02786) ·
 [Code](https://github.com/MaoPopovich/SafeEvolve)
 
 Candidate prompt and skill-bank changes are bounded, evaluated on matched rollout panels, and
@@ -123,10 +123,10 @@ regression budgets, then promote or roll back through an external controller.
 Reproducibility caveat: CPU-side tests and utilities are available, but full reproduction requires
 unpinned external GPU stacks and a multi-gigabyte runtime catalog omitted from the repository.
 
-## CivBench — agents do not monitor state merely because tools expose it
+## CivBench - agents do not monitor state merely because tools expose it
 
 Across 23 long-running episodes, agents queried strategically relevant state less frequently than
-instructed and executed only 48.2–65.8% of commitments within ten turns. [Paper — 2 Sep](https://arxiv.org/abs/2609.02459) ·
+instructed and executed only 48.2–65.8% of commitments within ten turns. [Paper - 2 Sep](https://arxiv.org/abs/2609.02459) ·
 [Environment, logs, and evaluation code](https://github.com/lmwilki/civ6-mcp)
 
 The environment exposes 76 MCP tools, 300-plus-turn episodes, and thousands of tool calls while

@@ -1,4 +1,5 @@
 ---
+import type { CollectionEntry } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import ArticleCard from '@/components/ArticleCard.astro';
 import Pagination from '@/components/Pagination.astro';
@@ -7,12 +8,34 @@ import { getPublishedEntries } from '@/lib/publication';
 import { resolveTopicNames, weakestEvidence, evidenceCounts, articlePath } from '@/lib/resolve';
 import { BUILD_TIME } from '@/lib/build-time';
 
-const PAGE_SIZE = 10;
-const briefs = await getCollection('briefs');
-const live = getPublishedEntries(briefs, BUILD_TIME);
-const totalPages = Math.ceil(live.length / PAGE_SIZE);
+interface Props {
+  entries: CollectionEntry<'briefs'>[];
+  currentPage: number;
+  totalPages: number;
+}
+
+export async function getStaticPaths() {
+  const PAGE_SIZE = 10;
+  const briefs = await getCollection('briefs');
+  const live = getPublishedEntries(briefs, BUILD_TIME);
+  const totalPages = Math.ceil(live.length / PAGE_SIZE);
+
+  return Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => {
+    const currentPage = index + 2;
+    return {
+      params: { page: String(currentPage) },
+      props: {
+        entries: live.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+        currentPage,
+        totalPages,
+      },
+    };
+  });
+}
+
+const { entries, currentPage, totalPages } = Astro.props;
 const cards = await Promise.all(
-  live.slice(0, PAGE_SIZE).map(async (entry) => ({
+  entries.map(async (entry) => ({
     id: entry.id,
     path: articlePath(entry),
     title: entry.data.title,
@@ -26,27 +49,19 @@ const cards = await Promise.all(
 ---
 
 <BaseLayout
-  title="Brief"
-  description="The Agent Engineering Brief - a weekly digest with linked source records."
-  canonicalPath="/brief"
+  title={`Brief — Page ${currentPage}`}
+  description={`The Agent Engineering Brief - a weekly digest with linked source records. Page ${currentPage}`}
+  canonicalPath={`/brief/page/${currentPage}`}
 >
   <section class="listing">
     <header class="listing__header">
       <p class="eyebrow">Weekly</p>
       <h1>Agent Engineering Brief</h1>
     </header>
-    {
-      cards.length === 0 ? (
-        <p class="listing__empty">No published briefs yet.</p>
-      ) : (
-        <div class="listing__list">
-          {cards.map((card) => (
-            <ArticleCard {...card} headingLevel={2} />
-          ))}
-        </div>
-      )
-    }
-    <Pagination basePath="/brief" currentPage={1} totalPages={totalPages} />
+    <div class="listing__list">
+      {cards.map((card) => <ArticleCard {...card} headingLevel={2} />)}
+    </div>
+    <Pagination basePath="/brief" currentPage={currentPage} totalPages={totalPages} />
   </section>
 </BaseLayout>
 
@@ -60,8 +75,5 @@ const cards = await Promise.all(
     font-family: var(--font-body);
     font-size: var(--text-2xl);
     margin: var(--space-2) 0 var(--space-6);
-  }
-  .listing__empty {
-    color: var(--ink-muted);
   }
 </style>

@@ -1,0 +1,114 @@
+---
+interface Props {
+  basePath: '/articles' | '/brief';
+  currentPage: number;
+  totalPages: number;
+}
+
+const { basePath, currentPage, totalPages } = Astro.props;
+const sectionLabel = basePath === '/articles' ? 'Articles' : 'Brief';
+const pagePath = (page: number) => (page === 1 ? basePath : `${basePath}/page/${page}`);
+const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
+---
+
+{
+  totalPages > 1 && (
+    <nav class="pagination" aria-label={`${sectionLabel} pagination`}>
+      {currentPage > 1 && (
+        <a
+          class="pagination__link pagination__control"
+          href={pagePath(currentPage - 1)}
+          rel="prev"
+          aria-label={`Previous ${sectionLabel.toLowerCase()} page`}
+        >
+          Previous
+        </a>
+      )}
+
+      <ol class="pagination__pages">
+        {pages.map((page) => (
+          <li>
+            <a
+              class:list={[
+                'pagination__link',
+                { 'pagination__link--current': page === currentPage },
+              ]}
+              href={pagePath(page)}
+              aria-current={page === currentPage ? 'page' : undefined}
+              aria-label={
+                page === currentPage
+                  ? `${sectionLabel} page ${page}, current page`
+                  : `Go to ${sectionLabel.toLowerCase()} page ${page}`
+              }
+            >
+              {page}
+            </a>
+          </li>
+        ))}
+      </ol>
+
+      {currentPage < totalPages && (
+        <a
+          class="pagination__link pagination__control"
+          href={pagePath(currentPage + 1)}
+          rel="next"
+          aria-label={`Next ${sectionLabel.toLowerCase()} page`}
+        >
+          Next
+        </a>
+      )}
+    </nav>
+  )
+}
+
+<style>
+  .pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    border-top: 1px solid var(--hairline);
+    margin-top: var(--space-5);
+    padding-top: var(--space-5);
+  }
+  .pagination__pages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .pagination__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--touch-target-comfortable);
+    min-block-size: var(--touch-target-comfortable);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    color: var(--signal);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+  .pagination__link:hover {
+    background: var(--signal-dim);
+  }
+  .pagination__link--current {
+    border-color: var(--signal);
+    background: var(--signal-dim);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  @media (max-width: 32rem) {
+    .pagination {
+      justify-content: center;
+    }
+    .pagination__control {
+      flex-grow: 1;
+    }
+  }
+</style>

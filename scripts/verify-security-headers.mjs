@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // Starts a real `wrangler dev` process (the only local tool that actually
-// emulates Cloudflare Workers Static Assets' _headers processing — `astro
+// emulates Cloudflare Workers Static Assets' _headers processing - `astro
 // preview` does not) against the real dist/ build, fetches live responses, and
 // asserts the headers in public/_headers actually reach the client. Not a
 // config-shape check: a real request/response round trip. Also guards a real
 // regression that was easy to miss: a Cache-Control set inside an Astro static
 // endpoint's Response object (e.g. src/pages/og/[...slug].png.ts) is discarded
-// once Cloudflare serves the resulting static file — only public/_headers
+// once Cloudflare serves the resulting static file - only public/_headers
 // actually reaches production, confirmed by hitting a real response and
 // finding the endpoint's header simply wasn't there.
 import { spawn } from 'node:child_process';

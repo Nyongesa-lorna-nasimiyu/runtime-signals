@@ -6,12 +6,12 @@ import { renderOgImage } from '@/lib/og-image';
 import { BUILD_TIME } from '@/lib/build-time';
 
 // One real OG image per routable article/brief, generated at build time (this
-// is a static site — there is no request-time renderer to generate these on
+// is a static site - there is no request-time renderer to generate these on
 // demand). Uses the same getRoutableEntries() boundary as the actual article
 // pages, so a draft or unapproved piece can no more get an OG image than it
 // can get a route. The path is prefixed with the collection name
-// (/og/articles/{slug}.png, /og/brief/{slug}.png) — matching the real article
-// URL structure — because articles and briefs are separate slug namespaces and
+// (/og/articles/{slug}.png, /og/brief/{slug}.png) - matching the real article
+// URL structure - because articles and briefs are separate slug namespaces and
 // a bare /og/{slug}.png could collide if both collections ever used the same id.
 export async function getStaticPaths() {
   const [articles, briefs] = await Promise.all([
@@ -44,12 +44,12 @@ export const GET: APIRoute = async ({ props }) => {
   const png = await renderOgImage({ title, eyebrow, evidence });
   // No headers set here beyond Content-Type: this Response is only used to
   // extract the PNG bytes for the static file Astro writes to dist/ at build
-  // time — Cloudflare Workers Static Assets then serves that file with its own
+  // time - Cloudflare Workers Static Assets then serves that file with its own
   // headers, ignoring whatever this Response object specified (confirmed via a
   // real wrangler dev request: a Cache-Control set here never appeared on the
   // actual response). The real, effective cache policy lives in
   // public/_headers, the only mechanism that actually reaches production for a
-  // static response — see the /og/* rule there.
+  // static response - see the /og/* rule there.
   return new Response(new Uint8Array(png), {
     headers: { 'Content-Type': 'image/png' },
   });

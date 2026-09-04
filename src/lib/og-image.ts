@@ -3,23 +3,23 @@ import { join } from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 
-// Build-time only (this module never ships to the browser — Astro endpoint
+// Build-time only (this module never ships to the browser - Astro endpoint
 // files run in Node during the build). Satori needs TTF/OTF/WOFF; it does not
 // support WOFF2, so this uses a separate TTF copy of the same JetBrains Mono
 // family the site self-hosts as WOFF2 for the browser
-// (public/fonts/jetbrains-mono-variable.woff2) — same typeface, different
+// (public/fonts/jetbrains-mono-variable.woff2) - same typeface, different
 // build-time-only binary, for a build-time-only tool.
 //
 // Resolved from process.cwd(), not import.meta.url: Astro relocates this
 // module's compiled output into dist/.prerender/chunks/ during prerendering,
 // so a path built relative to the module's own location breaks (a real build
-// failure, not a theoretical one — ENOENT on the first real build). The
+// failure, not a theoretical one - ENOENT on the first real build). The
 // project root is stable regardless of where the bundler puts the chunk.
 const fontsDir = join(process.cwd(), 'scripts/og-fonts');
 const regular = readFileSync(join(fontsDir, 'JetBrainsMono-Regular.ttf'));
 const bold = readFileSync(join(fontsDir, 'JetBrainsMono-Bold.ttf'));
 
-// The light palette only, spelled out — an OG image is a static raster served
+// The light palette only, spelled out - an OG image is a static raster served
 // to link-preview crawlers and chat apps, not a page with a live
 // prefers-color-scheme; light-dark() has no meaning here. Mirrors tokens.css's
 // light values.
@@ -48,7 +48,7 @@ const EVIDENCE_COLOR: Record<(typeof EVIDENCE_ORDER)[number], string> = {
 
 // The site's signature element (src/components/EvidenceStrip.astro) reproduced
 // for satori: this piece's own claim-evidence mix as a proportional segmented
-// bar, not a decorative stand-in for it — the same data the reader sees in the
+// bar, not a decorative stand-in for it - the same data the reader sees in the
 // article's own Evidence Strip, one layer removed for a link-preview crawler.
 function evidenceBar(counts: Record<(typeof EVIDENCE_ORDER)[number], number>) {
   const total = EVIDENCE_ORDER.reduce((sum, key) => sum + counts[key], 0);
@@ -80,19 +80,19 @@ interface OgImageInput {
   evidence: Record<(typeof EVIDENCE_ORDER)[number], number>;
 }
 
-// A 1x1 transparent PNG, for SKIP_OG_RENDER builds only — see below.
+// A 1x1 transparent PNG, for SKIP_OG_RENDER builds only - see below.
 const PLACEHOLDER_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
   'base64',
 );
 
 export async function renderOgImage({ eyebrow, title, evidence }: OgImageInput): Promise<Buffer> {
-  // Escape hatch for scripts/measure-build-at-scale.mjs only — never set in a
+  // Escape hatch for scripts/measure-build-at-scale.mjs only - never set in a
   // real build (prebuild/CI never set this env var). Real OG generation
   // (Satori font-shaping + resvg PNG encode, per document, sequential in
   // Astro's static path generation) turned out to dominate build time at
   // scale badly enough to need isolating from the Pagefind/content-build
-  // measurement that scale test actually cares about — see
+  // measurement that scale test actually cares about - see
   // docs/poc/README.md's fixture-scaling results for the real numbers this
   // produced (build time went 54s -> 578s from 100 to 1,000 documents, ~11x
   // for a 10x document increase, while Pagefind itself scaled roughly

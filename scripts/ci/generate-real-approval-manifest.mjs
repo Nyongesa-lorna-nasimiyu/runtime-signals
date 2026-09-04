@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// The REAL approval manifest — run only inside .github/workflows/deploy.yml,
+// The REAL approval manifest - run only inside .github/workflows/deploy.yml,
 // inside a job gated by the `production` GitHub Environment's required
 // reviewers. This is the file docs/research/architecture-research-report.md
 // launch blocker #4 and every prior checkpoint report point at:
@@ -7,7 +7,7 @@
 // trust-everything dev stand-in and must never be what this workflow uses.
 //
 // Every signal here is independently verified against the GitHub API for the
-// exact commit being built — never assumed from "this is running in CI" or
+// exact commit being built - never assumed from "this is running in CI" or
 // "this is on main" alone, which is exactly the kind of assumption a future
 // branch-protection misconfiguration could silently defeat.
 import { execFileSync } from 'node:child_process';
@@ -73,7 +73,7 @@ async function main() {
       //    be established before we know which commit's checks to inspect: for
       //    every non-fast-forward merge strategy (including GitHub's default
       //    "Create a merge commit"), `commitSha` here is a commit GitHub
-      //    synthesized at merge time and was never itself built by CI —
+      //    synthesized at merge time and was never itself built by CI -
       //    `publication-gate` runs against the PR's HEAD commit only. Confirmed
       //    against a real merge on this repo: the merge commit's check-runs
       //    contained only this workflow's own `build-and-deploy` run, never
@@ -81,12 +81,12 @@ async function main() {
       const associatedPRs = await githubApi(`/commits/${commitSha}/pulls`);
       const mergedPR = findMergedPullRequest(associatedPRs, commitSha);
 
-      // 2. Required checks (e.g. `publication-gate`) actually passed — checked
+      // 2. Required checks (e.g. `publication-gate`) actually passed - checked
       //    against the PR's head commit, the commit CI actually built, not the
       //    merge commit.
       let requiredChecksPassed = false;
       // 3. The PR has an APPROVED review (CODEOWNERS enforcement itself is
-      //    GitHub's own branch-protection setting — see github-checks.mjs).
+      //    GitHub's own branch-protection setting - see github-checks.mjs).
       let codeownersApproved = false;
       if (mergedPR) {
         const checkRunsResponse = await githubApi(`/commits/${mergedPR.head.sha}/check-runs`);
@@ -101,7 +101,7 @@ async function main() {
       //    inside deploy.yml's `build-and-deploy` job, which does not start until
       //    a human reviewer configured on the `production` GitHub Environment
       //    approves the run. If this script is running at all, that gate already
-      //    passed — see the `environment: production` key in that workflow.
+      //    passed - see the `environment: production` key in that workflow.
       const deploymentEnvironmentAuthorized = true;
       const authorized = requiredChecksPassed && Boolean(mergedPR) && codeownersApproved;
       span.setAttribute('publication.authorization_established', authorized);
@@ -111,7 +111,7 @@ async function main() {
         console.error(`  required_checks_passed: ${requiredChecksPassed}`);
         console.error(`  merged PR found: ${Boolean(mergedPR)}`);
         console.error(`  codeowners_approved: ${codeownersApproved}`);
-        console.error('Writing an empty manifest — nothing will be authorized to publish.');
+        console.error('Writing an empty manifest - nothing will be authorized to publish.');
         writeFileSync(outPath, '{}\n');
         throw new Error('Approval authorization was not established');
       }

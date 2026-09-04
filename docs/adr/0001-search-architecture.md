@@ -76,7 +76,7 @@ Implemented: build-time indexing scoped to real content (`data-pagefind-body`), 
 
 Date filtering remains explicitly deferred, not silently dropped: the indexed date metadata is a full ISO timestamp, and no date-control UX is exposed until a concrete need justifies the added complexity. The topic/author/series controls are now implemented against Pagefind's `filters` option.
 
-**Fixture scaling against this ADR's migration boundary**: measured for real at 100/1,000/5,000 documents — see `docs/poc/README.md` ("Fixture scaling: complete") for full numbers and methodology. Headline result: the fixed per-session search payload (engine + index metadata, not the whole archive) is ~382 KB gzip at 5,000 documents, comfortably under the "1-2 MB compressed" boundary this ADR set; Pagefind's own build and query-time cost scale sub-linearly. Not yet a reconsideration trigger. Re-measure again once the real archive reaches the low thousands rather than assuming these numbers hold indefinitely.
+**Fixture scaling against this ADR's migration boundary**: measured for real at 100/1,000/5,000 documents - see `docs/poc/README.md` ("Fixture scaling: complete") for full numbers and methodology. Headline result: the fixed per-session search payload (engine + index metadata, not the whole archive) is ~382 KB gzip at 5,000 documents, comfortably under the "1-2 MB compressed" boundary this ADR set; Pagefind's own build and query-time cost scale sub-linearly. Not yet a reconsideration trigger. Re-measure again once the real archive reaches the low thousands rather than assuming these numbers hold indefinitely.
 
 ## Testing and launch checklist
 

@@ -1,0 +1,4 @@
+title: civ6-mcp environment, logs, and evaluation code
+kind: repository
+url: https://github.com/lmwilki/civ6-mcp
+description: MCP environment and evaluation code for long-horizon Civilization VI agent episodes.

@@ -1,0 +1,8 @@
+title: 'SafeEvolve: Harness-Policy Co-Evolution from Agent Experience for Safety Alignment'
+url: https://arxiv.org/abs/2609.02786
+publisher: arXiv
+published_at: 2026-09-02
+accessed_at: 2026-09-04
+source_type: paper
+primary: true
+notes: Describes experience-driven co-evolution of safety harness artifacts and policy behavior, including AgentDojo and benign-utility results for Qwen3.5-4B.

@@ -1,5 +1,16 @@
 const SITE_URL = 'https://runtimesignals.tech';
 const SITE_NAME = 'Runtime Signals';
+const DOCUMENT_TITLE_SUFFIX = ` - ${SITE_NAME}`;
+const MAX_DOCUMENT_TITLE_LENGTH = 70;
+
+/** Keep browser/search titles within the preview contract without shortening
+ * the reader-facing title rendered in the page body. */
+export function documentTitle(title: string): string {
+  const availableTitleLength = MAX_DOCUMENT_TITLE_LENGTH - DOCUMENT_TITLE_SUFFIX.length;
+  if (title.length <= availableTitleLength) return `${title}${DOCUMENT_TITLE_SUFFIX}`;
+
+  return `${title.slice(0, availableTitleLength - 1).trimEnd()}…${DOCUMENT_TITLE_SUFFIX}`;
+}
 
 export function absoluteUrl(path: string): string {
   return new URL(path, SITE_URL).toString();

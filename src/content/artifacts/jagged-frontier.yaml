@@ -1,0 +1,4 @@
+title: Jagged Frontier released implementation
+kind: repository
+url: https://github.com/CSU-TrustLab/jagged-frontier
+description: Transformation library, sampling tools, evaluation harness, prompts, instance lists, and analysis materials for semantics-preserving robustness tests.

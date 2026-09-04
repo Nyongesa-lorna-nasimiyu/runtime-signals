@@ -1,0 +1,8 @@
+title: 'TelemetrySuffBench: Is Agent Telemetry Sufficient for Failure-Origin Diagnosis?'
+url: https://arxiv.org/abs/2608.07899
+publisher: arXiv
+published_at: 2026-08-08
+accessed_at: 2026-09-04
+source_type: paper
+primary: true
+notes: Separates failure detection, fault-origin localization, and safe abstention under insufficient evidence using controlled multi-component traces.

@@ -1,0 +1,4 @@
+title: A²E official implementation
+kind: repository
+url: https://github.com/datamllab/A2E
+description: Open-source agent auditing engine with task-harness adapters, automatic trace instrumentation, and multidimensional evaluation.

@@ -1,0 +1,8 @@
+title: 'CivBench: A Long-Horizon Benchmark for Tool-Mediated Agents in Civilization VI'
+url: https://arxiv.org/abs/2609.02459
+publisher: arXiv
+published_at: 2026-09-02
+accessed_at: 2026-09-04
+source_type: paper
+primary: true
+notes: Introduces Proactive Monitoring Rate and RAG@10 for long-horizon MCP episodes and releases the environment, scenarios, logs, metrics, and analysis pipeline.

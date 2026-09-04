@@ -1,0 +1,8 @@
+title: 'LEDGER: Claim-to-Evidence Trace Graphs for Auditing LLM Agents'
+url: https://arxiv.org/abs/2608.18398
+publisher: arXiv
+published_at: 2026-08-19
+accessed_at: 2026-09-04
+source_type: paper
+primary: true
+notes: Introduces layered trace graphs with evidence nodes, workflow nodes, artifact anchors, and typed semantic edges for agent audit.

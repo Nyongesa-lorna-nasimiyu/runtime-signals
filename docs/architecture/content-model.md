@@ -53,6 +53,30 @@ seo:
   noindex: false
 ```
 
+## Archive pagination and related articles
+
+Archive pagination is a presentation and routing concern, not a content-model
+relationship. The `/articles` and `/brief` indexes show page 1 with a page size
+of 10, filtering to approved, currently live entries; overflow pages use
+`/articles/page/{n}` and `/brief/page/{n}`. Topic, series, and author pages are
+not paginated currently.
+
+Each article or brief may declare up to three `related` references, typed as
+`reference('articles')` in `src/content.config.ts`. At build time,
+`src/lib/related.ts` resolves those references in declared order and filters
+candidates through `getPublishedEntries`, so only live and approved articles
+can appear. It excludes the current article and duplicates. For article detail
+pages, the next eligible article is also selected from the referenced series'
+`order` and rendered separately as “Continue the series”. Remaining related-
+reading slots are filled with live articles sharing topics, ranked by shared
+topic count descending, `published_at` descending, then article ID ascending;
+this deterministic fallback fills the combined related-reading list to a
+maximum of three cards.
+
+The article and brief detail routes compute this result in `getStaticPaths` and
+pass it to `ArticleLayout`. `RelatedContent.astro` renders non-empty series
+continuation and related-reading sections as static article cards.
+
 ## Typed relationships
 
 Use source IDs and relationship records, not a graph database:
@@ -79,4 +103,3 @@ Earlier drafts of this document, `docs/editorial/workflow.md`, and the frontmatt
 **Approval is neither state.** It is external CI evidence - protected-branch review, required check-run results, CODEOWNERS approval, and deployment-environment authorization, captured in a build-time approval manifest keyed by canonical URL and commit SHA (see `docs/editorial/publication-gates.md` and `docs/poc/publication-gate/validate.mjs`). `publication_state` can only advance into `published` when both `editorial_state` has reached `editorial-complete` *and* the approval manifest has a matching, fully-authorized entry for the exact commit being built. A `status: scheduled` frontmatter field expresses intent; it cannot grant permission.
 
 A correction does not erase history: it creates a revision record, keeps the stable URL, and adds a visible correction note, all while `publication_state` remains `published`.
-

@@ -5,14 +5,22 @@ import { getRoutableEntries, isArchived } from '@/lib/publication';
 import { resolveAuthorNames, resolveTopicNames, resolveSeries } from '@/lib/resolve';
 import { Callout, Figure } from '@/components/mdx';
 import { BUILD_TIME } from '@/lib/build-time';
+import { getRelatedContent } from '@/lib/related';
 
 export async function getStaticPaths() {
   const briefs = await getCollection('briefs');
+  const [allArticles, allSeries] = await Promise.all([
+    getCollection('articles'),
+    getCollection('series'),
+  ]);
   const routable = getRoutableEntries(briefs, BUILD_TIME);
-  return routable.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+  return routable.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry, relatedContent: getRelatedContent(entry, allArticles, allSeries) },
+  }));
 }
 
-const { entry } = Astro.props;
+const { entry, relatedContent } = Astro.props;
 const { Content, headings } = await render(entry);
 const [authorNames, topicNames, series, sourceEntries, artifactEntries] = await Promise.all([
   resolveAuthorNames(entry),
@@ -38,6 +46,7 @@ const artifactTitles = artifactEntries.map((a) => ({
   sourceTitles={sourceTitles}
   artifactTitles={artifactTitles}
   archived={isArchived(entry)}
+  relatedContent={relatedContent}
   bodyHeadings={headings}
 >
   <Content components={{ Callout, Figure }} />

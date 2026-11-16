@@ -1,7 +1,8 @@
 ---
-// Styled as a structured log line - the genuine reverse-chronological, timestamped
-// shape of the content earns this treatment (see the hero's rationale in
-// src/pages/index.astro), not decoration for its own sake.
+// A structured signal row: date, stable span ID, format, topics, reading time,
+// and the piece's own evidence mix before the headline. The reverse-
+// chronological log shape is the content's real structure, not decoration.
+import Icon from './Icon.astro';
 import { spanId } from '@/lib/span-id';
 import EvidenceStrip from './EvidenceStrip.astro';
 import type { EvidenceStrength } from '@/lib/resolve';
@@ -13,11 +14,15 @@ interface Props {
   dek: string;
   publishedAt: Date;
   topics: string[];
+  topicIds?: string[];
+  kind?: string;
+  readingTimeMinutes?: number;
   dominantEvidence?: EvidenceStrength;
   evidence?: Record<EvidenceStrength, number>;
   archived?: boolean;
   headingLevel?: 2 | 3;
 }
+
 const {
   id,
   path,
@@ -25,6 +30,9 @@ const {
   dek,
   publishedAt,
   topics,
+  topicIds = [],
+  kind,
+  readingTimeMinutes,
   dominantEvidence,
   evidence,
   archived = false,
@@ -33,94 +41,172 @@ const {
 const dateLabel = publishedAt.toISOString().slice(0, 10);
 const hasEvidence = evidence ? Object.values(evidence).some((n) => n > 0) : false;
 const Heading = headingLevel === 2 ? 'h2' : 'h3';
+const kindLabel =
+  kind === 'deep-dive'
+    ? 'Deep-dive'
+    : kind === 'tutorial'
+      ? 'Tutorial'
+      : kind === 'brief'
+        ? 'Brief'
+        : kind === 'case-study'
+          ? 'Case study'
+          : kind
+            ? 'Article'
+            : undefined;
 ---
 
-<article class="signal-entry" data-archived={archived ? 'true' : undefined}>
+<article
+  class="signal-entry"
+  data-archived={archived ? 'true' : undefined}
+  data-kind={kind}
+  data-topics={topicIds.join(' ')}
+  data-published={dateLabel}
+>
   <a href={path} class="signal-entry__link unstyled-link">
     <div class="signal-entry__meta">
       <time class="signal-entry__date" datetime={publishedAt.toISOString()}>{dateLabel}</time>
-      {topics.length > 0 && <span class="signal-entry__topics">{topics.join(' · ')}</span>}
+      <span aria-hidden="true">·</span>
+      <span class="span-id signal-entry__span-id" aria-hidden="true">{spanId(id)}</span>
+      {
+        kindLabel && (
+          <>
+            <span aria-hidden="true">·</span>
+            <span class="signal-entry__kind">{kindLabel}</span>
+          </>
+        )
+      }
+      {
+        topics.length > 0 && (
+          <>
+            <span aria-hidden="true">·</span>
+            <span class="signal-entry__topics">{topics.join(' / ')}</span>
+          </>
+        )
+      }
+      {
+        readingTimeMinutes && (
+          <>
+            <span aria-hidden="true">·</span>
+            <span class="signal-entry__reading">{readingTimeMinutes} min</span>
+          </>
+        )
+      }
       {
         dominantEvidence && (
-          <span class="evidence-tag" data-evidence={dominantEvidence}>
-            {dominantEvidence}
-          </span>
+          <>
+            <span aria-hidden="true">·</span>
+            <span class="evidence-tag" data-evidence={dominantEvidence}>
+              {dominantEvidence}
+            </span>
+          </>
         )
       }
-      {
-        hasEvidence && (
-          <EvidenceStrip counts={evidence!} variant="mini" class="signal-entry__evidence" />
-        )
-      }
+      {hasEvidence && <EvidenceStrip counts={evidence!} variant="mini" />}
       {archived && <span class="signal-entry__archived">archived</span>}
     </div>
-    <Heading class="signal-entry__title">
-      <span class="span-id signal-entry__span-id" aria-hidden="true">{spanId(id)}</span>
-      {title}
-    </Heading>
-    <p class="signal-entry__dek">{dek}</p>
+
+    <div class="signal-entry__body">
+      <div class="signal-entry__copy">
+        <Heading class="signal-entry__title">{title}</Heading>
+        <p class="signal-entry__dek">{dek}</p>
+      </div>
+      <Icon name="arrow-up-right" class="signal-entry__arrow" size={16} />
+    </div>
   </a>
 </article>
 
 <style>
   .signal-entry {
     border-top: 1px solid var(--hairline);
-    padding: var(--space-5) 0;
+    padding-block: var(--space-5);
   }
   .signal-entry:first-child {
     border-top: none;
   }
   .signal-entry__link {
     display: block;
-    text-decoration: none;
     color: inherit;
-    border-radius: var(--radius);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
   }
   .signal-entry__meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-3);
-    font-family: var(--font-display);
+    gap: 0.35rem 0.65rem;
+    margin-bottom: var(--space-2);
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
     color: var(--ink-muted);
-    margin-bottom: var(--space-2);
+    font-variant-numeric: tabular-nums;
   }
   .signal-entry__date {
     color: var(--signal);
     font-weight: 600;
+  }
+  .signal-entry__kind {
+    color: var(--ink);
   }
   .signal-entry__archived {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--evidence-mixed);
   }
-  .signal-entry__title {
-    font-family: var(--font-body);
-    font-size: var(--text-lg);
-    line-height: var(--leading-tight);
-    margin: 0 0 var(--space-1);
-    font-weight: 600;
+  .signal-entry__body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
   }
-
-  .signal-entry__span-id {
-    margin-right: var(--space-2);
-    font-size: var(--text-xs);
-    vertical-align: 0.1em;
+  .signal-entry__copy {
+    min-width: 0;
+  }
+  .signal-entry__title {
+    margin: 0 0 var(--space-1);
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    overflow-wrap: break-word;
+  }
+  .signal-entry__dek {
+    max-width: 44rem;
+    margin: 0;
+    color: var(--ink-muted);
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    line-height: var(--leading-relaxed);
+  }
+  .signal-entry__arrow {
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+    color: var(--ink-muted);
+    opacity: 0.5;
   }
   .signal-entry:is(:hover, :focus-within) .signal-entry__title {
     color: var(--signal);
   }
-  .signal-entry__dek {
-    margin: 0;
-    color: var(--ink-muted);
-    max-width: 60ch;
+  .signal-entry:is(:hover, :focus-within) .signal-entry__arrow {
+    color: var(--signal);
+    opacity: 1;
+    transform: translate(1px, -1px);
+  }
+
+  @media (min-width: 40rem) {
+    .signal-entry__arrow {
+      opacity: 0;
+    }
   }
 
   @media (prefers-reduced-motion: no-preference) {
     .signal-entry__title,
-    .signal-entry__dek {
-      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+    .signal-entry__arrow {
+      transition:
+        color var(--motion-duration-fast) var(--motion-ease-out),
+        opacity var(--motion-duration-fast) var(--motion-ease-out),
+        transform var(--motion-duration-fast) var(--motion-ease-out);
     }
   }
 </style>

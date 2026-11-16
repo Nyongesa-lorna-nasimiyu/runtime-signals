@@ -1,27 +1,43 @@
 /*
-  Design direction - "instrument register": a cool, precise engineering-notebook
-  register, not the warm-cream/serif, near-black/neon, or broadsheet defaults.
-  Two aesthetic choices carry the identity:
+  Design direction - the "signal register": a cool, precise engineering-notebook
+  surface shared with the Runtime Signals UI prototype.
 
-  1. A monospace face as the DISPLAY voice (headlines, eyebrows, nav) rather than
-     reserving it for code - apt for a publication literally named for signals
-     and telemetry, read by engineers who live in monospace. Body copy stays a
-     system serif for sustained long-form reading and zero font-loading cost.
-  2. --signal is verdigris/oscilloscope-phosphor teal, not the generic "AI blue"
-     link color most sites reach for - it's the one hue that recurs everywhere
-     evidence is live or current (dates, counts, the Evidence Strip's strongest
-     channel). --focus-ring runs warm (grease-pencil red-orange) specifically so
-     it never gets lost against the cool teal/graphite field.
+  Three typefaces carry the hierarchy:
+  1. Bricolage Grotesque as the display voice (headlines, nav, labels).
+  2. Source Serif 4 for sustained long-form reading and editorial body copy.
+  3. JetBrains Mono for metadata, identifiers, evidence counts, and code.
 
-  JetBrains Mono Variable, self-hosted (public/fonts/), SIL OFL 1.1.
+  All three are self-hosted (public/fonts/) under the SIL Open Font License, so
+  the site keeps its zero third-party-request reading path.
 
-  Dark mode: a single light-dark() definition per token, not three copies of every
-  value (an earlier version duplicated light/dark pairs across a
-  prefers-color-scheme block AND a [data-theme='dark'] block AND a
-  [data-theme='light'] override - and that data-theme branching was reachable by
-  nothing, since no theme toggle exists in this build). color-scheme: light dark
-  on :root is what makes light-dark() follow the system preference automatically.
+  Theme: tokens are defined once with light-dark(); the explicit toggle only
+  switches `color-scheme` on :root, so there is exactly one source of truth per
+  color rather than duplicated light/dark blocks.
 */
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/fonts/bricolage-grotesque-variable.woff2') format('woff2');
+  font-weight: 500 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Serif 4';
+  src: url('/fonts/source-serif-4-variable.woff2') format('woff2');
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Serif 4';
+  src: url('/fonts/source-serif-4-italic-variable.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
 
 @font-face {
   font-family: 'JetBrains Mono Variable';
@@ -36,44 +52,44 @@
     color-scheme: light dark;
 
     /* Color */
-    --paper: light-dark(#f2f4f2, #0a0f0f);
-    --paper-raised: light-dark(#ffffff, #121a19);
-    --ink: light-dark(#121917, #e6ece9);
-    --ink-muted: light-dark(#556662, #93a5a0);
-    --hairline: light-dark(#d0d9d5, #21302c);
-    --signal: light-dark(#0f6e63, #57d9c4);
-    --signal-ink: light-dark(#ffffff, #0a0f0f);
-    --signal-dim: light-dark(#e2f2ee, #142722);
+    --paper: light-dark(#f4f6f5, #0b100f);
+    --surface: light-dark(#ffffff, #121a19);
+    /* Alias kept for components that predate the surface naming split. */
+    --paper-raised: var(--surface);
+    --surface-subtle: light-dark(#eaf0ed, #182321);
+    --ink: light-dark(#111917, #e7edea);
+    --ink-muted: light-dark(#4b5c57, #93a7a1);
+    --hairline: light-dark(#d2dcd8, #22322e);
+    --signal: light-dark(#0d6e62, #4fd9c3);
+    --signal-ink: light-dark(#ffffff, #081210);
+    --signal-dim: light-dark(#e2f1ee, #122925);
     --focus-ring: light-dark(#b3311f, #ff8a68);
 
     /* Evidence-strength semantics - these colors carry content meaning
        (docs/architecture/content-model.md claim.evidence), not decoration.
-       Retuned to sit against the verdigris signal color without competing
-       with it: supported stays the "confirmed" green family, mixed/inference/
-       opinion keep their original hues (amber/violet/gray) since those
-       already read correctly and changing them would cost legibility for
-       returning readers with no gain. */
+       Supported stays the "confirmed" green family; mixed/inference/opinion
+       keep their amber/violet/gray hues, all tuned for WCAG AA label contrast
+       against their respective paper surfaces. */
     --evidence-supported: light-dark(#146b46, #4bd99a);
-    /* Dark enough for normal-sized labels to clear WCAG's 4.5:1 contrast
-       threshold against the light paper surface. */
     --evidence-mixed: light-dark(#8c5a0a, #e0a63c);
     --evidence-inference: light-dark(#5b4fa8, #ab9ee8);
-    --evidence-opinion: light-dark(#5b6462, #93a5a0);
+    --evidence-opinion: light-dark(#52605c, #93a7a1);
 
     /* Type */
     --font-display:
+      'Bricolage Grotesque', ui-sans-serif, system-ui, 'Segoe UI', Roboto, Helvetica, Arial,
+      sans-serif;
+    --font-body: 'Source Serif 4', ui-serif, Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    --font-mono:
       'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
       monospace;
-    --font-body:
-      ui-serif, Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Times New Roman', serif;
-    --font-mono: var(--font-display);
 
     --text-xs: 0.75rem;
     --text-sm: 0.875rem;
     --text-base: 1.0625rem;
     --text-lg: 1.25rem;
     --text-xl: clamp(1.375rem, 1.15rem + 1vw, 1.875rem);
-    --text-2xl: clamp(1.875rem, 1.3rem + 2.4vw, 3rem);
+    --text-2xl: clamp(1.75rem, 1.3rem + 2.1vw, 2.75rem);
     --text-3xl: clamp(2.25rem, 1.4rem + 3.8vw, 4.25rem);
 
     --leading-tight: 1.15;
@@ -93,23 +109,20 @@
 
     --content-width: 42rem;
     --wide-width: 72rem;
-    --radius: 3px;
+    --shell-width: 80rem;
+
+    --radius: 6px;
+    --radius-sm: 4px;
+    --radius-lg: 8px;
 
     /* Shared interaction rhythm: restrained enough for an editorial surface,
        but consistent anywhere a link or control changes state. */
     --motion-duration-fast: 180ms;
     --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
-    /* Faint static paper-grain texture, light mode only - a tiny inline
-       feTurbulence SVG (opacity baked into the SVG itself, since
-       background-image has no separate CSS opacity control) layered under
-       the flat --paper color via body's background-image in global.css.
-       Not a light-dark() token - light-dark() is a <color> function and
-       can't produce a background-image value, so this is the one
-       deliberate exception to "single light-dark() definition per token":
-       one default (light) value here, one dark override below, never a
-       third data-theme copy. */
-    --paper-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+    /* The prototype's flat paper field replaces the earlier grain texture; the
+       token remains so existing components can keep referencing it. */
+    --paper-texture: none;
 
     /* Minimum interactive target per WCAG 2.5.8 AA - enforced with min-inline/
        block-size (can grow, never shrinks) rather than width/height. */
@@ -117,11 +130,14 @@
     --touch-target-comfortable: 2.75rem;
   }
 
-  /* The one deliberate exception to this file's light-dark()-only rule (see
-     --paper-texture above) - dark mode stays flat, never the grain. */
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --paper-texture: none;
-    }
+  /* The explicit toggle lives on <html data-theme>. Light-dark() resolves
+     against the used color-scheme, so these two rules are the only place the
+     preference needs to be applied. */
+  :root[data-theme='light'] {
+    color-scheme: light;
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
   }
 }

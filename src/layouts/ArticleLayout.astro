@@ -2,9 +2,16 @@
 import BaseLayout from './BaseLayout.astro';
 import EvidenceTag from '@/components/EvidenceTag.astro';
 import EvidenceStrip from '@/components/EvidenceStrip.astro';
+import Icon from '@/components/Icon.astro';
 import RelatedContent from '@/components/RelatedContent.astro';
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
-import { latestRevisionDate, evidenceCounts } from '@/lib/resolve';
+import {
+  latestRevisionDate,
+  evidenceCounts,
+  type SourceSummary,
+  type ArtifactSummary,
+} from '@/lib/resolve';
+import { artworkForTopics } from '@/lib/illustration';
 import { spanId } from '@/lib/span-id';
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
@@ -12,30 +19,26 @@ import type { MarkdownHeading } from 'astro';
 interface Props {
   entry: CollectionEntry<'articles'> | CollectionEntry<'briefs'>;
   authorNames: string[];
-  topicNames: string[];
+  topicItems: { id: string; name: string }[];
   series?: { id: string; name: string }[];
-  sourceTitles: { id: string; title: string; url: string }[];
-  artifactTitles: { id: string; title: string; url: string; kind: string }[];
+  sources: SourceSummary[];
+  artifacts: ArtifactSummary[];
   archived: boolean;
   relatedContent?: {
     curated: CollectionEntry<'articles'>[];
     seriesNext?: CollectionEntry<'articles'>;
     fallback: CollectionEntry<'articles'>[];
   };
-  // From astro:content's render(entry) - the article body's real, as-authored
-  // h2/h3 headings (with the same slugger-derived ids the rendered markup
-  // actually carries), used to build the step-progress rail below without
-  // hardcoding a fixed section-name list that wouldn't match every piece.
   bodyHeadings?: MarkdownHeading[];
 }
 
 const {
   entry,
   authorNames,
-  topicNames,
+  topicItems,
   series = [],
-  sourceTitles,
-  artifactTitles,
+  sources,
+  artifacts,
   archived,
   relatedContent,
   bodyHeadings = [],
@@ -46,36 +49,53 @@ const entryEvidence = evidenceCounts([entry]);
 const path = entry.collection === 'articles' ? `/articles/${entry.id}` : `/brief/${entry.id}`;
 const sectionLabel = entry.collection === 'articles' ? 'Articles' : 'Brief';
 const lastRevised = latestRevisionDate(entry);
-// Corrections are the ones a reader most needs to actually see, not just a
-// history entry they might scroll past - surfaced separately from routine updates.
-const corrections = revisions.filter((r) => r.type === 'correction');
-const mostRecentCorrectionDate = corrections.reduce(
-  (latest: Date | null, r) => (!latest || r.date > latest ? r.date : latest),
-  null,
-);
-// Cache-busted by the content's own revision timestamp, not just the slug: the OG
-// PNG endpoint is served with a one-year immutable Cache-Control
-// (public/_headers - see src/pages/og/[...slug].png.ts for why it can't live
-// in the endpoint code itself), which would otherwise let a browser or social
-// crawler hold onto a stale image after a title/content revision. Cloudflare
-// Workers Static Assets matches the file by pathname only, ignoring the query
-// string, so this never needs a second physical file - it only changes the
-// cache key, and only when a real revisions[] entry is added
-// (docs/architecture/content-model.md: material edits are recorded there).
-const ogImagePath = `/og/${entry.collection === 'articles' ? 'articles' : 'brief'}/${entry.id}.png?v=${lastRevised.getTime()}`;
+const readingTimeMinutes = entry.data.reading_time_minutes;
+const wordCount = entry.body
+  ? entry.body.trim().split(/\s+/).filter(Boolean).length
+  : readingTimeMinutes * 200;
+const artwork = artworkForTopics(entry.data.topics.map((topic) => topic.id));
 
-// Structural step-progress rail (desktop only - see .article__rail media
-// query below): top-level body headings, in document order, followed by the
-// fixed trailing sections below that render conditionally. Every `id` here
-// is a real id already present on the rendered output - claims-heading,
-// revision-history, artifacts-heading, and sources-heading are the exact ids
-// those sections/headings already carry further down this file.
+const kindLabel =
+  entry.collection === 'briefs'
+    ? 'Brief'
+    : entry.data.kind === 'deep-dive'
+      ? 'Deep-dive'
+      : entry.data.kind === 'tutorial'
+        ? 'Tutorial'
+        : entry.data.kind === 'case-study'
+          ? 'Case study'
+          : 'Article';
+
+const authorItems = entry.data.authors.map((author, index) => ({
+  id: author.id,
+  name: authorNames[index] ?? author.id,
+}));
+
+const corrections = revisions.filter((revision) => revision.type === 'correction');
+
+const ogImagePath = `/og/${entry.collection === 'articles' ? 'articles' : 'brief'}/${entry.id}.png?v=${lastRevised.getTime()}`;
+const citationUrl = new URL(path, Astro.site ?? 'https://runtimesignals.tech').href;
+const citation = `${authorNames.join(', ')} (${published_at.getFullYear()}). ${title}. Runtime Signals. ${citationUrl}`;
+
+const sourceById = new Map(sources.map((source) => [source.id, source]));
+const claimsWithSources = claims.map((claim) => ({
+  ...claim,
+  sourceItems: claim.sources
+    .map((reference) => sourceById.get(reference.id))
+    .filter((source): source is SourceSummary => source !== undefined),
+}));
+
 const railSections = [
-  ...bodyHeadings.filter((h) => h.depth === 2).map((h) => ({ id: h.slug, label: h.text })),
-  ...(claims.length > 0 ? [{ id: 'claims-heading', label: 'Claims' }] : []),
-  ...(revisions.length > 0 ? [{ id: 'revision-history', label: 'Revisions' }] : []),
-  ...(artifactTitles.length > 0 ? [{ id: 'artifacts-heading', label: 'Artifacts' }] : []),
-  ...(sourceTitles.length > 0 ? [{ id: 'sources-heading', label: 'Sources' }] : []),
+  ...bodyHeadings
+    .filter((heading) => heading.depth === 2)
+    .map((heading) => ({
+      id: heading.slug,
+      label: heading.text,
+    })),
+  ...(claims.length > 0 ? [{ id: 'claims-heading', label: 'Graded claims' }] : []),
+  ...(revisions.length > 0 ? [{ id: 'revision-history', label: 'Revision history' }] : []),
+  ...(artifacts.length > 0 ? [{ id: 'artifacts-heading', label: 'Artifacts' }] : []),
+  ...(sources.length > 0 ? [{ id: 'sources-heading', label: 'Sources' }] : []),
 ];
 
 const jsonLd = [
@@ -105,226 +125,450 @@ const jsonLd = [
   ogImagePath={ogImagePath}
   ogType="article"
 >
-  <div class="article-wrap">
+  <div
+    class="reading-progress no-print"
+    role="progressbar"
+    aria-label="Article reading progress"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    aria-valuenow="0"
+    data-reading-progress
+  >
+    <div class="reading-progress__fill" data-reading-progress-fill></div>
+  </div>
+
+  <div class="article-page shell">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <span aria-hidden="true">/</span>
+      <a href={entry.collection === 'articles' ? '/articles' : '/brief'}>{sectionLabel}</a>
+      <span aria-hidden="true">/</span>
+      <span class="breadcrumb__current">{spanId(entry.id)}</span>
+    </nav>
+
     {
-      railSections.length > 1 && (
-        <nav class="article__rail" aria-label="Article sections" data-progress-rail>
-          <ol>
-            {railSections.map((section) => (
-              <li>
-                <a href={`#${section.id}`} class="article__rail-tick" data-target={section.id}>
-                  <span class="article__rail-mark" aria-hidden="true" />
-                  <span class="visually-hidden">{section.label}</span>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
+      archived && (
+        <div class="notice article__archived-notice" role="note">
+          <Icon name="archive" class="notice__icon" />
+          <p>
+            <strong>Archived entry:</strong> This piece is preserved at its original URL for
+            reference, but has been retired from active feeds and search.
+          </p>
+        </div>
       )
     }
 
-    <article class="article" data-slug={entry.id} data-topics={JSON.stringify(topicNames)}>
-      <header class="article__header">
-        <div class="article__meta-row">
-          <p class="eyebrow">
-            <span class="article__section-label">{sectionLabel}</span>
+    {
+      corrections.length > 0 && (
+        <div class="notice article__correction-notice" role="note">
+          <Icon name="alert-triangle" class="notice__icon" />
+          <p>
+            <strong>Corrections issued ({corrections.length}):</strong> See{' '}
+            <a href="#revision-history">revision history</a> for what changed and why.
+          </p>
+        </div>
+      )
+    }
+
+    <div class="article-grid">
+      <article
+        class="article"
+        data-slug={entry.id}
+        data-topics={JSON.stringify(topicItems.map((topic) => topic.name))}
+      >
+        <header class="article__header">
+          <div class="article__meta-row">
+            <span class="article__kind">{kindLabel}</span>
             {
-              topicNames.map((name) => (
+              topicItems.map((topic) => (
                 <>
-                  {' · '}
-                  <span data-pagefind-filter="topic">{name}</span>
+                  <span aria-hidden="true">·</span>
+                  <a href={`/topics/${topic.id}`} data-pagefind-filter="topic">
+                    {topic.name}
+                  </a>
                 </>
               ))
             }
-          </p>
-          <span class="span-id" aria-hidden="true">{spanId(entry.id)}</span>
-        </div>
-        <h1 class="article__title">{title}</h1>
-        <p class="article__dek">{dek}</p>
-        <div class="article__byline">
+            <span aria-hidden="true">·</span>
+            <span
+              class="article__reading-time"
+              title={`${wordCount.toLocaleString()} words at 200 words/min`}
+            >
+              {readingTimeMinutes} min read
+            </span>
+            <span aria-hidden="true">·</span>
+            <span class="span-id" aria-hidden="true">{spanId(entry.id)}</span>
+          </div>
+
+          <h1 class="article__title">{title}</h1>
+          <p class="article__dek">{dek}</p>
+
+          <div class="article__byline-row">
+            <div class="article__byline">
+              <span>
+                By{' '}
+                {
+                  authorItems.map((author, index) => (
+                    <>
+                      {index > 0 && ', '}
+                      <a href={`/authors/${author.id}`} data-pagefind-filter="author">
+                        {author.name}
+                      </a>
+                    </>
+                  ))
+                }
+              </span>
+              <span aria-hidden="true">·</span>
+              <time datetime={published_at.toISOString()} data-pagefind-filter="date[datetime]">
+                Published {published_at.toISOString().slice(0, 10)}
+              </time>
+              {
+                revisions.length > 0 && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <a href="#revision-history">
+                      {corrections.length > 0 ? 'Corrected' : 'Updated'}{' '}
+                      {lastRevised.toISOString().slice(0, 10)}
+                    </a>
+                  </>
+                )
+              }
+            </div>
+
+            <button
+              type="button"
+              class="reading-mode no-print"
+              data-reading-cycle
+              data-reading-mode="standard"
+              aria-label="Reading mode: Standard. Activate to change text size."
+            >
+              <Icon name="book-open" />
+              <span data-reading-mode-label>Reading Mode: Standard</span>
+            </button>
+          </div>
+
           {
-            authorNames.map((name, i) => (
-              <>
-                {i > 0 && ', '}
-                <span data-pagefind-filter="author">{name}</span>
-              </>
-            ))
+            series.length > 0 && (
+              <p class="article__series">
+                Series:{' '}
+                {series.map((item, index) => (
+                  <>
+                    {index > 0 && ', '}
+                    <a href={`/series/${item.id}`} data-pagefind-filter="series">
+                      {item.name}
+                    </a>
+                  </>
+                ))}
+              </p>
+            )
           }
-          <span aria-hidden="true">·</span>
-          <time datetime={published_at.toISOString()} data-pagefind-filter="date[datetime]">
-            {published_at.toISOString().slice(0, 10)}
-          </time>
+        </header>
+
+        {
+          (railSections.length > 1 || claims.length > 0) && (
+            <details class="mobile-article-drawer no-print">
+              <summary>
+                <span>
+                  Sections &amp; evidence (<span data-progress-label>0% read</span>)
+                </span>
+                <Icon name="chevron-down" class="mobile-article-drawer__chevron" />
+              </summary>
+              <div class="mobile-article-drawer__body">
+                {claims.length > 0 && (
+                  <EvidenceStrip counts={entryEvidence} label="Piece evidence profile" />
+                )}
+                {railSections.length > 1 && (
+                  <nav aria-label="Mobile article sections">
+                    <ol class="toc-list">
+                      {railSections.map((section) => (
+                        <li>
+                          <a href={`#${section.id}`} data-toc-link>
+                            {section.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ol>
+                  </nav>
+                )}
+              </div>
+            </details>
+          )
+        }
+
+        <figure class="article__art">
+          <img
+            src={artwork.src}
+            width={artwork.width}
+            height={artwork.height}
+            alt={`Architectural schematic accompanying ${title}`}
+            loading="lazy"
+            decoding="async"
+          />
+        </figure>
+
+        <div class="article__body" data-article-body data-size="standard">
+          <slot />
+        </div>
+
+        {
+          claims.length > 0 && (
+            <section class="article__section" id="claims-heading" aria-labelledby="claims-title">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow eyebrow--signal">Claim Verification Ledger</p>
+                  <h2 id="claims-title" class="section-heading__title">
+                    Graded assertions ({claims.length})
+                  </h2>
+                  <p class="section-heading__note" data-claim-count>
+                    Showing all {claims.length}
+                  </p>
+                </div>
+
+                <div
+                  class="claim-filters no-print"
+                  role="group"
+                  aria-label="Filter claims by evidence"
+                >
+                  {(['all', 'supported', 'mixed', 'inference', 'opinion'] as const).map((grade) => (
+                    <button
+                      type="button"
+                      data-claim-filter={grade}
+                      class:list={['claim-filter', { 'claim-filter--active': grade === 'all' }]}
+                      aria-pressed={grade === 'all' ? 'true' : 'false'}
+                    >
+                      {grade}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div class="claim-list">
+                {claimsWithSources.map((claim) => (
+                  <article
+                    class="claim-card"
+                    data-claim
+                    data-evidence={claim.evidence}
+                    id={`claim-${claim.id}`}
+                  >
+                    <div class="claim-card__top">
+                      <span class="span-id">{claim.id}</span>
+                      <EvidenceTag evidence={claim.evidence} />
+                    </div>
+                    <p class="claim-card__text">{claim.text}</p>
+                    {claim.sourceItems.length > 0 && (
+                      <div class="claim-card__sources">
+                        <span class="claim-card__sources-label">Sources</span>
+                        {claim.sourceItems.map((source) => (
+                          <a href={`#source-${source.id}`} data-source-link={source.id}>
+                            {source.title}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+              <p class="claim-empty" data-claim-empty hidden>
+                No graded claims match that evidence level.
+              </p>
+            </section>
+          )
+        }
+
+        {
+          revisions.length > 0 && (
+            <section
+              class="article__section"
+              id="revision-history"
+              aria-labelledby="revisions-title"
+            >
+              <p class="eyebrow">Editorial Audit Trail</p>
+              <h2 id="revisions-title" class="section-heading__title">
+                Revision history
+              </h2>
+              <ol class="revision-list">
+                {[...revisions]
+                  .sort((a, b) => b.date.getTime() - a.date.getTime())
+                  .map((revision) => (
+                    <li>
+                      <div class="revision-list__meta">
+                        <time datetime={revision.date.toISOString()}>
+                          {revision.date.toISOString().slice(0, 10)}
+                        </time>
+                        <span aria-hidden="true">·</span>
+                        <span class="revision-badge" data-type={revision.type}>
+                          {revision.type}
+                        </span>
+                      </div>
+                      <p>{revision.note}</p>
+                    </li>
+                  ))}
+                <li class="revision-list__initial">
+                  <div class="revision-list__meta">
+                    <time datetime={published_at.toISOString()}>
+                      {published_at.toISOString().slice(0, 10)}
+                    </time>
+                    <span aria-hidden="true">·</span>
+                    <span class="revision-badge" data-type="published">
+                      published
+                    </span>
+                  </div>
+                  <p>Initial approved publication.</p>
+                </li>
+              </ol>
+            </section>
+          )
+        }
+
+        {
+          artifacts.length > 0 && (
+            <section
+              class="article__section"
+              id="artifacts-heading"
+              aria-labelledby="artifacts-title"
+            >
+              <p class="eyebrow">Reproducible Code &amp; Datasets</p>
+              <h2 id="artifacts-title" class="section-heading__title">
+                Companion artifacts
+              </h2>
+              <div class="artifact-grid">
+                {artifacts.map((artifact) => (
+                  <a
+                    href={artifact.url}
+                    class="artifact-card card"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-artifact-id={artifact.id}
+                  >
+                    <div class="artifact-card__top">
+                      <span>{artifact.kind}</span>
+                      <Icon name="external-link" size={14} />
+                    </div>
+                    <h3>{artifact.title}</h3>
+                    <p>{artifact.description}</p>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )
+        }
+
+        {
+          sources.length > 0 && (
+            <section class="article__section" id="sources-heading" aria-labelledby="sources-title">
+              <p class="eyebrow">Primary &amp; Secondary Evidence</p>
+              <h2 id="sources-title" class="section-heading__title">
+                Sources ({sources.length})
+              </h2>
+              <ul class="source-list">
+                {sources.map((source) => (
+                  <li class="source-card" id={`source-${source.id}`} data-source-id={source.id}>
+                    <div class="source-card__meta">
+                      <span class="source-card__type">{source.sourceType}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{source.primary ? 'Primary source' : 'Secondary source'}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{source.publisher}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>Accessed {source.accessedAt.toISOString().slice(0, 10)}</span>
+                    </div>
+                    <div class="source-card__title-row">
+                      <a href={`/sources/${source.id}`} class="source-card__title">
+                        {source.title}
+                      </a>
+                      <a
+                        href={source.url}
+                        class="source-card__external"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span>External URL</span>
+                        <Icon name="external-link" size={12} />
+                      </a>
+                    </div>
+                    {source.notes && <p class="source-card__notes">{source.notes}</p>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        <RelatedContent relatedContent={relatedContent} />
+      </article>
+
+      <aside class="article__rail no-print">
+        <div class="rail-sticky">
+          <div class="rail-card card">
+            <div class="rail-row">
+              <span class="rail-row__label">Reading progress</span>
+              <span class="rail-row__value rail-row__value--signal" data-progress-percent>0%</span>
+            </div>
+
+            <div class="rail-row">
+              <span class="rail-row__label">Est. reading time</span>
+              <span class="rail-row__value">
+                {readingTimeMinutes} min ({wordCount.toLocaleString()} words)
+              </span>
+            </div>
+
+            <div class="rail-row">
+              <span class="rail-row__label">Reader size</span>
+              <div class="reader-sizes" role="group" aria-label="Reader text size">
+                <button type="button" data-reader-size="compact" aria-pressed="false">S</button>
+                <button type="button" data-reader-size="standard" aria-pressed="true">M</button>
+                <button type="button" data-reader-size="comfortable" aria-pressed="false">L</button>
+              </div>
+            </div>
+
+            <div class="rail-actions">
+              <button type="button" class="rail-action" data-copy-citation data-citation={citation}>
+                <Icon name="copy" size={14} />
+                <span data-copy-label>Copy citation</span>
+              </button>
+              <button type="button" class="rail-action" data-print aria-label="Print article">
+                <Icon name="printer" size={14} />
+                <span>Print</span>
+              </button>
+            </div>
+          </div>
+
           {
-            revisions.length > 0 && (
-              <>
-                <span aria-hidden="true">·</span>
-                <a href="#revision-history">
-                  {corrections.length > 0 ? 'corrected' : 'updated'}{' '}
-                  {lastRevised.toISOString().slice(0, 10)}
-                </a>
-              </>
+            claims.length > 0 && (
+              <div class="rail-card card">
+                <EvidenceStrip counts={entryEvidence} label="Piece evidence profile" />
+              </div>
+            )
+          }
+
+          {
+            railSections.length > 1 && (
+              <nav class="rail-card card rail-toc" aria-label="Article sections">
+                <p class="rail-card__label">On this page</p>
+                <ol class="toc-list">
+                  {railSections.map((section) => (
+                    <li>
+                      <a href={`#${section.id}`} data-toc-link>
+                        {section.label}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
             )
           }
         </div>
-        {
-          series.length > 0 && (
-            <p class="article__series">
-              Part of{' '}
-              {series.map((s, i) => (
-                <>
-                  {i > 0 && ', '}
-                  <a href={`/series/${s.id}`} data-pagefind-filter="series">
-                    {s.name}
-                  </a>
-                </>
-              ))}
-            </p>
-          )
-        }
-        {
-          claims.length > 0 && (
-            <EvidenceStrip
-              counts={entryEvidence}
-              label="Evidence in this piece"
-              class="article__evidence"
-            />
-          )
-        }
-      </header>
-
-      {
-        archived && (
-          <p class="article__archived-notice" role="note">
-            This piece is archived and no longer actively promoted. The analysis below is preserved
-            as published; it may reference tools, versions, or claims that are now out of date.
-          </p>
-        )
-      }
-
-      {
-        corrections.length > 0 && (
-          <p class="article__correction-notice" role="note">
-            <strong>
-              {corrections.length > 1
-                ? 'This piece has been corrected more than once.'
-                : 'This piece has been corrected.'}
-            </strong>{' '}
-            Most recent correction: {mostRecentCorrectionDate?.toISOString().slice(0, 10)} - see{' '}
-            <a href="#revision-history">revision history</a> below for what changed.
-          </p>
-        )
-      }
-
-      <div class="article__body">
-        <slot />
-      </div>
-
-      {
-        claims.length > 0 && (
-          <section class="article__claims">
-            <h2 id="claims-heading" class="eyebrow">
-              Claims in this piece
-            </h2>
-            <ul class="article__claims-list">
-              {claims.map((claim) => (
-                <li data-evidence={claim.evidence}>
-                  <EvidenceTag evidence={claim.evidence} />
-                  <span>{claim.text}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )
-      }
-
-      {
-        revisions.length > 0 && (
-          <section class="article__revisions" id="revision-history">
-            <h2 class="eyebrow">Revision history</h2>
-            <ol class="article__revisions-list">
-              {[...revisions]
-                .sort((a, b) => b.date.getTime() - a.date.getTime())
-                .map((r) => (
-                  <li>
-                    <span class="article__revision-badge" data-type={r.type}>
-                      {r.type}
-                    </span>
-                    <time datetime={r.date.toISOString()}>{r.date.toISOString().slice(0, 10)}</time>
-                    <span>{r.note}</span>
-                  </li>
-                ))}
-              <li>
-                <span class="article__revision-badge" data-type="published">
-                  published
-                </span>
-                <time datetime={published_at.toISOString()}>
-                  {published_at.toISOString().slice(0, 10)}
-                </time>
-                <span>Initial publication.</span>
-              </li>
-            </ol>
-          </section>
-        )
-      }
-
-      {
-        artifactTitles.length > 0 && (
-          <section class="article__artifacts">
-            <h2 id="artifacts-heading" class="eyebrow">
-              Artifacts
-            </h2>
-            <ol class="article__artifacts-list">
-              {artifactTitles.map((artifact) => (
-                <li>
-                  <a href={artifact.url} data-artifact-id={artifact.id}>
-                    {artifact.title}
-                  </a>{' '}
-                  <span class="article__artifact-kind">({artifact.kind})</span>
-                </li>
-              ))}
-            </ol>
-          </section>
-        )
-      }
-
-      {
-        sourceTitles.length > 0 && (
-          <section class="article__sources">
-            <h2 id="sources-heading" class="eyebrow">
-              Sources
-            </h2>
-            <ol class="article__sources-list">
-              {sourceTitles.map((source) => (
-                <li>
-                  <a href={source.url}>{source.title}</a>
-                </li>
-              ))}
-            </ol>
-          </section>
-        )
-      }
-
-      <RelatedContent relatedContent={relatedContent} />
-    </article>
+      </aside>
+    </div>
   </div>
 </BaseLayout>
 
 <script>
-  // ADR-0003's bounded interaction-event contract (see the 2026-08-29
-  // amendment) - article_view fires once per page load, engaged_read is
-  // wired up (sampled, time-plus-depth gated) by initEngagedRead itself, and
-  // artifact_open fires on a real click of a real artifact link, not
-  // speculatively.
-  //
-  // Reads slug/topics from the .article element's data attributes rather
-  // than Astro's define:vars: define:vars forces the script into a
-  // non-module inline IIFE, which cannot contain a top-level `import` -
-  // confirmed by inspecting real build output, where an earlier version of
-  // this script rendered as a plain (non-module) inline <script> containing
-  // a literal `import` statement, which would have thrown
-  // "Cannot use import statement outside a module" in a real browser. A
-  // genuine <script type="module"> (this one) is bundled normally by Astro/
-  // Vite, so the import below resolves correctly.
+  // ADR-0003's bounded interaction-event contract: article_view fires once
+  // per load, engaged_read is wired by initEngagedRead, and artifact_open
+  // fires only on a real artifact click. Data comes from the article
+  // element's attributes because define:vars would force this into an
+  // inline IIFE where the import cannot resolve.
   import { track, initEngagedRead } from '@/lib/analytics';
 
   const articleEl = document.querySelector('.article');
@@ -336,7 +580,7 @@ const jsonLd = [
     initEngagedRead(slug);
   }
 
-  for (const link of document.querySelectorAll('.article__artifacts-list a[data-artifact-id]')) {
+  for (const link of document.querySelectorAll('[data-artifact-id]')) {
     link.addEventListener('click', () => {
       const artifactId = link.getAttribute('data-artifact-id');
       if (artifactId) track({ name: 'artifact_open', properties: { artifactId } });
@@ -345,229 +589,640 @@ const jsonLd = [
 </script>
 
 <script>
-  // Progressive enhancement only: the rail (.article__rail below) already
-  // renders as a plain static list of anchor links with no JS at all - this
-  // just adds a current-section indicator on top. Scoped to the same
-  // min-width the CSS uses to show the rail in the first place, so a device
-  // that never sees the rail never pays for an observer either.
-  const rail = document.querySelector<HTMLElement>('[data-progress-rail]');
-  const desktopRail = window.matchMedia('(min-width: 1200px)');
+  // Progressive enhancement for the reading surface. All content and
+  // navigation is present without JS; these controls only add progress,
+  // persisted reader sizing, claims filtering, and citation/print actions.
+  const body = document.querySelector<HTMLElement>('[data-article-body]');
+  const article = document.querySelector<HTMLElement>('.article');
+  const progress = document.querySelector<HTMLElement>('[data-reading-progress]');
+  const progressFill = document.querySelector<HTMLElement>('[data-reading-progress-fill]');
+  const progressPercent = document.querySelector<HTMLElement>('[data-progress-percent]');
+  const progressLabels = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-progress-label]'),
+  );
 
-  if (rail && desktopRail.matches && 'IntersectionObserver' in window) {
-    const ticks = Array.from(rail.querySelectorAll<HTMLAnchorElement>('[data-target]'));
-    const targets = ticks
-      .map((tick) => document.getElementById(tick.dataset.target ?? ''))
-      .filter((el): el is HTMLElement => el !== null);
+  const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-    if (targets.length > 0) {
-      const setActive = (index: number) => {
-        ticks.forEach((tick, i) => {
-          tick.toggleAttribute('data-active', i === index);
-          tick.toggleAttribute('data-passed', i < index);
-        });
-      };
+  if (body && article) {
+    let queued = false;
+    let lastPercent = -1;
 
-      // Recomputed from real geometry on every intersection change, rather
-      // than trusted from the IntersectionObserver entries themselves - a
-      // heading can cross the "current" line without its own intersection
-      // record changing (e.g. a short section fully skipped by a fast
-      // scroll), so the source of truth is "which heading's top has already
-      // passed the reference line," checked across every target each time.
-      const REFERENCE_LINE = 140;
-      const recompute = () => {
-        let activeIndex = 0;
-        for (let i = 0; i < targets.length; i++) {
-          const target = targets[i];
-          if (target && target.getBoundingClientRect().top <= REFERENCE_LINE) activeIndex = i;
+    const tocLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'));
+    const tocTargets = tocLinks
+      .map((link) => {
+        const id = decodeURIComponent(link.hash.slice(1));
+        const target = document.getElementById(id);
+        return target ? { id, target, links: tocLinks.filter((l) => l.hash === `#${id}`) } : null;
+      })
+      .filter(
+        (entry): entry is { id: string; target: HTMLElement; links: HTMLAnchorElement[] } =>
+          entry !== null,
+      );
+
+    const update = () => {
+      queued = false;
+
+      const rect = body.getBoundingClientRect();
+      const bodyTop = rect.top + window.scrollY;
+      const bodyHeight = body.offsetHeight;
+      const start = bodyTop - window.innerHeight * 0.3;
+      const end = bodyTop + bodyHeight - window.innerHeight * 0.7;
+      const percent = Math.round(
+        clamp(((window.scrollY - start) / Math.max(end - start, 1)) * 100, 0, 100),
+      );
+
+      if (percent !== lastPercent) {
+        lastPercent = percent;
+        if (progressFill) progressFill.style.transform = `scaleX(${percent / 100})`;
+        progress?.setAttribute('aria-valuenow', String(percent));
+        if (progressPercent) progressPercent.textContent = `${percent}%`;
+        for (const label of progressLabels) label.textContent = `${percent}% read`;
+      }
+
+      if (tocTargets.length > 0) {
+        let activeId = '';
+        for (const entry of tocTargets) {
+          if (entry.target.getBoundingClientRect().top <= 160) activeId = entry.id;
         }
-        setActive(activeIndex);
-      };
+        for (const entry of tocTargets) {
+          const active = entry.id === activeId;
+          for (const link of entry.links) {
+            link.toggleAttribute('data-active', active);
+            if (active) link.setAttribute('aria-current', 'location');
+            else link.removeAttribute('aria-current');
+          }
+        }
+      }
+    };
 
-      const observer = new IntersectionObserver(recompute, { threshold: [0, 1] });
-      targets.forEach((target) => observer.observe(target));
-      recompute();
+    const requestUpdate = () => {
+      if (queued) return;
+      queued = true;
+      window.requestAnimationFrame(update);
+    };
+
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate);
+    update();
+  }
+
+  // Reader text size: compact / standard / comfortable, persisted.
+  const READING_SIZES = ['compact', 'standard', 'comfortable'] as const;
+  type ReadingSize = (typeof READING_SIZES)[number];
+  const SIZE_LABELS: Record<ReadingSize, string> = {
+    compact: 'Compact',
+    standard: 'Standard',
+    comfortable: 'Comfortable',
+  };
+  const sizeButtons = Array.from(
+    document.querySelectorAll<HTMLButtonElement>('[data-reader-size]'),
+  );
+  const cycleButton = document.querySelector<HTMLButtonElement>('[data-reading-cycle]');
+  const cycleLabel = document.querySelector<HTMLElement>('[data-reading-mode-label]');
+
+  const isReadingSize = (value: string | null | undefined): value is ReadingSize =>
+    value !== null && value !== undefined && (READING_SIZES as readonly string[]).includes(value);
+
+  let storedSize: string | null = null;
+  try {
+    storedSize = localStorage.getItem('rs-reading-mode');
+  } catch {
+    storedSize = null;
+  }
+  let readingSize: ReadingSize = isReadingSize(storedSize) ? storedSize : 'standard';
+
+  const applyReadingSize = (size: ReadingSize, persist: boolean) => {
+    readingSize = size;
+    if (body) body.dataset.size = size;
+
+    for (const button of sizeButtons) {
+      const active = button.dataset.readerSize === size;
+      button.toggleAttribute('data-active', active);
+      button.setAttribute('aria-pressed', String(active));
     }
+
+    if (cycleButton) {
+      cycleButton.dataset.readingMode = size;
+      cycleButton.setAttribute(
+        'aria-label',
+        `Reading mode: ${SIZE_LABELS[size]}. Activate to change text size.`,
+      );
+    }
+    if (cycleLabel) cycleLabel.textContent = `Reading Mode: ${SIZE_LABELS[size]}`;
+
+    if (persist) {
+      try {
+        localStorage.setItem('rs-reading-mode', size);
+      } catch {
+        // Persistence is optional; the session still changes size.
+      }
+    }
+  };
+
+  for (const button of sizeButtons) {
+    button.addEventListener('click', () => {
+      const size = button.dataset.readerSize;
+      if (isReadingSize(size)) applyReadingSize(size, true);
+    });
+  }
+
+  cycleButton?.addEventListener('click', () => {
+    const nextIndex = (READING_SIZES.indexOf(readingSize) + 1) % READING_SIZES.length;
+    applyReadingSize(READING_SIZES[nextIndex] ?? 'standard', true);
+  });
+
+  if (body) applyReadingSize(readingSize, false);
+
+  // Claims ledger filtering.
+  const claimFilterButtons = Array.from(
+    document.querySelectorAll<HTMLButtonElement>('[data-claim-filter]'),
+  );
+  const claimCards = Array.from(document.querySelectorAll<HTMLElement>('[data-claim]'));
+  const claimCount = document.querySelector<HTMLElement>('[data-claim-count]');
+  const claimEmpty = document.querySelector<HTMLElement>('[data-claim-empty]');
+
+  const applyClaimFilter = (filter: string) => {
+    let shown = 0;
+    for (const card of claimCards) {
+      const visible = filter === 'all' || card.dataset.evidence === filter;
+      card.hidden = !visible;
+      if (visible) shown++;
+    }
+
+    if (claimCount) {
+      claimCount.textContent =
+        filter === 'all'
+          ? `Showing all ${claimCards.length}`
+          : `Showing ${shown} of ${claimCards.length}`;
+    }
+    if (claimEmpty) claimEmpty.hidden = shown !== 0;
+
+    for (const button of claimFilterButtons) {
+      const active = button.dataset.claimFilter === filter;
+      button.classList.toggle('claim-filter--active', active);
+      button.setAttribute('aria-pressed', String(active));
+    }
+  };
+
+  for (const button of claimFilterButtons) {
+    button.addEventListener('click', () => applyClaimFilter(button.dataset.claimFilter ?? 'all'));
+  }
+
+  // Copy the canonical citation to the clipboard.
+  const copyButton = document.querySelector<HTMLButtonElement>('[data-copy-citation]');
+  copyButton?.addEventListener('click', async () => {
+    const text = copyButton.dataset.citation ?? '';
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.append(area);
+      area.select();
+      document.execCommand('copy');
+      area.remove();
+    }
+
+    const label = copyButton.querySelector<HTMLElement>('[data-copy-label]');
+    if (label) label.textContent = 'Copied citation';
+    copyButton.setAttribute('data-copied', 'true');
+    window.setTimeout(() => {
+      if (label) label.textContent = 'Copy citation';
+      copyButton.removeAttribute('data-copied');
+    }, 2000);
+  });
+
+  document.querySelector<HTMLButtonElement>('[data-print]')?.addEventListener('click', () => {
+    window.print();
+  });
+
+  // A claim's source link points at the matching source card; briefly mark it
+  // so the reader can see where the jump landed.
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-source-link]')) {
+    link.addEventListener('click', () => {
+      const id = link.dataset.sourceLink;
+      if (!id) return;
+      for (const card of document.querySelectorAll<HTMLElement>('[data-source-id]')) {
+        card.removeAttribute('data-highlighted');
+      }
+      document.getElementById(`source-${id}`)?.setAttribute('data-highlighted', '');
+    });
   }
 </script>
 
 <style>
-  .article-wrap {
-    position: relative;
+  .reading-progress {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: 50;
+    height: 3px;
+    background: color-mix(in srgb, var(--hairline) 45%, transparent);
+    pointer-events: none;
+  }
+
+  .reading-progress__fill {
+    width: 100%;
+    height: 100%;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  .article-page {
+    padding-block: var(--space-6) var(--space-8);
+  }
+
+  .breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.6rem;
+    margin-bottom: var(--space-5);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+
+  .breadcrumb a {
+    color: var(--ink-muted);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--signal);
+  }
+
+  .breadcrumb__current {
+    color: var(--ink);
+  }
+
+  .notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+    padding: var(--space-4);
+    border: 1px solid color-mix(in srgb, var(--evidence-mixed) 50%, var(--hairline));
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--evidence-mixed) 9%, var(--surface));
+  }
+
+  .notice__icon {
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    color: var(--evidence-mixed);
+  }
+
+  .notice p {
+    margin: 0;
+    color: var(--ink);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+  }
+
+  .notice strong {
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+
+  .notice a {
+    color: var(--signal);
+  }
+
+  .article-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-7);
   }
 
   .article {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-5) var(--space-9);
+    min-width: 0;
   }
 
-  /* Structural step-progress rail - trace-bar ticks, one per section, sitting
-     in the left margin outside the reading column. Hidden below the point
-     where that margin has real room (roughly the --wide-width layout
-     breakpoint); no mobile/tablet equivalent - the header's Evidence Strip
-     is the substitute signature element there.
-
-     Two-part positioning, not position: fixed: a fixed rail would stay
-     pinned to the viewport for the entire page, including past the end of
-     the article - scroll to the footer and it would still be floating
-     there, which is wrong (a real bug, caught by actually scrolling a real
-     page rather than only checking a single viewport-height screenshot).
-     Instead, .article__rail is an absolutely positioned column spanning the
-     full height of .article-wrap (i.e. the article's own height, so it
-     starts and ends with the article), and only the tick list inside it
-     (.article__rail ol) is position: sticky - the ordinary, layout-scoped
-     sidebar-nav pattern, tracking scroll only while the article is actually
-     in view. */
-  .article__rail {
-    display: none;
-  }
-
-  @media (min-width: 1200px) {
-    .article__rail {
-      display: block;
-      position: absolute;
-      top: 0;
-      left: calc(50% - (var(--content-width) / 2) - var(--space-7));
-      height: 100%;
-    }
-  }
-
-  .article__rail ol {
-    position: sticky;
-    top: 35vh;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  /* WCAG 2.5.8 (Target Size, Minimum) AA - same --touch-target-min pattern
-     used site-wide (e.g. Header.astro's nav links): min-inline/block-size,
-     not width/height, so it can grow but never shrinks below 24px, even
-     though the visible tick mark itself stays a slim 2px line. */
-  .article__rail-tick {
-    display: flex;
-    align-items: center;
-    min-inline-size: var(--touch-target-min);
-    min-block-size: var(--touch-target-min);
-  }
-
-  .article__rail-mark {
-    display: block;
-    width: 1.25rem;
-    height: 2px;
-    background: var(--ink-muted);
-    opacity: 0.35;
-  }
-
-  /* Passed: dimmer than upcoming would suggest, but still clearly "read" -
-     muted ink at full opacity rather than the signal color, which is
-     reserved for the current section alone. */
-  .article__rail-tick[data-passed] .article__rail-mark {
-    background: var(--ink-muted);
-    opacity: 0.7;
-  }
-
-  .article__rail-tick[data-active] .article__rail-mark {
-    background: var(--signal);
-    opacity: 1;
-    width: 1.75rem;
-  }
-
-  @media (prefers-contrast: more) {
-    .article__rail-mark {
-      opacity: 1;
-    }
+  .article__header {
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--hairline);
   }
 
   .article__meta-row {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-3);
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.65rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+
+  .article__meta-row a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .article__meta-row a:hover {
+    color: var(--signal);
+  }
+
+  .article__kind {
+    color: var(--signal);
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .article__reading-time {
+    font-variant-numeric: tabular-nums;
   }
 
   .article__title {
-    font-family: var(--font-body);
-    font-size: var(--text-2xl);
-    line-height: var(--leading-tight);
-    margin: var(--space-2) 0 var(--space-3);
+    max-width: 18ch;
+    margin: var(--space-3) 0 var(--space-4);
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1.3rem + 2.7vw, 3rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: var(--ink);
   }
 
   .article__dek {
-    font-size: var(--text-lg);
+    max-width: 62ch;
+    margin: 0;
     color: var(--ink-muted);
-    margin: 0 0 var(--space-4);
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+  }
+
+  .article__byline-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: var(--space-5);
   }
 
   .article__byline {
-    font-family: var(--font-display);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.65rem;
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
     color: var(--ink-muted);
-    display: flex;
+  }
+
+  .article__byline a {
+    color: var(--ink);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .article__byline a:hover {
+    color: var(--signal);
+  }
+
+  .reading-mode {
+    display: inline-flex;
+    align-items: center;
     gap: var(--space-2);
+    flex-shrink: 0;
+    min-block-size: 2.5rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .reading-mode:hover {
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+
+  .reading-mode svg {
+    color: var(--signal);
   }
 
   .article__series {
+    margin: var(--space-3) 0 0;
     font-family: var(--font-display);
     font-size: var(--text-xs);
     color: var(--ink-muted);
-    margin: var(--space-2) 0 0;
   }
 
   .article__series a {
     color: var(--signal);
+    font-weight: 600;
+    text-decoration: none;
   }
 
-  .article__evidence {
+  .article__series a:hover {
+    text-decoration: underline;
+  }
+
+  .mobile-article-drawer {
     margin-top: var(--space-5);
-    max-width: 24rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface);
   }
 
-  .article__archived-notice,
-  .article__correction-notice {
+  .mobile-article-drawer summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-block-size: 2.75rem;
+    padding: var(--space-3) var(--space-4);
+    color: var(--ink);
     font-family: var(--font-display);
-    font-size: var(--text-sm);
-    background: color-mix(in srgb, var(--evidence-mixed) 12%, var(--paper-raised));
-    border-left: 3px solid var(--evidence-mixed);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .mobile-article-drawer summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mobile-article-drawer__chevron {
+    flex-shrink: 0;
+    color: var(--signal);
+  }
+
+  .mobile-article-drawer[open] .mobile-article-drawer__chevron {
+    transform: rotate(180deg);
+  }
+
+  .mobile-article-drawer__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
     padding: var(--space-4);
-    border-radius: 0 var(--radius) var(--radius) 0;
-    margin: 0 0 var(--space-5);
+    border-top: 1px solid var(--hairline);
+  }
+
+  .article__art {
+    margin: var(--space-6) 0 0;
+    overflow: hidden;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface-subtle);
+  }
+
+  .article__art img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
   }
 
   .article__body {
-    font-size: var(--text-base);
-    line-height: var(--leading-relaxed);
+    max-width: 68ch;
+    padding-top: var(--space-6);
+    font-family: var(--font-body);
+    color: var(--ink);
+    line-height: 1.75;
+  }
+
+  .article__body[data-size='compact'] {
+    font-size: 1rem;
+  }
+
+  .article__body[data-size='standard'] {
+    font-size: 1.09375rem;
+  }
+
+  .article__body[data-size='comfortable'] {
+    font-size: 1.1875rem;
+  }
+
+  .article__body :global(> *:first-child) {
+    margin-top: 0;
   }
 
   .article__body :global(h2) {
-    font-family: var(--font-body);
-    font-size: var(--text-xl);
-    margin-top: var(--space-7);
+    margin: var(--space-7) 0 var(--space-3);
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    scroll-margin-top: 5.5rem;
   }
 
-  .article__body :global(pre) {
-    font-family: var(--font-mono);
-    padding: var(--space-4);
-    border-radius: var(--radius);
-    overflow-x: auto;
-    border: 1px solid var(--hairline);
+  .article__body :global(h3) {
+    margin: var(--space-6) 0 var(--space-2);
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.35;
+    scroll-margin-top: 5.5rem;
+  }
+
+  .article__body :global(p) {
+    margin: 0 0 1.25rem;
+  }
+
+  .article__body :global(a) {
+    color: var(--signal);
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    overflow-wrap: anywhere;
+  }
+
+  .article__body :global(a:hover) {
+    opacity: 0.82;
+  }
+
+  .article__body :global(ul),
+  .article__body :global(ol) {
+    margin: 0 0 1.35rem;
+    padding-left: 1.4rem;
+  }
+
+  .article__body :global(li) {
+    margin-bottom: 0.45rem;
+  }
+
+  .article__body :global(blockquote) {
+    margin: 1.75rem 0;
+    padding: 1.1rem 0;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    color: var(--ink-muted);
+    font-size: 1.08em;
+    font-style: italic;
+  }
+
+  .article__body :global(blockquote p:last-child) {
+    margin-bottom: 0;
   }
 
   .article__body :global(code) {
     font-family: var(--font-mono);
-    font-size: 0.9em;
+    font-size: 0.86em;
   }
 
-  .article__body :global(a) {
-    overflow-wrap: anywhere;
+  .article__body :global(code:not(pre code)) {
+    padding: 0.12em 0.35em;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
   }
 
-  /* Preserve a readable data-table layout on narrow screens and move the
-     overflow to a labeled region rather than clipping the last column. The
-     wrapper is added by rehype-responsive-tables for every Markdown table. */
+  .article__body :global(pre) {
+    margin: 1.75rem 0;
+    padding: var(--space-4);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+
+  .article__body :global(pre code) {
+    font-size: inherit;
+  }
+
+  .article__body :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+  }
+
+  .article__body :global(figure) {
+    margin: var(--space-6) 0;
+  }
+
+  .article__body :global(figcaption) {
+    margin-top: var(--space-2);
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+  }
+
+  .article__body :global(hr) {
+    margin: var(--space-7) 0;
+    border: 0;
+    border-top: 1px solid var(--hairline);
+  }
+
+  /* Responsive table wrapper added by rehype-responsive-tables. */
   .article__body :global(.table-scroll) {
     max-inline-size: 100%;
     margin-block: var(--space-5);
@@ -578,15 +1233,11 @@ const jsonLd = [
     border-radius: var(--radius);
   }
 
-  .article__body :global(.table-scroll):focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 2px;
-  }
-
   .article__body :global(table) {
     inline-size: 100%;
     min-inline-size: 36rem;
     border-collapse: collapse;
+    font-family: var(--font-display);
     font-size: var(--text-sm);
   }
 
@@ -599,7 +1250,6 @@ const jsonLd = [
   }
 
   .article__body :global(th) {
-    font-family: var(--font-display);
     font-weight: 600;
   }
 
@@ -623,94 +1273,555 @@ const jsonLd = [
     }
   }
 
-  .article__claims,
-  .article__revisions,
-  .article__artifacts,
-  .article__sources {
-    margin-top: var(--space-7);
-    padding-top: var(--space-5);
+  .article__section {
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
     border-top: 1px solid var(--hairline);
+    scroll-margin-top: 5.5rem;
   }
 
-  .article__claims-list,
-  .article__revisions-list,
-  .article__artifacts-list,
-  .article__sources-list {
-    padding-left: 0;
-    list-style: none;
+  .section-heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .section-heading__title {
+    margin: var(--space-1) 0 0;
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .section-heading__note {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .claim-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem;
+    align-self: flex-start;
+    padding: 0.2rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface-subtle);
+  }
+
+  .claim-filter {
+    min-block-size: 2rem;
+    padding: 0.3rem 0.55rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    text-transform: capitalize;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .claim-filter:hover {
+    color: var(--ink);
+  }
+
+  .claim-filter--active {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 8%, transparent);
+  }
+
+  .claim-list {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
+    margin-top: var(--space-5);
   }
 
-  .article__artifact-kind {
-    font-family: var(--font-display);
-    font-size: var(--text-xs);
-    color: var(--ink-muted);
-  }
-
-  .article__claims-list li,
-  .article__revisions-list li {
-    display: flex;
-    gap: var(--space-3);
-    align-items: baseline;
-    flex-wrap: wrap;
-  }
-
-  /* Evidence-color left-border, paired with (never instead of) the existing
-     text-labeled EvidenceTag badge on the same row - the accessibility
-     commitment already made for .evidence-tag (never color alone) extends to
-     this recurring visual language, so the border is always decorative
-     reinforcement, never the only signal. */
-  .article__claims-list li {
+  .claim-card {
+    padding: var(--space-4);
+    border: 1px solid var(--hairline);
     border-left: 2px solid var(--hairline);
-    padding-left: var(--space-3);
+    border-radius: var(--radius);
+    background: var(--surface);
   }
-  .article__claims-list li[data-evidence='supported'] {
+
+  .claim-card[data-evidence='supported'] {
     border-left-color: var(--evidence-supported);
   }
-  .article__claims-list li[data-evidence='mixed'] {
+  .claim-card[data-evidence='mixed'] {
     border-left-color: var(--evidence-mixed);
   }
-  .article__claims-list li[data-evidence='inference'] {
+  .claim-card[data-evidence='inference'] {
     border-left-color: var(--evidence-inference);
   }
-  .article__claims-list li[data-evidence='opinion'] {
+  .claim-card[data-evidence='opinion'] {
     border-left-color: var(--evidence-opinion);
   }
 
-  .article__revisions-list time {
+  .claim-card__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .claim-card__text {
+    margin: var(--space-2) 0 0;
+    color: var(--ink);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+  }
+
+  .claim-card__sources {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.75rem;
+    margin-top: var(--space-3);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--hairline);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .claim-card__sources-label {
+    color: var(--ink-muted);
+  }
+
+  .claim-card__sources a {
+    color: var(--signal);
+    text-decoration: none;
+  }
+
+  .claim-card__sources a:hover {
+    text-decoration: underline;
+  }
+
+  .claim-empty {
+    margin-top: var(--space-4);
+    color: var(--ink-muted);
     font-family: var(--font-display);
+    font-size: var(--text-sm);
+  }
+
+  .revision-list {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .revision-list li {
+    padding: var(--space-4);
+    border-top: 1px solid var(--hairline);
+  }
+
+  .revision-list li:first-child {
+    border-top: 0;
+  }
+
+  .revision-list__initial {
+    background: color-mix(in srgb, var(--surface-subtle) 55%, var(--surface));
+  }
+
+  .revision-list__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .revision-list__meta time {
+    color: var(--ink);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .revision-badge {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--signal);
+  }
+
+  .revision-badge[data-type='correction'] {
+    color: var(--evidence-mixed);
+    font-weight: 600;
+  }
+
+  .revision-badge[data-type='published'] {
+    color: var(--evidence-supported);
+  }
+
+  .revision-list p {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+  }
+
+  .artifact-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .artifact-card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-4);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .artifact-card:hover {
+    border-color: var(--signal);
+  }
+
+  .artifact-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    color: var(--signal);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+  }
+
+  .artifact-card h3 {
+    margin: var(--space-2) 0 var(--space-1);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .artifact-card:hover h3 {
+    color: var(--signal);
+  }
+
+  .artifact-card p {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: var(--text-xs);
+    line-height: var(--leading-relaxed);
+  }
+
+  .source-list {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .source-card {
+    padding: var(--space-4);
+    border-top: 1px solid var(--hairline);
+    scroll-margin-top: 6rem;
+  }
+
+  .source-card:first-child {
+    border-top: 0;
+  }
+
+  .source-card[data-highlighted] {
+    background: color-mix(in srgb, var(--signal-dim) 55%, var(--surface));
+  }
+
+  .source-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.55rem;
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
     color: var(--ink-muted);
   }
 
-  .article__revision-badge {
+  .source-card__type {
+    color: var(--signal);
+    text-transform: uppercase;
+  }
+
+  .source-card__title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .source-card__title {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .source-card__title:hover {
+    color: var(--signal);
+  }
+
+  .source-card__external {
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
-    font-family: var(--font-display);
+    color: var(--signal);
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    padding: 0.15em 0.5em;
-    border-radius: var(--radius);
-    border: 1px solid currentColor;
+    text-decoration: none;
   }
 
-  .article__revision-badge[data-type='correction'] {
-    color: var(--evidence-mixed);
+  .source-card__external:hover {
+    text-decoration: underline;
   }
-  .article__revision-badge[data-type='update'] {
+
+  .source-card__notes {
+    margin: var(--space-2) 0 0;
+    color: var(--ink-muted);
+    font-size: var(--text-xs);
+    line-height: var(--leading-relaxed);
+  }
+
+  .article__rail {
+    display: none;
+    min-width: 0;
+  }
+
+  .rail-sticky {
+    position: sticky;
+    top: 5.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .rail-card {
+    padding: var(--space-4);
+  }
+
+  .rail-card__label {
+    margin: 0 0 var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .rail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-block: var(--space-2);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .rail-row:first-child {
+    padding-top: 0;
+  }
+
+  .rail-row:nth-child(3) {
+    border-bottom: 0;
+  }
+
+  .rail-row__label {
+    font-family: var(--font-display);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .rail-row__value {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .rail-row__value--signal {
+    color: var(--signal);
+    font-weight: 600;
+  }
+
+  .reader-sizes {
+    display: flex;
+    gap: 0.1rem;
+    padding: 0.15rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+  }
+
+  .reader-sizes button {
+    min-inline-size: 1.75rem;
+    min-block-size: 1.55rem;
+    padding: 0.1rem 0.3rem;
+    border: 0;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .reader-sizes button:hover {
+    color: var(--ink);
+  }
+
+  .reader-sizes button[data-active] {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 8%, transparent);
+  }
+
+  .rail-actions {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+  }
+
+  .rail-action {
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-block-size: 2.375rem;
+    padding: 0.4rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .rail-action:hover {
+    border-color: var(--signal);
+  }
+
+  .rail-action svg {
     color: var(--signal);
   }
-  .article__revision-badge[data-type='published'] {
+
+  .rail-action[data-copied] svg {
     color: var(--evidence-supported);
   }
 
-  .article__artifacts-list,
-  .article__sources-list {
-    list-style: decimal;
-    padding-left: 1.25em;
+  .toc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 var(--space-3);
+    border-left: 1px solid var(--hairline);
+  }
+
+  .toc-list li {
+    margin: 0;
+  }
+
+  .toc-list a {
+    display: flex;
+    align-items: center;
+    min-block-size: 2.25rem;
+    color: var(--ink-muted);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    line-height: 1.35;
+    text-decoration: none;
+  }
+
+  .toc-list a:hover {
+    color: var(--ink);
+  }
+
+  .toc-list a[data-active] {
+    color: var(--signal);
+    font-weight: 600;
+  }
+
+  @media (min-width: 40rem) {
+    .artifact-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .section-heading {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .article-page {
+      padding-block: var(--space-7) var(--space-9);
+    }
+
+    .article-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: var(--space-7);
+    }
+
+    .article {
+      grid-column: span 8;
+    }
+
+    .article__rail {
+      display: block;
+      grid-column: span 4;
+    }
+
+    .mobile-article-drawer {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reading-progress__fill {
+      transition: transform 100ms linear;
+    }
+
+    .mobile-article-drawer__chevron {
+      transition: transform var(--motion-duration-fast) var(--motion-ease-out);
+    }
+
+    .claim-filter,
+    .source-card,
+    .artifact-card,
+    .rail-action,
+    .reader-sizes button,
+    .toc-list a {
+      transition:
+        background-color var(--motion-duration-fast) var(--motion-ease-out),
+        border-color var(--motion-duration-fast) var(--motion-ease-out),
+        color var(--motion-duration-fast) var(--motion-ease-out);
+    }
   }
 </style>

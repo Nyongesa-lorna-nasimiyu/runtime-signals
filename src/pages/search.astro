@@ -5,13 +5,41 @@ import SearchIsland from '@/components/SearchIsland';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
 import { BUILD_TIME } from '@/lib/build-time';
+import { articlePath } from '@/lib/resolve';
+import { spanId } from '@/lib/span-id';
 
-const [articles, briefs, sources] = await Promise.all([
+const [articles, briefs, sources, topics, series, authors] = await Promise.all([
   getCollection('articles'),
   getCollection('briefs'),
   getCollection('sources'),
+  getCollection('topics'),
+  getCollection('series'),
+  getCollection('authors'),
 ]);
 const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
+const articleCount = live.filter((entry) => entry.collection === 'articles').length;
+const briefCount = live.length - articleCount;
+
+const recent = live
+  .slice()
+  .sort((a, b) => b.data.published_at.getTime() - a.data.published_at.getTime())
+  .slice(0, 4)
+  .map((entry) => ({
+    path: articlePath(entry),
+    title: entry.data.title,
+    spanId: spanId(entry.id),
+    date: entry.data.published_at.toISOString().slice(0, 10),
+    kind: entry.collection === 'briefs' ? 'Brief' : entry.data.kind,
+  }));
+
+const topicShortcuts = topics
+  .map((topic) => ({
+    id: topic.id,
+    name: topic.data.name,
+    count: live.filter((entry) => entry.data.topics.some((ref) => ref.id === topic.id)).length,
+  }))
+  .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+  .slice(0, 6);
 ---
 
 <BaseLayout
@@ -36,40 +64,111 @@ const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
           <span class="search-stats__label">Sources</span>
         </div>
         <div>
-          <span class="search-stats__value">3</span>
-          <span class="search-stats__label">Facets</span>
+          <span class="search-stats__value">{topics.length}</span>
+          <span class="search-stats__label">Topic hubs</span>
         </div>
       </div>
     </PageHero>
 
-    <section class="search-panel" aria-labelledby="search-panel-title">
-      <h2 id="search-panel-title" class="visually-hidden">Search the archive</h2>
+    <div class="search-layout">
+      <section class="search-primary" aria-labelledby="search-panel-title">
+        <h2 id="search-panel-title" class="visually-hidden">Search the archive</h2>
 
-      <div class="search-field">
-        <SearchIsland client:idle />
-      </div>
+        <div class="search-field">
+          <SearchIsland client:idle />
+        </div>
 
-      <p class="search-help">
-        Type at least two characters, or open <strong>Filters</strong> to browse by topic, author, or
-        series. The index loads only when you interact with search.
-      </p>
-
-      <div class="search-quick">
-        <span>Browse instead</span>
-        <a href="/articles">Articles</a>
-        <a href="/brief">Briefs</a>
-        <a href="/topics">Topics</a>
-        <a href="/sources">Sources</a>
-        <a href="/artifacts">Artifacts</a>
-      </div>
-
-      <noscript>
-        <p class="search-noscript">
-          Search requires JavaScript. Browse <a href="/articles">all articles</a>,{' '}
-          <a href="/brief">the brief</a>, or <a href="/topics">topics</a> instead.
+        <p class="search-help">
+          Type at least two characters, or open <strong>Filters</strong> to browse by topic, author, or
+          series. The index loads only when you interact with search.
         </p>
-      </noscript>
-    </section>
+
+        <div class="search-quick">
+          <span>Browse instead</span>
+          <a href="/articles">Articles</a>
+          <a href="/brief">Briefs</a>
+          <a href="/topics">Topics</a>
+          <a href="/sources">Sources</a>
+          <a href="/artifacts">Artifacts</a>
+        </div>
+
+        <noscript>
+          <p class="search-noscript">
+            Search requires JavaScript. Browse <a href="/articles">all articles</a>,{' '}
+            <a href="/brief">the brief</a>, or <a href="/topics">topics</a> instead.
+          </p>
+        </noscript>
+
+        <section class="search-topics" aria-labelledby="search-topics-title">
+          <div class="search-topics__head">
+            <h2 id="search-topics-title">Start with a failure mode</h2>
+            <a href="/topics">All topics</a>
+          </div>
+          <div class="search-topics__grid">
+            {
+              topicShortcuts.map((topic) => (
+                <a href={`/topics/${topic.id}`} class="search-topic">
+                  <span>{topic.name}</span>
+                  <span class="search-topic__count">{topic.count} live</span>
+                </a>
+              ))
+            }
+          </div>
+        </section>
+      </section>
+
+      <aside class="search-aside" aria-label="Search guidance and archive coverage">
+        <section class="search-card" aria-labelledby="search-coverage-title">
+          <p id="search-coverage-title" class="eyebrow">Index coverage</p>
+          <dl class="search-coverage">
+            <div><dt>Articles</dt><dd>{articleCount}</dd></div>
+            <div><dt>Briefs</dt><dd>{briefCount}</dd></div>
+            <div><dt>Series</dt><dd>{series.length}</dd></div>
+            <div><dt>Contributors</dt><dd>{authors.length}</dd></div>
+          </dl>
+          <p class="search-card__note">
+            The index covers the same public archive linked throughout the site. Draft and
+            unapproved pieces are never indexed.
+          </p>
+        </section>
+
+        <section class="search-card" aria-labelledby="search-scope-title">
+          <p id="search-scope-title" class="eyebrow">What is searchable</p>
+          <ul class="search-scope">
+            <li>Titles &amp; deks</li>
+            <li>Claim text &amp; limits</li>
+            <li>Source notes</li>
+            <li>Span IDs</li>
+          </ul>
+          <p class="search-card__note">
+            Use <strong>Filters</strong> for topic, author, and series metadata. Filters load with the
+            index, after your first interaction.
+          </p>
+        </section>
+
+        <section class="search-card" aria-labelledby="search-recent-title">
+          <p id="search-recent-title" class="eyebrow">Latest in the archive</p>
+          <ol class="search-recent">
+            {
+              recent.map((entry) => (
+                <li>
+                  <a href={entry.path}>
+                    <span class="search-recent__meta">
+                      <span class="span-id">{entry.spanId}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{entry.kind}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{entry.date}</span>
+                    </span>
+                    <span class="search-recent__title">{entry.title}</span>
+                  </a>
+                </li>
+              ))
+            }
+          </ol>
+        </section>
+      </aside>
+    </div>
   </div>
 </BaseLayout>
 
@@ -105,9 +204,15 @@ const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
     font-size: 0.6875rem;
   }
 
-  .search-panel {
-    max-width: 56rem;
+  .search-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-7);
     margin-top: var(--space-6);
+  }
+
+  .search-primary {
+    min-width: 0;
   }
 
   .search-field {
@@ -115,7 +220,7 @@ const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
   }
 
   .search-help {
-    max-width: 60ch;
+    max-width: 62ch;
     margin: var(--space-3) 0 0;
     color: var(--ink-muted);
     font-size: var(--text-sm);
@@ -162,6 +267,237 @@ const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
     margin-top: var(--space-4);
     color: var(--ink-muted);
     font-size: var(--text-sm);
+  }
+
+  .search-topics {
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--hairline);
+  }
+
+  .search-topics__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .search-topics__head h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .search-topics__head a {
+    color: var(--signal);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-decoration: none;
+  }
+
+  .search-topics__head a:hover {
+    text-decoration: underline;
+  }
+
+  .search-topics__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .search-topic {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-block-size: 2.75rem;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .search-topic:hover,
+  .search-topic:focus-visible {
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+
+  .search-topic__count {
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .search-aside {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .search-card {
+    padding: var(--space-4);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .search-card .eyebrow {
+    margin: 0 0 var(--space-3);
+  }
+
+  .search-coverage {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+  }
+
+  .search-coverage > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .search-coverage dt {
+    order: 2;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+  }
+
+  .search-coverage dd {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .search-card__note {
+    margin: var(--space-3) 0 0;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--hairline);
+    color: var(--ink-muted);
+    font-size: var(--text-xs);
+    line-height: var(--leading-relaxed);
+  }
+
+  .search-card__note strong {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+
+  .search-scope {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .search-scope li {
+    padding: 0.2rem 0.45rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+  }
+
+  .search-recent {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .search-recent li {
+    border-top: 1px solid var(--hairline);
+  }
+
+  .search-recent li:first-child {
+    border-top: 0;
+  }
+
+  .search-recent a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding-block: var(--space-3);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .search-recent li:first-child a {
+    padding-top: 0;
+  }
+
+  .search-recent li:last-child a {
+    padding-bottom: 0;
+  }
+
+  .search-recent__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .search-recent__meta .span-id {
+    color: var(--signal);
+  }
+
+  .search-recent__title {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .search-recent a:hover .search-recent__title {
+    color: var(--signal);
+  }
+
+  @media (min-width: 64rem) {
+    .search-page {
+      padding-block: var(--space-8) var(--space-9);
+    }
+
+    .search-layout {
+      grid-template-columns: minmax(0, 1fr) 19rem;
+      gap: var(--space-8);
+      margin-top: var(--space-7);
+    }
+
+    .search-aside {
+      position: sticky;
+      inset-block-start: 6rem;
+      align-self: start;
+    }
   }
 </style>
 
@@ -212,6 +548,7 @@ const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
   .search-page .search-island__filters summary {
     display: inline-flex;
     align-items: center;
+    gap: 0.4rem;
     min-block-size: 2.5rem;
     padding: 0.35rem 0.7rem;
     border: 1px solid var(--hairline);
@@ -219,6 +556,11 @@ const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
     background: var(--surface-subtle);
     color: var(--ink-muted);
     cursor: pointer;
+    list-style: none;
+  }
+
+  .search-page .search-island__filters summary::-webkit-details-marker {
+    display: none;
   }
 
   .search-page .search-island__filters summary:hover,
@@ -227,11 +569,39 @@ const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
     color: var(--ink);
   }
 
-  .search-page .search-island__facet {
-    margin: var(--space-3) 0 0;
-    padding: var(--space-3) 0 0;
-    border: none;
+  .search-page .search-island__filters-icon {
+    inline-size: 0.875rem;
+    block-size: 0.875rem;
+    color: var(--signal);
+  }
+
+  .search-page .search-island__filters-caret {
+    margin-inline-start: 0.15rem;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1;
+    transition: transform var(--motion-duration-fast) var(--motion-ease-out);
+  }
+
+  .search-page .search-island__filters[open] .search-island__filters-caret {
+    transform: rotate(45deg);
+  }
+
+  .search-page .search-island__facet-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+    padding-top: var(--space-4);
     border-top: 1px solid var(--hairline);
+  }
+
+  .search-page .search-island__facet {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
   }
 
   .search-page .search-island__facet legend {
@@ -338,5 +708,21 @@ const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
     border-radius: 2px;
     background: var(--signal-dim);
     color: var(--ink);
+  }
+
+  @media (min-width: 40rem) {
+    .search-topics__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .search-page .search-island__facet-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .search-page .search-island__filters-caret {
+      transition: none;
+    }
   }
 </style>

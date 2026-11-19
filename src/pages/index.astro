@@ -6,12 +6,7 @@ import Icon from '@/components/Icon.astro';
 import { FailureLab } from '@/components/FailureLab';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
-import {
-  resolveTopicNames,
-  weakestEvidence,
-  evidenceCounts,
-  articlePath,
-} from '@/lib/resolve';
+import { resolveTopicNames, weakestEvidence, evidenceCounts, articlePath } from '@/lib/resolve';
 import { artworkForTopics, HERO_ARTWORK } from '@/lib/illustration';
 import { spanId } from '@/lib/span-id';
 import { BUILD_TIME } from '@/lib/build-time';
@@ -121,7 +116,9 @@ const chainLayers = [
                 <span>{lead.readingTimeMinutes} min read</span>
               </div>
               <h2 class="lead__title">
-                <a href={lead.path} class="unstyled-link">{lead.title}</a>
+                <a href={lead.path} class="unstyled-link">
+                  {lead.title}
+                </a>
               </h2>
               <p class="lead__dek">{lead.dek}</p>
               <div class="lead__actions">
@@ -129,7 +126,9 @@ const chainLayers = [
                   <span>Read investigation</span>
                   <Icon name="arrow-right" size={14} />
                 </a>
-                <a href="/methodology" class="lead__secondary">How claims are graded</a>
+                <a href="/methodology" class="lead__secondary">
+                  How claims are graded
+                </a>
               </div>
             </div>
           )
@@ -230,7 +229,9 @@ const chainLayers = [
       <div class="log__head">
         <div>
           <p class="eyebrow">Chronological Signal Log</p>
-          <h2 id="log-heading" class="section-head__title">All live articles &amp; engineering briefs</h2>
+          <h2 id="log-heading" class="section-head__title">
+            All live articles &amp; engineering briefs
+          </h2>
         </div>
 
         <div class="log__controls">

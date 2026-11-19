@@ -132,10 +132,7 @@ export function FailureLab({ initialMode = 'fencing' }: { initialMode?: LabMode 
               >
                 Monotonic Fencing: {fencingEnabled ? 'Enforced' : 'Disabled'}
               </button>
-              <a
-                href="/articles/idempotent-tool-execution-with-leases"
-                className="lab__link"
-              >
+              <a href="/articles/idempotent-tool-execution-with-leases" className="lab__link">
                 Read: Idempotent tool execution →
               </a>
             </div>

@@ -1,5 +1,12 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import Icon from '@/components/Icon.astro';
+import { getCollection } from 'astro:content';
+
+const topics = (await getCollection('topics'))
+  .slice()
+  .sort((a, b) => a.data.name.localeCompare(b.data.name))
+  .slice(0, 6);
 ---
 
 <BaseLayout
@@ -8,53 +15,142 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   canonicalPath="/404"
   noindex={true}
 >
-  <section class="not-found">
-    <p class="eyebrow">404</p>
-    <h1>No signal at this address</h1>
-    <p>
-      The page you're looking for was removed, moved, or linked from a stale address. Draft and
-      unapproved content never gets a public URL.
-    </p>
-    <nav class="not-found__actions" aria-label="404 recovery">
-      <a href="/" class="not-found__home">Back to Runtime Signals →</a>
-      <a href="/articles">Browse articles</a>
-      <a href="/search">Search the publication</a>
-    </nav>
+  <section class="not-found shell" aria-labelledby="not-found-title">
+    <div class="not-found__card card">
+      <p class="not-found__code" aria-hidden="true">404</p>
+      <p class="eyebrow eyebrow--signal">Signal Missing</p>
+      <h1 id="not-found-title" class="not-found__title">No signal at this address</h1>
+      <p class="not-found__copy">
+        The page you're looking for was removed, moved, or linked from a stale address. Draft and
+        unapproved content never gets a public URL.
+      </p>
+
+      <div class="not-found__actions">
+        <a href="/search" class="btn btn--primary">
+          <Icon name="search" size={14} />
+          <span>Search the archive</span>
+        </a>
+        <a href="/articles" class="btn">
+          <span>Browse articles</span>
+          <Icon name="arrow-right" size={14} />
+        </a>
+        <a href="/" class="not-found__home"> Back to Runtime Signals </a>
+      </div>
+
+      <div class="not-found__topics">
+        <span>Try a topic hub</span>
+        <div class="not-found__chips">
+          {topics.map((topic) => <a href={`/topics/${topic.id}`}>{topic.data.name}</a>)}
+        </div>
+      </div>
+    </div>
   </section>
 </BaseLayout>
 
 <style>
   .not-found {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-8) var(--space-5) var(--space-9);
-    text-align: center;
+    display: flex;
+    min-height: 62vh;
+    align-items: center;
+    justify-content: center;
+    padding-block: var(--space-8) var(--space-9);
   }
-  .not-found h1 {
+
+  .not-found__card {
+    width: 100%;
+    max-width: 44rem;
+    padding: var(--space-7);
+  }
+
+  .not-found__code {
+    margin: 0;
+    color: var(--signal);
+    font-family: var(--font-mono);
+    font-size: clamp(3.5rem, 8vw, 5.5rem);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.06em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .not-found__title {
+    margin: var(--space-2) 0 var(--space-3);
+    color: var(--ink);
     font-family: var(--font-display);
-    font-size: var(--text-2xl);
-    margin: var(--space-2) 0 var(--space-4);
+    font-size: clamp(1.8rem, 1.3rem + 2vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
   }
-  .not-found p {
+
+  .not-found__copy {
+    max-width: 56ch;
+    margin: 0;
     color: var(--ink-muted);
-    max-width: 50ch;
-    margin: 0 auto;
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
   }
-  .not-found__home {
-    display: inline-flex;
-    font-family: var(--font-display);
-    font-size: var(--text-sm);
-  }
+
   .not-found__actions {
     display: flex;
-    justify-content: center;
     flex-wrap: wrap;
-    gap: var(--space-3) var(--space-5);
-    margin-top: var(--space-6);
-  }
-  .not-found__actions a {
-    display: inline-flex;
-    min-block-size: var(--touch-target-min);
     align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+
+  .not-found__home {
+    color: var(--ink-muted);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-underline-offset: 4px;
+  }
+
+  .not-found__home:hover {
+    color: var(--ink);
+  }
+
+  .not-found__topics {
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--hairline);
+  }
+
+  .not-found__topics > span {
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .not-found__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+  }
+
+  .not-found__chips a {
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    text-decoration: none;
+  }
+
+  .not-found__chips a:hover {
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+
+  @media (min-width: 40rem) {
+    .not-found__card {
+      padding: var(--space-8);
+    }
   }
 </style>

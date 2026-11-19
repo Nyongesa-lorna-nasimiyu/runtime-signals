@@ -83,8 +83,11 @@ const isActive = (href: string) =>
         <button type="button" class="theme-toggle theme-toggle--wide" data-theme-toggle>
           <span class="theme-toggle__icon theme-toggle__icon--moon"><Icon name="moon" /></span>
           <span class="theme-toggle__icon theme-toggle__icon--sun"><Icon name="sun" /></span>
-          <span class="theme-toggle__label theme-toggle__label--dark">Switch to dark instrument</span>
-          <span class="theme-toggle__label theme-toggle__label--light">Switch to mineral paper</span>
+          <span class="theme-toggle__label theme-toggle__label--dark"
+            >Switch to dark instrument</span
+          >
+          <span class="theme-toggle__label theme-toggle__label--light">Switch to mineral paper</span
+          >
         </button>
       </li>
     </ul>
@@ -102,7 +105,9 @@ const isActive = (href: string) =>
       panel.hidden = !open;
     };
 
-    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+    toggle.addEventListener('click', () =>
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true'),
+    );
 
     panel.addEventListener('click', (event) => {
       if ((event.target as HTMLElement).closest('a')) setOpen(false);

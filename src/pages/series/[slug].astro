@@ -1,32 +1,24 @@
 ---
 import { getCollection, getEntries } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import ArticleCard from '@/components/ArticleCard.astro';
+import EvidenceStrip from '@/components/EvidenceStrip.astro';
+import Icon from '@/components/Icon.astro';
+import PageHero from '@/components/PageHero.astro';
 import { canPublish } from '@/lib/publication';
-import { resolveTopicNames, weakestEvidence, evidenceCounts, articlePath } from '@/lib/resolve';
+import { evidenceCounts, weakestEvidence } from '@/lib/resolve';
+import { spanId } from '@/lib/span-id';
 import { BUILD_TIME } from '@/lib/build-time';
 
 export async function getStaticPaths() {
   const series = await getCollection('series');
-  return series.map((s) => ({ params: { slug: s.id }, props: { series: s } }));
+  return series.map((item) => ({ params: { slug: item.id }, props: { series: item } }));
 }
 
 const { series } = Astro.props;
 const orderedArticles = await getEntries(series.data.order);
 // Preserve the series' authorial reading order rather than reverse-chronological.
 const live = orderedArticles.filter((entry) => canPublish(entry, undefined, BUILD_TIME));
-const cards = await Promise.all(
-  live.map(async (entry) => ({
-    id: entry.id,
-    path: articlePath(entry),
-    title: entry.data.title,
-    dek: entry.data.dek,
-    publishedAt: entry.data.published_at,
-    topics: await resolveTopicNames(entry),
-    dominantEvidence: weakestEvidence(entry),
-    evidence: evidenceCounts([entry]),
-  })),
-);
+const seriesEvidence = evidenceCounts(live);
 ---
 
 <BaseLayout
@@ -34,43 +26,304 @@ const cards = await Promise.all(
   description={series.data.description}
   canonicalPath={`/series/${series.id}`}
 >
-  <section class="listing">
-    <header class="listing__header">
-      <p class="eyebrow">Series</p>
-      <h1>{series.data.name}</h1>
-      <p class="listing__intro">{series.data.description}</p>
-    </header>
-    {
-      cards.length === 0 ? (
-        <p class="listing__empty">No published pieces in this series yet.</p>
-      ) : (
-        <div class="listing__list">
-          {cards.map((card) => (
-            <ArticleCard {...card} headingLevel={2} />
-          ))}
+  <div class="series-detail shell">
+    <PageHero
+      eyebrow="Reading Sequence"
+      title={series.data.name}
+      description={series.data.description}
+      backHref="/series"
+      backLabel="All series"
+    >
+      <div slot="panel" class="series-progress-card">
+        <div class="series-progress-head">
+          <span>Reading progress</span>
+          <span class="series-progress-value" data-series-progress>
+            0 of {live.length} completed
+          </span>
         </div>
+        <div class="series-progress-track" aria-hidden="true">
+          <div class="series-progress-fill" data-series-bar></div>
+        </div>
+        <EvidenceStrip counts={seriesEvidence} label="Evidence across this sequence" />
+      </div>
+    </PageHero>
+
+    {
+      live.length === 0 ? (
+        <p class="series-empty">No published pieces in this series yet.</p>
+      ) : (
+        <ol class="series-list">
+          {live.map((entry, index) => (
+            <li class="series-item" data-series-entry data-series-id={entry.id}>
+              <div class="series-item__body">
+                <div class="series-item__meta">
+                  <span class="series-item__part">Part {String(index + 1).padStart(2, '0')}</span>
+                  <span aria-hidden="true">·</span>
+                  <span class="span-id">{spanId(entry.id)}</span>
+                  <span aria-hidden="true">·</span>
+                  <span>{entry.data.reading_time_minutes} min read</span>
+                  <span aria-hidden="true">·</span>
+                  <span class="evidence-tag" data-evidence={weakestEvidence(entry)}>
+                    {weakestEvidence(entry)}
+                  </span>
+                </div>
+
+                <h2 class="series-item__title">
+                  <a href={`/articles/${entry.id}`}>{entry.data.title}</a>
+                </h2>
+                <p class="series-item__dek">{entry.data.dek}</p>
+              </div>
+
+              <button type="button" class="series-read" data-series-read aria-pressed="false">
+                <Icon name="circle" class="series-read__unread" size={14} />
+                <Icon name="check-circle" class="series-read__read" size={14} />
+                <span data-series-read-label>Mark read</span>
+              </button>
+            </li>
+          ))}
+        </ol>
       )
     }
-  </section>
+  </div>
 </BaseLayout>
 
+<script>
+  const STORAGE_KEY = 'rs-series-read-ids';
+  const entries = Array.from(document.querySelectorAll<HTMLElement>('[data-series-entry]'));
+  const progress = document.querySelector<HTMLElement>('[data-series-progress]');
+  const bar = document.querySelector<HTMLElement>('[data-series-bar]');
+
+  const loadReadIds = (): string[] => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed)
+        ? parsed.filter((id): id is string => typeof id === 'string')
+        : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const saveReadIds = (ids: string[]) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    } catch {
+      // Reading progress is optional; the toggle still works for the session.
+    }
+  };
+
+  if (entries.length > 0) {
+    const readIds = new Set(loadReadIds());
+
+    const render = () => {
+      for (const entry of entries) {
+        const id = entry.dataset.seriesId;
+        const button = entry.querySelector<HTMLButtonElement>('[data-series-read]');
+        if (!id || !button) continue;
+        const read = readIds.has(id);
+        button.toggleAttribute('data-read', read);
+        button.setAttribute('aria-pressed', String(read));
+        const label = button.querySelector<HTMLElement>('[data-series-read-label]');
+        if (label) label.textContent = read ? 'Read' : 'Mark read';
+      }
+
+      const completed = entries.filter((entry) => {
+        const id = entry.dataset.seriesId;
+        return id ? readIds.has(id) : false;
+      }).length;
+
+      if (progress) progress.textContent = `${completed} of ${entries.length} completed`;
+      if (bar)
+        bar.style.transform = `scaleX(${entries.length === 0 ? 0 : completed / entries.length})`;
+    };
+
+    for (const entry of entries) {
+      const button = entry.querySelector<HTMLButtonElement>('[data-series-read]');
+      button?.addEventListener('click', () => {
+        const id = entry.dataset.seriesId;
+        if (!id) return;
+        if (readIds.has(id)) readIds.delete(id);
+        else readIds.add(id);
+        saveReadIds([...readIds]);
+        render();
+      });
+    }
+
+    render();
+  }
+</script>
+
 <style>
-  .listing {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-5) var(--space-9);
+  .series-detail {
+    padding-block: var(--space-7) var(--space-9);
   }
-  .listing__header h1 {
-    font-family: var(--font-body);
-    font-size: var(--text-2xl);
-    margin: var(--space-2) 0 var(--space-2);
-  }
-  .listing__intro {
+
+  .series-progress-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
     color: var(--ink-muted);
-    max-width: 60ch;
-    margin: 0 0 var(--space-6);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
-  .listing__empty {
+
+  .series-progress-value {
+    color: var(--signal);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .series-progress-track {
+    height: 4px;
+    margin-block: var(--space-2) var(--space-4);
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--hairline);
+  }
+
+  .series-progress-fill {
+    width: 100%;
+    height: 100%;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  .series-list {
+    list-style: none;
+    max-width: 56rem;
+    margin: var(--space-6) 0 0;
+    padding: 0;
+  }
+
+  .series-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding-block: var(--space-5);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .series-item:first-child {
+    padding-top: 0;
+  }
+
+  .series-item__body {
+    min-width: 0;
+  }
+
+  .series-item__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.6rem;
     color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .series-item__part {
+    color: var(--signal);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .series-read {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-self: flex-start;
+    align-items: center;
+    gap: 0.35rem;
+    min-block-size: 2.25rem;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--ink-muted);
+    font-family: var(--font-display);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .series-read:hover {
+    border-color: var(--signal);
+    color: var(--ink);
+  }
+
+  .series-read[data-read] {
+    border-color: color-mix(in srgb, var(--evidence-supported) 50%, var(--hairline));
+    background: color-mix(in srgb, var(--evidence-supported) 10%, var(--surface));
+    color: var(--evidence-supported);
+  }
+
+  .series-read :global(.series-read__read) {
+    display: none;
+  }
+
+  .series-read[data-read] :global(.series-read__unread) {
+    display: none;
+  }
+
+  .series-read[data-read] :global(.series-read__read) {
+    display: inline;
+  }
+
+  .series-item__title {
+    margin: var(--space-2) 0 0;
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    overflow-wrap: break-word;
+  }
+
+  .series-item__title a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .series-item__title a:hover {
+    color: var(--signal);
+  }
+
+  .series-item__dek {
+    max-width: 62ch;
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+  }
+
+  .series-empty {
+    padding-block: var(--space-6);
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  @media (min-width: 40rem) {
+    .series-item {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .series-progress-fill {
+      transition: transform var(--motion-duration-fast) var(--motion-ease-out);
+    }
   }
 </style>

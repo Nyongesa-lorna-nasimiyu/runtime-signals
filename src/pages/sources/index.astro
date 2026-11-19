@@ -60,7 +60,9 @@ for (const entry of live) {
       <div class="source-controls">
         <div class="source-controls__filters">
           <div class="source-search">
-            <Icon name="search" class="source-search__icon" size={14} />
+            <span class="source-search__icon" aria-hidden="true"
+              ><Icon name="search" size={14} /></span
+            >
             <label class="visually-hidden" for="source-search">Filter sources</label>
             <input
               id="source-search"
@@ -246,6 +248,7 @@ for (const entry of live) {
     position: absolute;
     inset-block-start: 50%;
     inset-inline-start: 0.75rem;
+    display: inline-flex;
     transform: translateY(-50%);
     color: var(--ink-muted);
     pointer-events: none;

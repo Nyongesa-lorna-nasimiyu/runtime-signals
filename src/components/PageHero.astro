@@ -1,0 +1,105 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  description?: string;
+  backHref?: string;
+  backLabel?: string;
+}
+
+const { eyebrow, title, description, backHref, backLabel } = Astro.props;
+const hasPanel = Astro.slots.has('panel');
+---
+
+<header class:list={['page-hero', { 'page-hero--with-panel': hasPanel }]}>
+  <div class="page-hero__copy">
+    {
+      backHref && backLabel && (
+        <a href={backHref} class="page-hero__back">
+          <span aria-hidden="true">←</span>
+          <span>{backLabel}</span>
+        </a>
+      )
+    }
+    <p class="eyebrow eyebrow--signal">{eyebrow}</p>
+    <h1 class="page-hero__title">{title}</h1>
+    {description && <p class="page-hero__description">{description}</p>}
+    <slot />
+  </div>
+
+  {
+    hasPanel && (
+      <div class="page-hero__panel card">
+        <slot name="panel" />
+      </div>
+    )
+  }
+</header>
+
+<style>
+  .page-hero {
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .page-hero__copy {
+    min-width: 0;
+  }
+
+  .page-hero__back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-decoration: none;
+  }
+
+  .page-hero__back:hover {
+    color: var(--signal);
+  }
+
+  .page-hero__title {
+    margin: var(--space-2) 0 var(--space-3);
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 1.5rem + 2.5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.07;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    overflow-wrap: break-word;
+  }
+
+  .page-hero__description {
+    max-width: 60ch;
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
+  }
+
+  .page-hero__panel {
+    margin-top: var(--space-5);
+    padding: var(--space-4);
+  }
+
+  @media (min-width: 64rem) {
+    .page-hero--with-panel {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      align-items: end;
+      gap: var(--space-7);
+    }
+
+    .page-hero--with-panel .page-hero__copy {
+      grid-column: span 7;
+    }
+
+    .page-hero--with-panel .page-hero__panel {
+      grid-column: span 5;
+      margin-top: 0;
+    }
+  }
+</style>

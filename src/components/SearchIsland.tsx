@@ -237,8 +237,32 @@ export default function SearchIsland() {
         onToggle={(e) => void handleFiltersToggle(e.currentTarget.open)}
       >
         <summary>
-          Filters
-          {hasActiveFilters && ` (${FACETS.reduce((n, f) => n + selectedFilters[f].length, 0)})`}
+          <svg
+            className="search-island__filters-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <line x1="21" x2="14" y1="4" y2="4" />
+            <line x1="10" x2="3" y1="4" y2="4" />
+            <line x1="21" x2="12" y1="12" y2="12" />
+            <line x1="8" x2="3" y1="12" y2="12" />
+            <line x1="21" x2="16" y1="20" y2="20" />
+            <line x1="12" x2="3" y1="20" y2="20" />
+            <line x1="14" x2="14" y1="2" y2="6" />
+            <line x1="8" x2="8" y1="10" y2="14" />
+            <line x1="16" x2="16" y1="18" y2="22" />
+          </svg>
+          <span>
+            Filters
+            {hasActiveFilters && ` (${FACETS.reduce((n, f) => n + selectedFilters[f].length, 0)})`}
+          </span>
+          <span className="search-island__filters-caret" aria-hidden="true">
+            +
+          </span>
         </summary>
         {filtersStatus === 'loading' && (
           <p className="search-island__status" role="status" aria-live="polite">
@@ -250,27 +274,29 @@ export default function SearchIsland() {
             Filters are unavailable right now.
           </p>
         )}
-        {filtersStatus === 'ready' &&
-          filterFacets &&
-          FACETS.filter((facet) => Object.keys(filterFacets[facet] ?? {}).length > 0).map(
-            (facet) => (
-              <fieldset key={facet} className="search-island__facet">
-                <legend>{FACET_LABELS[facet]}</legend>
-                {Object.entries(filterFacets[facet] ?? {})
-                  .sort(([a], [b]) => a.localeCompare(b))
-                  .map(([value, count]) => (
-                    <label key={value} className="search-island__facet-option">
-                      <input
-                        type="checkbox"
-                        checked={selectedFilters[facet].includes(value)}
-                        onChange={(e) => toggleFilter(facet, value, e.target.checked)}
-                      />
-                      {value} <span className="search-island__facet-count">({count})</span>
-                    </label>
-                  ))}
-              </fieldset>
-            ),
-          )}
+        {filtersStatus === 'ready' && filterFacets && (
+          <div className="search-island__facet-grid">
+            {FACETS.filter((facet) => Object.keys(filterFacets[facet] ?? {}).length > 0).map(
+              (facet) => (
+                <fieldset key={facet} className="search-island__facet">
+                  <legend>{FACET_LABELS[facet]}</legend>
+                  {Object.entries(filterFacets[facet] ?? {})
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([value, count]) => (
+                      <label key={value} className="search-island__facet-option">
+                        <input
+                          type="checkbox"
+                          checked={selectedFilters[facet].includes(value)}
+                          onChange={(e) => toggleFilter(facet, value, e.target.checked)}
+                        />
+                        {value} <span className="search-island__facet-count">({count})</span>
+                      </label>
+                    ))}
+                </fieldset>
+              ),
+            )}
+          </div>
+        )}
         {hasActiveFilters && (
           <button type="button" className="search-island__clear-filters" onClick={clearFilters}>
             Clear filters

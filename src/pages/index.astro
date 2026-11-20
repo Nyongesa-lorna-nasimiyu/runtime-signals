@@ -2,28 +2,80 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import ArticleCard from '@/components/ArticleCard.astro';
 import EvidenceStrip from '@/components/EvidenceStrip.astro';
+import Icon from '@/components/Icon.astro';
+import { FailureLab } from '@/components/FailureLab';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
 import { resolveTopicNames, weakestEvidence, evidenceCounts, articlePath } from '@/lib/resolve';
+import { artworkForTopics, HERO_ARTWORK } from '@/lib/illustration';
+import { spanId } from '@/lib/span-id';
 import { BUILD_TIME } from '@/lib/build-time';
 
-const [articles, briefs] = await Promise.all([getCollection('articles'), getCollection('briefs')]);
+const [articles, briefs, topics] = await Promise.all([
+  getCollection('articles'),
+  getCollection('briefs'),
+  getCollection('topics'),
+]);
 const allLive = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
-const live = allLive.slice(0, 12);
 const corpusEvidence = evidenceCounts(allLive);
 
 const cards = await Promise.all(
-  live.map(async (entry) => ({
-    id: entry.id,
-    path: articlePath(entry),
-    title: entry.data.title,
-    dek: entry.data.dek,
-    publishedAt: entry.data.published_at,
-    topics: await resolveTopicNames(entry),
-    dominantEvidence: weakestEvidence(entry),
-    evidence: evidenceCounts([entry]),
-  })),
+  allLive.map(async (entry) => {
+    const topicIds = entry.data.topics.map((topic) => topic.id);
+    const topicNames = await resolveTopicNames(entry);
+    const kind = entry.collection === 'briefs' ? 'brief' : entry.data.kind;
+    return {
+      id: entry.id,
+      path: articlePath(entry),
+      title: entry.data.title,
+      dek: entry.data.dek,
+      publishedAt: entry.data.published_at,
+      topics: topicNames,
+      topicIds,
+      kind,
+      readingTimeMinutes: entry.data.reading_time_minutes,
+      dominantEvidence: weakestEvidence(entry),
+      evidence: evidenceCounts([entry]),
+      artwork: artworkForTopics(topicIds),
+    };
+  }),
 );
+
+const lead = cards[0];
+const featured = cards.slice(1, 4);
+const liveKinds = new Set(cards.map((card) => card.kind));
+const kindTabs = [
+  { id: 'all', label: 'All' },
+  { id: 'deep-dive', label: 'Deep-dives' },
+  { id: 'tutorial', label: 'Tutorials' },
+  { id: 'article', label: 'Articles' },
+  { id: 'brief', label: 'Briefs' },
+  { id: 'case-study', label: 'Case studies' },
+].filter((tab) => tab.id === 'all' || liveKinds.has(tab.id));
+const topicsList = topics.slice().sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+const chainLayers = [
+  {
+    index: '01',
+    title: 'Research claim',
+    detail: 'What empirical literature and standards state, including boundary conditions.',
+  },
+  {
+    index: '02',
+    title: 'Runtime invariant',
+    detail: 'The formal state or authority property that fails under real concurrency.',
+  },
+  {
+    index: '03',
+    title: 'Operational evidence',
+    detail: 'Traces, lease records, cost reconciliation, and recovery outcomes under load.',
+  },
+  {
+    index: '04',
+    title: 'Reproducible artifact',
+    detail: 'Typed contracts, fault-injection suites, and datasets readers can verify.',
+  },
+];
 ---
 
 <BaseLayout
@@ -31,95 +83,715 @@ const cards = await Promise.all(
   description="Systems analysis of evaluation, reliability, recovery, orchestration, state, memory, tool security, and observability for AI agents in production."
   canonicalPath="/"
 >
-  <section class="hero">
-    <p class="eyebrow">
-      A publication about running AI agents like they'll fail - because they will
-    </p>
-    <h1 class="hero__title">Runtime Signals</h1>
-    <p class="hero__thesis">
-      Every piece traces one chain: a real failure mechanism, the invariant it violates, and the
-      engineering practice that holds under load. No unreviewed AI-generated articles. Every
-      consequential claim is sourced or explicitly labeled as inference.
-    </p>
-    <EvidenceStrip
-      counts={corpusEvidence}
-      label="Evidence across the corpus"
-      class="hero__evidence"
-    />
-  </section>
-
-  <section class="log">
-    <div class="log__header">
-      <h2 id="log-heading" class="eyebrow">Recent signals</h2>
-      <span class="log__count">{cards.length} live</span>
-    </div>
-    {
-      cards.length === 0 ? (
-        <p class="log__empty">
-          No approved, published pieces exist yet. This is expected at the Phase 2 checkpoint -
-          content, review, and the CI approval manifest arrive together in Phase 4.
-        </p>
-      ) : (
-        <div class="log__list">
-          {cards.map((card) => (
-            <ArticleCard {...card} />
-          ))}
+  <div class="home shell">
+    <!-- Tier 1: masthead and lead investigation -->
+    <section class="hero" aria-labelledby="home-title">
+      <div class="hero__copy">
+        <div>
+          <p class="eyebrow eyebrow--signal">
+            Production AI-Agent Systems · Evidence-Graded Engineering
+          </p>
+          <h1 id="home-title" class="hero__title">
+            Running AI agents like they'll fail - because they will.
+          </h1>
+          <p class="hero__thesis">
+            Every piece traces one chain: a real failure mechanism, the invariant it violates, and
+            the engineering practice that holds under load. Every consequential claim is sourced or
+            explicitly labeled as inference.
+          </p>
         </div>
+
+        {
+          lead && (
+            <div class="lead card">
+              <div class="lead__meta">
+                <span class="lead__flag">Lead Investigation</span>
+                <span aria-hidden="true">·</span>
+                <span>{spanId(lead.id)}</span>
+                <span aria-hidden="true">·</span>
+                <time datetime={lead.publishedAt.toISOString()}>
+                  {lead.publishedAt.toISOString().slice(0, 10)}
+                </time>
+                <span aria-hidden="true">·</span>
+                <span>{lead.readingTimeMinutes} min read</span>
+              </div>
+              <h2 class="lead__title">
+                <a href={lead.path} class="unstyled-link">
+                  {lead.title}
+                </a>
+              </h2>
+              <p class="lead__dek">{lead.dek}</p>
+              <div class="lead__actions">
+                <a href={lead.path} class="btn btn--primary">
+                  <span>Read investigation</span>
+                  <Icon name="arrow-right" size={14} />
+                </a>
+                <a href="/methodology" class="lead__secondary">
+                  How claims are graded
+                </a>
+              </div>
+            </div>
+          )
+        }
+      </div>
+
+      <div class="hero__aside">
+        <figure class="hero-figure">
+          <img
+            class="hero-figure__img"
+            src={HERO_ARTWORK.src}
+            width={HERO_ARTWORK.width}
+            height={HERO_ARTWORK.height}
+            alt="Architectural schematic of distributed agent state machines, signal traces, and boundary gates"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+          <figcaption class="hero-figure__caption">
+            Fig. 01 · Causal execution boundaries across workers, leases, and policy gates.
+          </figcaption>
+        </figure>
+
+        <div class="hero__evidence card">
+          <EvidenceStrip counts={corpusEvidence} label="Evidence across the live corpus" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Four-layer editorial chain -->
+    <section class="chain" aria-label="The four-layer editorial chain">
+      {
+        chainLayers.map((layer) => (
+          <div class="chain__layer">
+            <p class="chain__label">
+              <span>{layer.index}.</span> {layer.title}
+            </p>
+            <p class="chain__detail">{layer.detail}</p>
+          </div>
+        ))
+      }
+    </section>
+
+    <!-- Tier 2: featured investigations -->
+    {
+      featured.length > 0 && (
+        <section class="featured" aria-labelledby="featured-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Core Systems Studies</p>
+              <h2 id="featured-title" class="section-head__title">
+                Featured architecture monographs
+              </h2>
+            </div>
+            <a href="/series/agent-reliability-patterns" class="section-head__link">
+              Series: Agent Reliability Patterns →
+            </a>
+          </div>
+
+          <div class="featured__grid">
+            {featured.map((entry) => (
+              <article class="featured-card">
+                <a href={entry.path} class="featured-card__link unstyled-link">
+                  <div class="featured-card__art">
+                    <img
+                      src={entry.artwork.src}
+                      width={entry.artwork.width}
+                      height={entry.artwork.height}
+                      alt={`Architectural illustration for ${entry.title}`}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                  <div class="featured-card__meta">
+                    <span class="featured-card__id">{spanId(entry.id)}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{entry.topics.slice(0, 2).join(' · ')}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{entry.readingTimeMinutes} min</span>
+                  </div>
+                  <h3 class="featured-card__title">{entry.title}</h3>
+                  <p class="featured-card__dek">{entry.dek}</p>
+                </a>
+              </article>
+            ))}
+          </div>
+        </section>
       )
     }
-  </section>
+
+    <!-- Interactive failure mechanism lab -->
+    <section class="lab-section" aria-label="Interactive invariant lab">
+      <FailureLab client:idle />
+    </section>
+
+    <!-- Tier 3: chronological signal log -->
+    <section class="log" aria-labelledby="log-heading">
+      <div class="log__head">
+        <div>
+          <p class="eyebrow">Chronological Signal Log</p>
+          <h2 id="log-heading" class="section-head__title">
+            All live articles &amp; engineering briefs
+          </h2>
+        </div>
+
+        <div class="log__controls">
+          <div class="log__tabs" role="group" aria-label="Filter by format">
+            {
+              kindTabs.map((tab) => (
+                <button
+                  type="button"
+                  class:list={['log__tab', { 'log__tab--active': tab.id === 'all' }]}
+                  data-log-kind={tab.id}
+                  aria-pressed={tab.id === 'all' ? 'true' : 'false'}
+                >
+                  {tab.label}
+                </button>
+              ))
+            }
+          </div>
+
+          <div class="log__selects">
+            <label class="visually-hidden" for="home-topic-filter">Filter by topic</label>
+            <select id="home-topic-filter" class="select" data-log-topic>
+              <option value="all">All topics</option>
+              {topicsList.map((topic) => <option value={topic.id}>{topic.data.name}</option>)}
+            </select>
+            <span class="log__count" data-log-count>{cards.length} live</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="log__list" data-log-list>
+        {
+          cards.map((card) => (
+            <div data-log-entry data-kind={card.kind} data-topics={card.topicIds.join(' ')}>
+              <ArticleCard
+                id={card.id}
+                path={card.path}
+                title={card.title}
+                dek={card.dek}
+                publishedAt={card.publishedAt}
+                topics={card.topics}
+                topicIds={card.topicIds}
+                kind={card.kind}
+                readingTimeMinutes={card.readingTimeMinutes}
+                dominantEvidence={card.dominantEvidence}
+                evidence={card.evidence}
+              />
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="log__empty" data-log-empty hidden>
+        <p>No live pieces match that combination of format and topic.</p>
+        <button type="button" class="log__reset" data-log-reset>Reset filters</button>
+      </div>
+    </section>
+  </div>
 </BaseLayout>
 
+<script>
+  const list = document.querySelector<HTMLElement>('[data-log-list]');
+  const kindButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-log-kind]'));
+  const topicSelect = document.querySelector<HTMLSelectElement>('[data-log-topic]');
+  const count = document.querySelector<HTMLElement>('[data-log-count]');
+  const empty = document.querySelector<HTMLElement>('[data-log-empty]');
+  const reset = document.querySelector<HTMLButtonElement>('[data-log-reset]');
+
+  if (list && count && empty) {
+    const entries = Array.from(list.querySelectorAll<HTMLElement>('[data-log-entry]'));
+    let activeKind = 'all';
+    let activeTopic = 'all';
+
+    const apply = () => {
+      let visible = 0;
+      for (const entry of entries) {
+        const kinds = (entry.dataset.kind ?? '').split(' ');
+        const topics = new Set((entry.dataset.topics ?? '').split(' ').filter(Boolean));
+        const matchesKind = activeKind === 'all' || kinds.includes(activeKind);
+        const matchesTopic = activeTopic === 'all' || topics.has(activeTopic);
+        const show = matchesKind && matchesTopic;
+        entry.hidden = !show;
+        if (show) visible++;
+      }
+
+      count.textContent = `${visible} live`;
+      empty.hidden = visible !== 0;
+
+      for (const button of kindButtons) {
+        const active = button.dataset.logKind === activeKind;
+        button.classList.toggle('log__tab--active', active);
+        button.setAttribute('aria-pressed', String(active));
+      }
+    };
+
+    for (const button of kindButtons) {
+      button.addEventListener('click', () => {
+        activeKind = button.dataset.logKind ?? 'all';
+        apply();
+      });
+    }
+
+    topicSelect?.addEventListener('change', () => {
+      activeTopic = topicSelect.value;
+      apply();
+    });
+
+    reset?.addEventListener('click', () => {
+      activeKind = 'all';
+      activeTopic = 'all';
+      if (topicSelect) topicSelect.value = 'all';
+      apply();
+    });
+
+    apply();
+  }
+</script>
+
 <style>
+  .home {
+    padding-block: var(--space-7) var(--space-9);
+  }
+
   .hero {
-    max-width: var(--wide-width);
-    margin: 0 auto;
-    padding: var(--space-8) var(--space-5) var(--space-6);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-7);
+    padding-bottom: var(--space-7);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .hero__copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-6);
   }
 
   .hero__title {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--text-3xl);
-    letter-spacing: -0.02em;
+    max-width: 42rem;
     margin: var(--space-3) 0 var(--space-5);
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 1.3rem + 3.4vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1.06;
+    letter-spacing: -0.035em;
+    color: var(--ink);
   }
 
   .hero__thesis {
-    max-width: 62ch;
-    font-size: var(--text-lg);
-    color: var(--ink-muted);
-    line-height: var(--leading-relaxed);
+    max-width: 60ch;
     margin: 0;
+    color: var(--ink-muted);
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
   }
 
-  .hero__evidence {
-    margin-top: var(--space-7);
-    max-width: 30rem;
+  .lead {
+    padding: var(--space-5);
   }
 
-  .log {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: 0 var(--space-5) var(--space-9);
-  }
-
-  .log__header {
+  .lead__meta {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    border-bottom: 1px solid var(--hairline);
-    padding-bottom: var(--space-3);
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
   }
 
-  .log__count {
+  .lead__flag {
+    color: var(--signal);
+    font-weight: 600;
+  }
+
+  .lead__title {
+    margin: var(--space-2) 0;
     font-family: var(--font-display);
-    font-size: var(--text-xs);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+  }
+
+  .lead__title a:hover {
     color: var(--signal);
   }
 
-  .log__empty {
+  .lead__dek {
+    margin: 0;
     color: var(--ink-muted);
-    padding: var(--space-6) 0;
+    font-size: 0.9375rem;
+    line-height: var(--leading-relaxed);
+  }
+
+  .lead__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .lead__secondary {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--ink-muted);
+    text-underline-offset: 4px;
+  }
+
+  .lead__secondary:hover {
+    color: var(--ink);
+  }
+
+  .hero__aside {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-5);
+  }
+
+  .hero-figure {
+    margin: 0;
+  }
+
+  .hero-figure__img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface-subtle);
+  }
+
+  .hero-figure__caption {
+    margin-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    color: var(--ink-muted);
+  }
+
+  .hero__evidence {
+    padding: var(--space-4);
+  }
+
+  .chain {
+    display: grid;
+    grid-template-columns: 1fr;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .chain__layer {
+    padding-block: var(--space-5);
+    border-top: 1px solid var(--hairline);
+    background: var(--paper);
+  }
+
+  .chain__layer:first-child {
+    border-top: 0;
+  }
+
+  .chain__label {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--signal);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chain__detail {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+  }
+
+  .featured {
+    padding-block: var(--space-7);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .section-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+
+  .section-head__title {
+    margin: var(--space-1) 0 0;
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
+  .section-head__link {
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--signal);
+    text-decoration: none;
+  }
+
+  .section-head__link:hover {
+    text-decoration: underline;
+  }
+
+  .featured__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  .featured-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .featured-card__art {
+    overflow: hidden;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface-subtle);
+  }
+
+  .featured-card__art img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+
+  .featured-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.5rem;
+    margin-top: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+
+  .featured-card__id {
+    color: var(--signal);
+  }
+
+  .featured-card__title {
+    margin: var(--space-2) 0 0;
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+
+  .featured-card__dek {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+  }
+
+  .featured-card__link:hover .featured-card__title {
+    color: var(--signal);
+  }
+
+  .lab-section {
+    padding-block: var(--space-7);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .log {
+    padding-top: var(--space-7);
+  }
+
+  .log__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-bottom: var(--space-5);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .log__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .log__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.2rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface-subtle);
+  }
+
+  .log__tab {
+    min-block-size: 2.125rem;
+    padding: 0.3rem 0.6rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink-muted);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .log__tab:hover {
+    color: var(--ink);
+  }
+
+  .log__tab--active {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 8%, transparent);
+  }
+
+  .log__selects {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+  }
+
+  .log__selects .select {
+    flex: 1;
+    min-width: 0;
+    min-block-size: 2.375rem;
+  }
+
+  .log__count {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--signal);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .log__list {
+    max-width: 56rem;
+  }
+
+  .log__empty {
+    padding-block: var(--space-7);
+  }
+
+  .log__empty p {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    color: var(--ink);
+  }
+
+  .log__reset {
+    margin-top: var(--space-2);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--signal);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .log__reset:hover {
+    text-decoration: underline;
+  }
+
+  @media (min-width: 40rem) {
+    .section-head {
+      flex-direction: row;
+      align-items: flex-end;
+    }
+
+    .featured__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-5);
+    }
+
+    .log__selects {
+      width: auto;
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .chain {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--hairline);
+    }
+
+    .chain__layer {
+      border-top: 0;
+      padding: var(--space-5);
+    }
+
+    .log__head {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .log__controls {
+      justify-content: flex-end;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .home {
+      padding-top: var(--space-8);
+    }
+
+    .hero {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: var(--space-8);
+    }
+
+    .hero__copy {
+      grid-column: span 7;
+    }
+
+    .hero__aside {
+      grid-column: span 5;
+    }
+
+    .chain {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lead__title a,
+    .featured-card__title,
+    .log__tab {
+      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+    }
   }
 </style>

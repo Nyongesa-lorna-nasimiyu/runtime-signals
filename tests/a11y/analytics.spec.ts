@@ -48,7 +48,7 @@ test('artifact_open fires on a real click with the artifact id, not the URL or t
   const events = await collectAnalyticsEvents(page);
   await page.goto('/articles/model-handoff-as-distributed-state-transfer');
 
-  const link = page.locator('.article__artifacts-list a[data-artifact-id]').first();
+  const link = page.locator('a[data-artifact-id]').first();
   await expect(link).toBeVisible();
   // Prevent the real (placeholder) external navigation from interfering with
   // this test's assertions - the click handler itself is what's under test.

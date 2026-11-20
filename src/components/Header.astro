@@ -1,22 +1,31 @@
 ---
+import Icon from './Icon.astro';
+
 const nav = [
   { href: '/articles', label: 'Articles' },
-  { href: '/topics', label: 'Topics' },
   { href: '/brief', label: 'Brief' },
+  { href: '/topics', label: 'Topics' },
   { href: '/sources', label: 'Sources' },
+  { href: '/methodology', label: 'Methodology' },
+];
+
+const mobileExtra = [
+  { href: '/series', label: 'Series' },
+  { href: '/artifacts', label: 'Artifacts Lab' },
   { href: '/about', label: 'About' },
-  { href: '/search', label: 'Search' },
 ];
 
 const currentPath = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? currentPath === '/' : currentPath === href || currentPath.startsWith(`${href}/`);
 ---
 
 <header class="site-header">
-  <div class="site-header__row">
+  <div class="site-header__inner shell">
     <a href="/" class="masthead unstyled-link">
-      <span class="masthead__mark">RS</span>
       <span class="masthead__name">Runtime Signals</span>
     </a>
+
     <nav class="site-nav" aria-label="Primary">
       <ul class="site-nav__list">
         {
@@ -25,7 +34,7 @@ const currentPath = Astro.url.pathname;
               <a
                 href={item.href}
                 class="unstyled-link site-nav__link"
-                aria-current={currentPath.startsWith(item.href) ? 'page' : undefined}
+                aria-current={isActive(item.href) ? 'page' : undefined}
               >
                 {item.label}
               </a>
@@ -34,54 +43,143 @@ const currentPath = Astro.url.pathname;
         }
       </ul>
     </nav>
+
+    <div class="site-header__actions">
+      <a href="/search" class="site-header__search" aria-label="Search archive">
+        <Icon name="search" class="site-header__search-icon" />
+        <span class="site-header__search-label">Search</span>
+        <kbd class="site-header__kbd" aria-hidden="true">⌘K</kbd>
+      </a>
+      <button
+        type="button"
+        class="site-header__menu"
+        data-nav-toggle
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+        aria-label="Open navigation menu"
+      >
+        <span class="site-header__menu-open"><Icon name="menu" /></span>
+        <span class="site-header__menu-close"><Icon name="close" /></span>
+      </button>
+    </div>
   </div>
+
+  <nav id="mobile-nav" class="mobile-nav" data-mobile-nav aria-label="Mobile navigation" hidden>
+    <ul class="mobile-nav__list">
+      {
+        [...nav, ...mobileExtra].map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="unstyled-link mobile-nav__link"
+              aria-current={isActive(item.href) ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+      <li class="mobile-nav__theme">
+        <button type="button" class="theme-toggle theme-toggle--wide" data-theme-toggle>
+          <span class="theme-toggle__icon theme-toggle__icon--moon"><Icon name="moon" /></span>
+          <span class="theme-toggle__icon theme-toggle__icon--sun"><Icon name="sun" /></span>
+          <span class="theme-toggle__label theme-toggle__label--dark"
+            >Switch to dark instrument</span
+          >
+          <span class="theme-toggle__label theme-toggle__label--light">Switch to mineral paper</span
+          >
+        </button>
+      </li>
+    </ul>
+  </nav>
 </header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+  const panel = document.querySelector<HTMLElement>('[data-mobile-nav]');
+
+  if (toggle && panel) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+      panel.hidden = !open;
+    };
+
+    toggle.addEventListener('click', () =>
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true'),
+    );
+
+    panel.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) setOpen(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (toggle.getAttribute('aria-expanded') !== 'true') return;
+      const target = event.target as Node;
+      if (!panel.contains(target) && !toggle.contains(target)) setOpen(false);
+    });
+
+    const desktop = window.matchMedia('(min-width: 48rem)');
+    const closeOnDesktop = () => {
+      if (desktop.matches) setOpen(false);
+    };
+    desktop.addEventListener('change', closeOnDesktop);
+    closeOnDesktop();
+  }
+</script>
 
 <style>
   .site-header {
-    padding: var(--space-5) var(--space-5);
-    max-width: var(--wide-width);
-    margin-inline: auto;
+    position: sticky;
+    top: 0;
+    z-index: 40;
     border-bottom: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--paper) 94%, transparent);
+    backdrop-filter: blur(8px);
   }
 
-  .site-header__row {
+  .site-header__inner {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--space-4);
+    gap: var(--space-5);
+    min-block-size: 4rem;
+    padding-block: var(--space-2);
   }
 
   .masthead {
     display: inline-flex;
     align-items: baseline;
-    gap: var(--space-2);
+    flex-shrink: 0;
     font-family: var(--font-display);
     color: var(--ink);
-    text-decoration: none;
-  }
-
-  .masthead__mark {
-    background: var(--ink);
-    color: var(--paper);
-    font-size: var(--text-xs);
-    font-weight: 700;
-    padding: 0.2em 0.4em;
-    border-radius: var(--radius);
-    letter-spacing: 0.04em;
-  }
-
-  .masthead__name {
     font-size: var(--text-lg);
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    white-space: nowrap;
+  }
+
+  .masthead:hover {
+    color: var(--signal);
+  }
+
+  .site-nav {
+    display: none;
+    flex: 1;
+    justify-content: center;
   }
 
   .site-nav__list {
     list-style: none;
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: var(--space-5);
     margin: 0;
     padding: 0;
@@ -90,62 +188,216 @@ const currentPath = Astro.url.pathname;
   }
 
   .site-nav__link {
-    /* min-block-size, not a fixed height, so a larger user font-size setting
-       can still grow the target - it just never shrinks below 24px (WCAG 2.5.8). */
     display: inline-flex;
     align-items: center;
     min-block-size: var(--touch-target-min);
+    padding-block: 0.25rem;
+    border-bottom: 1px solid transparent;
     color: var(--ink-muted);
     text-decoration: none;
-    padding-bottom: 0.2em;
-    border-bottom: 1px solid transparent;
+    white-space: nowrap;
     touch-action: manipulation;
   }
 
   .site-nav__link:hover,
   .site-nav__link:focus-visible {
     color: var(--ink);
+    border-bottom-color: var(--hairline);
   }
 
   .site-nav__link[aria-current='page'] {
     color: var(--ink);
+    font-weight: 600;
     border-bottom-color: var(--signal);
+  }
+
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+  }
+
+  .site-header__search {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-block-size: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .site-header__search:hover {
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+
+  .site-header__search-icon {
+    color: var(--signal);
+    width: 0.9rem;
+    height: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .site-header__kbd {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--ink-muted);
+    padding-left: var(--space-1);
+  }
+
+  .site-header__menu {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .site-header__menu-close {
+    display: none;
+  }
+
+  .site-header__menu[aria-expanded='true'] .site-header__menu-open {
+    display: none;
+  }
+
+  .site-header__menu[aria-expanded='true'] .site-header__menu-close {
+    display: block;
+  }
+
+  .mobile-nav {
+    border-top: 1px solid var(--hairline);
+    background: var(--surface);
+    padding: var(--space-4) var(--space-5) var(--space-5);
+  }
+
+  .mobile-nav__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .mobile-nav__link {
+    display: flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--hairline) 65%, transparent);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .mobile-nav__link[aria-current='page'] {
+    color: var(--signal);
+    font-weight: 600;
+  }
+
+  .mobile-nav__theme {
+    padding-top: var(--space-3);
+  }
+
+  .theme-toggle--wide {
+    inline-size: 100%;
+  }
+
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-block-size: 2.625rem;
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--signal);
+  }
+
+  .theme-toggle__icon {
+    color: var(--signal);
+    flex-shrink: 0;
+  }
+
+  .theme-toggle__icon--sun,
+  .theme-toggle__label--light {
+    display: none;
+  }
+
+  :global([data-theme='dark']) .theme-toggle__icon--moon,
+  :global([data-theme='dark']) .theme-toggle__label--dark {
+    display: none;
+  }
+
+  :global([data-theme='dark']) .theme-toggle__icon--sun {
+    display: block;
+  }
+
+  :global([data-theme='dark']) .theme-toggle__label--light {
+    display: inline;
+  }
+
+  @media (min-width: 48rem) {
+    .site-nav {
+      display: flex;
+    }
+
+    .site-header__menu {
+      display: none;
+    }
+
+    .mobile-nav {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .site-header__search-label,
+    .site-header__kbd {
+      display: none;
+    }
+
+    .site-header__search {
+      inline-size: 2.5rem;
+      justify-content: center;
+      padding-inline: 0;
+    }
   }
 
   @media (prefers-reduced-motion: no-preference) {
     .masthead,
-    .site-nav__link {
+    .site-nav__link,
+    .site-header__search,
+    .site-header__menu,
+    .theme-toggle {
       transition:
         color var(--motion-duration-fast) var(--motion-ease-out),
-        border-color var(--motion-duration-fast) var(--motion-ease-out);
-    }
-  }
-
-  @media (max-width: 42rem) {
-    .site-header {
-      padding: var(--space-4);
-    }
-
-    .site-header__row {
-      gap: var(--space-3);
-    }
-
-    .site-nav {
-      flex-basis: 100%;
-    }
-
-    /* Keep the complete primary navigation visible, but make the two-row
-       mobile arrangement intentional instead of allowing a final orphaned
-       link to wrap by accident. */
-    .site-nav__list {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: var(--space-1) var(--space-2);
-    }
-
-    .site-nav__link {
-      width: 100%;
-      min-block-size: var(--touch-target-comfortable);
+        border-color var(--motion-duration-fast) var(--motion-ease-out),
+        background-color var(--motion-duration-fast) var(--motion-ease-out);
     }
   }
 </style>

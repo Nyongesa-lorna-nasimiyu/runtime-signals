@@ -1,4 +1,16 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+// Full-page screenshots walk past lazy-loaded card and hero artwork. If an
+// image finishes decoding between two capture attempts, the screenshot never
+// stabilizes and the baseline check times out even though the page is correct.
+// Force every image eager, then wait for it to decode before capturing.
+async function settleImages(page: Page) {
+  await page.evaluate(async () => {
+    const images = Array.from(document.images);
+    for (const image of images) image.loading = 'eager';
+    await Promise.all(images.map((image) => image.decode().catch(() => undefined)));
+  });
+}
 
 // Representative routes, not every route: home (hero + signal log), an
 // article (the richest template - claims, sources, revision history), a
@@ -19,6 +31,7 @@ const ROUTES: [name: string, path: string][] = [
 for (const [name, path] of ROUTES) {
   test(`${name} matches its visual baseline`, async ({ page }) => {
     await page.goto(path, { waitUntil: 'networkidle' });
+    await settleImages(page);
     await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
   });
 }

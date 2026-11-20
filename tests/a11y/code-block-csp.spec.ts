@@ -47,7 +47,7 @@ test('evidence strips render without inline styles under the site real CSP', asy
 
   for (const route of ['/', '/articles/model-handoff-as-distributed-state-transfer']) {
     await page.goto(route);
-    await expect(page.locator('.evidence-strip').first()).toBeVisible();
+    await expect(page.locator('.evidence-strip:visible').first()).toBeVisible();
     await expect(page.locator('.evidence-strip[style], .evidence-strip [style]')).toHaveCount(0);
 
     const violations = await page.evaluate(

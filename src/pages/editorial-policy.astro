@@ -1,10 +1,6 @@
 ---
 import ProseLayout from '@/layouts/ProseLayout.astro';
 
-// A real ordered sequence (docs/editorial/workflow.md), not a decorative
-// 01/02/03 - a piece genuinely cannot skip a stage, and the order itself is
-// the information worth showing, so it earns the same step-trace visual
-// language as ArticleLayout.astro's progress rail rather than a plain list.
 const stages = [
   'Idea',
   'Researching',
@@ -19,28 +15,30 @@ const stages = [
 <ProseLayout
   eyebrow="Editorial policy"
   title="Review and approval"
-  description="How Runtime Signals reviews and approves content before it publishes."
+  description="How Runtime Signals reviews, verifies, and authorizes content before it publishes."
   canonicalPath="/editorial-policy"
 >
-  <ol class="workflow-trace" aria-label="Editorial workflow stages, in order">
+  <div class="workflow-grid" role="list" aria-label="Editorial workflow stages, in order">
     {
       stages.map((stage, i) => (
-        <li>
-          <span class="workflow-trace__mark" aria-hidden="true">
+        <div class="workflow-stage" role="listitem">
+          <span class="workflow-stage__mark" aria-hidden="true">
             {String(i + 1).padStart(2, '0')}
           </span>
-          <span class="workflow-trace__label">{stage}</span>
-        </li>
+          <span class="workflow-stage__label">{stage}</span>
+        </div>
       ))
     }
-  </ol>
-  <p>That workflow tracks readiness; it does not grant permission to publish.</p>
+  </div>
+
   <p>
-    Publication authorization is separate and never comes from the content itself. It requires a
-    merged, reviewed pull request whose required checks pass, whose CODEOWNERS approval is recorded,
-    and whose deployment environment is authorized - captured for the exact commit being built.
-    Nothing an author writes in a draft, including a status field, can grant that authorization.
+    That workflow tracks readiness; it does not grant permission to publish. Publication
+    authorization is separate and never comes from the content itself. It requires a merged,
+    reviewed pull request whose required checks pass, whose CODEOWNERS approval is recorded, and
+    whose deployment environment is authorized - captured for the exact commit being built. Nothing
+    an author writes in a draft, including a status field, can grant that authorization.
   </p>
+
   <h2>AI assistance</h2>
   <p>
     LLMs may assist with source triage, metadata extraction, outline suggestions, citation-gap
@@ -48,6 +46,7 @@ const stages = [
     AI-assisted step is recorded - model, prompt version, inputs, outputs, and the human reviewer's
     decision - and hidden reasoning is never stored.
   </p>
+
   <h2>Corrections</h2>
   <p>
     A correction does not erase history. It creates a visible revision note, keeps the article's
@@ -56,66 +55,48 @@ const stages = [
 </ProseLayout>
 
 <style>
-  .workflow-trace {
-    display: flex;
-    flex-wrap: wrap;
-    list-style: none;
-    margin: var(--space-6) 0;
-    padding: 0;
-    border-top: 1px solid var(--hairline);
-    border-bottom: 1px solid var(--hairline);
-  }
-
-  .workflow-trace li {
-    display: flex;
-    align-items: center;
+  .workflow-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
     gap: var(--space-2);
-    padding: var(--space-3) var(--space-4) var(--space-3) 0;
-    position: relative;
+    margin: var(--space-6) 0;
   }
 
-  /* A connecting line between stages, desktop only - on narrow viewports the
-     list wraps and a horizontal connector would misalign, so the hairline
-     top/bottom border above is the connector there instead. */
-  @media (min-width: 640px) {
-    .workflow-trace li:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 50%;
-      width: var(--space-4);
-      height: 1px;
-      background: var(--hairline);
-    }
-  }
-
-  .workflow-trace__mark {
+  .workflow-stage {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
     font-family: var(--font-display);
     font-size: var(--text-xs);
+  }
+
+  .workflow-stage__mark {
     color: var(--signal);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
 
-  .workflow-trace__label {
-    font-family: var(--font-display);
-    font-size: var(--text-sm);
-    color: var(--ink-muted);
+  .workflow-stage__label {
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.35;
   }
 
-  @media (max-width: 39.99rem) {
-    .workflow-trace {
-      display: grid;
-      grid-template-columns: 1fr;
+  @media (min-width: 40rem) {
+    .workflow-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+  }
 
-    .workflow-trace li {
-      min-block-size: var(--touch-target-comfortable);
-      padding-block: var(--space-2);
-      border-top: 1px solid var(--hairline);
-    }
-
-    .workflow-trace li:first-child {
-      border-top: 0;
+  @media (min-width: 64rem) {
+    .workflow-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 </style>

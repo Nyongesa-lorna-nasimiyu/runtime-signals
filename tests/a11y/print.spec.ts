@@ -21,7 +21,7 @@ test.describe('print styles', () => {
     page,
   }) => {
     await page.goto('/articles/model-handoff-as-distributed-state-transfer');
-    const externalLink = page.locator('.article__sources-list a').first();
+    const externalLink = page.locator('.source-list .source-card__external').first();
     const externalContent = await externalLink.evaluate(
       (el) => getComputedStyle(el, '::after').content,
     );

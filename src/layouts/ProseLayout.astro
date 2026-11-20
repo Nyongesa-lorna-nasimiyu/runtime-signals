@@ -1,10 +1,4 @@
 ---
-// Shared shell for the site's long-form policy/about pages (about,
-// methodology, corrections, editorial-policy, newsletter). These pages carry
-// no claim data of their own, so - unlike the homepage and article pages -
-// they get no Evidence Strip; a plain hairline under the header is the
-// honest device here rather than reaching for a signature element that
-// would have nothing real to show.
 import BaseLayout from './BaseLayout.astro';
 
 interface Props {
@@ -19,45 +13,232 @@ const { eyebrow, title, description, canonicalPath, noindex } = Astro.props;
 ---
 
 <BaseLayout title={title} description={description} canonicalPath={canonicalPath} noindex={noindex}>
-  <article class="prose">
-    <header class="prose__header">
-      <p class="eyebrow">{eyebrow}</p>
+  <div class="prose-page shell">
+    <header class="prose-header">
+      <p class="eyebrow eyebrow--signal">{eyebrow}</p>
       <h1><slot name="title">{title}</slot></h1>
+      <p class="prose-header__description">{description}</p>
     </header>
-    <div class="prose__body">
+
+    <div class="prose-body">
       <slot />
     </div>
-  </article>
+  </div>
 </BaseLayout>
 
 <style>
-  .prose {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-5) var(--space-9);
+  .prose-page {
+    padding-block: var(--space-7) var(--space-9);
+  }
+
+  .prose-header {
+    max-width: 46rem;
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .prose-header h1 {
+    margin: var(--space-2) 0 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 1.5rem + 2.5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.07;
+    letter-spacing: -0.03em;
+  }
+
+  .prose-header__description {
+    max-width: 60ch;
+    margin: var(--space-3) 0 0;
+    color: var(--ink-muted);
+    font-family: var(--font-body);
+    font-size: var(--text-lg);
     line-height: var(--leading-relaxed);
   }
 
-  .prose__header {
-    padding-bottom: var(--space-6);
+  .prose-body {
+    max-width: 68ch;
+    padding-top: var(--space-6);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 1.09375rem;
+    line-height: 1.75;
+  }
+
+  .prose-body :global(> *:first-child) {
+    margin-top: 0;
+  }
+
+  .prose-body :global(h2) {
+    margin: var(--space-7) 0 var(--space-3);
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .prose-body :global(h3) {
+    margin: var(--space-6) 0 var(--space-2);
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .prose-body :global(p) {
+    margin: 0 0 1.25rem;
+  }
+
+  .prose-body :global(a) {
+    color: var(--signal);
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    overflow-wrap: anywhere;
+  }
+
+  .prose-body :global(a:hover) {
+    opacity: 0.82;
+  }
+
+  .prose-body :global(ul),
+  .prose-body :global(ol) {
+    margin: 0 0 1.35rem;
+    padding-left: 1.4rem;
+  }
+
+  .prose-body :global(li) {
+    margin-bottom: 0.5rem;
+  }
+
+  .prose-body :global(li::marker) {
+    color: var(--signal);
+  }
+
+  .prose-body :global(blockquote) {
+    margin: 1.75rem 0;
+    padding: 1.1rem 0;
+    border-top: 1px solid var(--hairline);
     border-bottom: 1px solid var(--hairline);
-    margin-bottom: var(--space-6);
+    color: var(--ink-muted);
+    font-size: 1.08em;
+    font-style: italic;
   }
 
-  .prose__header h1 {
-    font-family: var(--font-body);
-    font-size: var(--text-2xl);
-    line-height: var(--leading-tight);
-    margin: var(--space-2) 0 0;
+  .prose-body :global(blockquote p:last-child) {
+    margin-bottom: 0;
   }
 
-  .prose__body :global(h2) {
-    font-family: var(--font-body);
-    font-size: var(--text-xl);
-    margin-top: var(--space-7);
+  .prose-body :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
   }
 
-  .prose__body :global(li) {
-    margin-bottom: var(--space-2);
+  .prose-body :global(code:not(pre code)) {
+    padding: 0.12em 0.35em;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+  }
+
+  .prose-body :global(pre) {
+    margin: 1.75rem 0;
+    padding: var(--space-4);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+
+  .prose-body :global(pre code) {
+    font-size: inherit;
+  }
+
+  .prose-body :global(hr) {
+    margin: var(--space-7) 0;
+    border: 0;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .prose-body :global(table) {
+    inline-size: 100%;
+    margin-block: var(--space-5);
+    border-collapse: collapse;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+  }
+
+  .prose-body :global(th),
+  .prose-body :global(td) {
+    padding: var(--space-3);
+    border: 1px solid var(--hairline);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .prose-body :global(th) {
+    background: var(--surface-subtle);
+    font-weight: 600;
+  }
+
+  .prose-body :global(strong) {
+    font-weight: 600;
+  }
+
+  .prose-body :global(.evidence-key) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: var(--space-5) 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .prose-body :global(.evidence-key li) {
+    margin: 0;
+  }
+
+  .prose-body :global(.priority-list) {
+    margin: var(--space-5) 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: priority;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .prose-body :global(.priority-list li) {
+    position: relative;
+    margin: 0;
+    padding-left: var(--space-6);
+    counter-increment: priority;
+  }
+
+  .prose-body :global(.priority-list li::before) {
+    content: counter(priority);
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    border: 1px solid var(--signal);
+    border-radius: 50%;
+    color: var(--signal);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+  }
+
+  @media (min-width: 64rem) {
+    .prose-page {
+      padding-block: var(--space-8) var(--space-9);
+    }
   }
 </style>

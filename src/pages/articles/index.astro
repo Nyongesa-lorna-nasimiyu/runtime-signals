@@ -1,67 +1,25 @@
 ---
-import BaseLayout from '@/layouts/BaseLayout.astro';
-import ArticleCard from '@/components/ArticleCard.astro';
-import Pagination from '@/components/Pagination.astro';
+import ArchiveLayout from '@/layouts/ArchiveLayout.astro';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
-import { resolveTopicNames, weakestEvidence, evidenceCounts, articlePath } from '@/lib/resolve';
 import { BUILD_TIME } from '@/lib/build-time';
 
 const PAGE_SIZE = 10;
 const articles = await getCollection('articles');
 const live = getPublishedEntries(articles, BUILD_TIME);
 const totalPages = Math.ceil(live.length / PAGE_SIZE);
-const cards = await Promise.all(
-  live.slice(0, PAGE_SIZE).map(async (entry) => ({
-    id: entry.id,
-    path: articlePath(entry),
-    title: entry.data.title,
-    dek: entry.data.dek,
-    publishedAt: entry.data.published_at,
-    topics: await resolveTopicNames(entry),
-    dominantEvidence: weakestEvidence(entry),
-    evidence: evidenceCounts([entry]),
-  })),
-);
 ---
 
-<BaseLayout
+<ArchiveLayout
+  entries={live.slice(0, PAGE_SIZE)}
+  allEntries={live}
   title="Articles"
-  description="All published Runtime Signals articles, filterable by topic and evidence strength."
+  eyebrow="Long-Form Investigations"
+  description="Deep-dives, architectural patterns, and tutorials tracing production failure mechanisms, formal runtime invariants, and verified engineering practices."
   canonicalPath="/articles"
->
-  <section class="listing">
-    <header class="listing__header">
-      <p class="eyebrow">Archive</p>
-      <h1>Articles</h1>
-    </header>
-    {
-      cards.length === 0 ? (
-        <p class="listing__empty">No published articles yet.</p>
-      ) : (
-        <div class="listing__list">
-          {cards.map((card) => (
-            <ArticleCard {...card} headingLevel={2} />
-          ))}
-        </div>
-      )
-    }
-    <Pagination basePath="/articles" currentPage={1} totalPages={totalPages} />
-  </section>
-</BaseLayout>
-
-<style>
-  .listing {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-5) var(--space-9);
-  }
-  .listing__header h1 {
-    font-family: var(--font-body);
-    font-size: var(--text-2xl);
-    margin: var(--space-2) 0 var(--space-6);
-  }
-  .listing__empty {
-    color: var(--ink-muted);
-  }
-</style>
+  basePath="/articles"
+  currentPage={1}
+  totalPages={totalPages}
+  showKindFilter
+  emptyMessage="No published articles yet."
+/>

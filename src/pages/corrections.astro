@@ -5,7 +5,7 @@ import ProseLayout from '@/layouts/ProseLayout.astro';
 <ProseLayout
   eyebrow="Corrections"
   title="How we correct the record"
-  description="How Runtime Signals handles factual errors and material updates."
+  description="How Runtime Signals handles factual errors, material updates, and retired pieces."
   canonicalPath="/corrections"
 >
   <p>
@@ -17,16 +17,22 @@ import ProseLayout from '@/layouts/ProseLayout.astro';
     Every revision, correction or not, is recorded on the article itself under "Revision history"
     with one of these badges, exactly as they appear there:
   </p>
+
   <ul class="badge-key">
-    <li><span class="revision-badge" data-type="published">published</span> the original piece.</li>
     <li>
-      <span class="revision-badge" data-type="update">update</span> a routine content or dependency fix.
+      <span class="revision-badge" data-type="published">published</span>
+      <span>The original approved publication.</span>
     </li>
     <li>
-      <span class="revision-badge" data-type="correction">correction</span> a factual error, fixed and
-      disclosed.
+      <span class="revision-badge" data-type="update">update</span>
+      <span>A routine content or dependency fix.</span>
+    </li>
+    <li>
+      <span class="revision-badge" data-type="correction">correction</span>
+      <span>A factual error, fixed and disclosed.</span>
     </li>
   </ul>
+
   <p>
     See, for example, <a
       href="/articles/model-handoff-as-distributed-state-transfer#revision-history"
@@ -34,12 +40,17 @@ import ProseLayout from '@/layouts/ProseLayout.astro';
     >. When a factual correction is needed, it carries a visible notice at the top of the article,
     not just an entry at the bottom.
   </p>
-  <p class="corrections-contact">
-    <strong>Found a factual error?</strong>
-    <a href="mailto:care@runtimesignals.tech?subject=Correction%20request%20-%20Runtime%20Signals"
-      >Report a correction</a
-    > with the article URL, the claim in question, and supporting evidence.
-  </p>
+
+  <div class="corrections-contact">
+    <p class="corrections-contact__title">Found a factual error?</p>
+    <p class="corrections-contact__copy">
+      Email <a
+        href="mailto:care@runtimesignals.tech?subject=Correction%20request%20-%20Runtime%20Signals"
+        >care@runtimesignals.tech</a
+      > with the article URL, the claim ID in question, and supporting primary evidence.
+    </p>
+  </div>
+
   <p>
     Retiring a piece - because a tool it covers no longer exists, or its practice no longer holds -
     is a separate action from a correction. Retired pieces are marked archived, stay reachable at
@@ -54,42 +65,76 @@ import ProseLayout from '@/layouts/ProseLayout.astro';
 <style>
   .badge-key {
     list-style: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
     margin: var(--space-5) 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface);
   }
 
-  /* Exactly ArticleLayout.astro's .article__revision-badge, reused here so a
-     reader sees the real badge before ever reaching an article - not a
-     reinvented look-alike. */
+  .badge-key li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--hairline);
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+  }
+
+  .badge-key li:first-child {
+    border-top: 0;
+  }
+
   .revision-badge {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-1);
+    padding: 0.15em 0.5em;
+    border: 1px solid currentColor;
+    border-radius: var(--radius-sm);
     font-family: var(--font-display);
-    font-size: var(--text-xs);
+    font-size: 0.6875rem;
+    font-weight: 600;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    padding: 0.15em 0.5em;
-    border-radius: var(--radius);
-    border: 1px solid currentColor;
-    margin-right: var(--space-2);
   }
 
   .revision-badge[data-type='correction'] {
     color: var(--evidence-mixed);
   }
+
   .revision-badge[data-type='update'] {
     color: var(--signal);
   }
+
   .revision-badge[data-type='published'] {
     color: var(--evidence-supported);
   }
 
   .corrections-contact {
-    border-left: 2px solid var(--signal);
-    padding-left: var(--space-4);
+    margin: var(--space-6) 0;
+    padding: var(--space-5);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .corrections-contact__title {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .corrections-contact__copy {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
   }
 </style>

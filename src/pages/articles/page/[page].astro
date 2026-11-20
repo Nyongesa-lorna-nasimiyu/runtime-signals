@@ -1,15 +1,15 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import BaseLayout from '@/layouts/BaseLayout.astro';
-import ArticleCard from '@/components/ArticleCard.astro';
-import Pagination from '@/components/Pagination.astro';
+import ArchiveLayout from '@/layouts/ArchiveLayout.astro';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
-import { resolveTopicNames, weakestEvidence, evidenceCounts, articlePath } from '@/lib/resolve';
 import { BUILD_TIME } from '@/lib/build-time';
+
+type Editorial = CollectionEntry<'articles'> | CollectionEntry<'briefs'>;
 
 interface Props {
   entries: CollectionEntry<'articles'>[];
+  allEntries: Editorial[];
   currentPage: number;
   totalPages: number;
 }
@@ -26,6 +26,7 @@ export async function getStaticPaths() {
       params: { page: String(currentPage) },
       props: {
         entries: live.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+        allEntries: live,
         currentPage,
         totalPages,
       },
@@ -33,47 +34,19 @@ export async function getStaticPaths() {
   });
 }
 
-const { entries, currentPage, totalPages } = Astro.props;
-const cards = await Promise.all(
-  entries.map(async (entry) => ({
-    id: entry.id,
-    path: articlePath(entry),
-    title: entry.data.title,
-    dek: entry.data.dek,
-    publishedAt: entry.data.published_at,
-    topics: await resolveTopicNames(entry),
-    dominantEvidence: weakestEvidence(entry),
-    evidence: evidenceCounts([entry]),
-  })),
-);
+const { entries, allEntries, currentPage, totalPages } = Astro.props;
 ---
 
-<BaseLayout
-  title={`Articles — Page ${currentPage}`}
-  description={`All published Runtime Signals articles, filterable by topic and evidence strength. Page ${currentPage}`}
+<ArchiveLayout
+  entries={entries}
+  allEntries={allEntries}
+  title={`Articles - Page ${currentPage}`}
+  eyebrow="Long-Form Investigations"
+  description="Deep-dives, architectural patterns, and tutorials tracing production failure mechanisms, formal runtime invariants, and verified engineering practices."
   canonicalPath={`/articles/page/${currentPage}`}
->
-  <section class="listing">
-    <header class="listing__header">
-      <p class="eyebrow">Archive</p>
-      <h1>Articles</h1>
-    </header>
-    <div class="listing__list">
-      {cards.map((card) => <ArticleCard {...card} headingLevel={2} />)}
-    </div>
-    <Pagination basePath="/articles" currentPage={currentPage} totalPages={totalPages} />
-  </section>
-</BaseLayout>
-
-<style>
-  .listing {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-5) var(--space-9);
-  }
-  .listing__header h1 {
-    font-family: var(--font-body);
-    font-size: var(--text-2xl);
-    margin: var(--space-2) 0 var(--space-6);
-  }
-</style>
+  basePath="/articles"
+  currentPage={currentPage}
+  totalPages={totalPages}
+  showKindFilter
+  emptyMessage="No published articles yet."
+/>

@@ -9,6 +9,60 @@ export async function resolveTopicNames(entry: Editorial): Promise<string[]> {
   return topics.map((t) => t.data.name);
 }
 
+/** Topic IDs paired with names - article headers and archive filters need the
+ * stable slug for links, not just the display label. */
+export async function resolveTopicItems(entry: Editorial): Promise<{ id: string; name: string }[]> {
+  if (entry.data.topics.length === 0) return [];
+  const topics = await getEntries(entry.data.topics);
+  return topics.map((t) => ({ id: t.id, name: t.data.name }));
+}
+
+export interface SourceSummary {
+  id: string;
+  title: string;
+  url: string;
+  sourceType: string;
+  primary: boolean;
+  publisher: string;
+  accessedAt: Date;
+  notes?: string;
+}
+
+export async function resolveSourceSummaries(entry: Editorial): Promise<SourceSummary[]> {
+  if (entry.data.citations.length === 0) return [];
+  const sources = await getEntries(entry.data.citations);
+  return sources.map((s) => ({
+    id: s.id,
+    title: s.data.title,
+    url: s.data.url,
+    sourceType: s.data.source_type,
+    primary: s.data.primary,
+    publisher: s.data.publisher,
+    accessedAt: s.data.accessed_at,
+    notes: s.data.notes,
+  }));
+}
+
+export interface ArtifactSummary {
+  id: string;
+  title: string;
+  url: string;
+  kind: string;
+  description: string;
+}
+
+export async function resolveArtifactSummaries(entry: Editorial): Promise<ArtifactSummary[]> {
+  if (entry.data.artifacts.length === 0) return [];
+  const artifacts = await getEntries(entry.data.artifacts);
+  return artifacts.map((a) => ({
+    id: a.id,
+    title: a.data.title,
+    url: a.data.url,
+    kind: a.data.kind,
+    description: a.data.description,
+  }));
+}
+
 export async function resolveAuthorNames(entry: Editorial): Promise<string[]> {
   const authors = await getEntries(entry.data.authors);
   return authors.map((a) => a.data.name);

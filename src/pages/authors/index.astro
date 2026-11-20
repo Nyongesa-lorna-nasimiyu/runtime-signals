@@ -1,10 +1,26 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import Icon from '@/components/Icon.astro';
 import { getCollection } from 'astro:content';
+import { getPublishedEntries } from '@/lib/publication';
+import { BUILD_TIME } from '@/lib/build-time';
 
-const authors = (await getCollection('authors')).sort((a, b) =>
-  a.data.name.localeCompare(b.data.name),
-);
+const [authors, articles, briefs] = await Promise.all([
+  getCollection('authors'),
+  getCollection('articles'),
+  getCollection('briefs'),
+]);
+const live = getPublishedEntries([...articles, ...briefs], BUILD_TIME);
+const authorCards = authors
+  .slice()
+  .sort((a, b) => a.data.name.localeCompare(b.data.name))
+  .map((author) => ({
+    author,
+    count: live.filter((entry) =>
+      entry.data.authors.some((reference) => reference.id === author.id),
+    ).length,
+  }));
 ---
 
 <BaseLayout
@@ -12,64 +28,200 @@ const authors = (await getCollection('authors')).sort((a, b) =>
   description="Runtime Signals authors and their disclosures."
   canonicalPath="/authors"
 >
-  <section class="listing">
-    <header class="listing__header">
-      <p class="eyebrow">Bylines</p>
-      <h1>Authors</h1>
-    </header>
-    <ul class="author-list">
+  <div class="authors-page shell">
+    <PageHero
+      eyebrow="Bylines & Disclosures"
+      title="Authors"
+      description="The people writing Runtime Signals, the systems they build, and the expertise they bring to the claims ledger."
+    >
+      <div slot="panel" class="author-stats">
+        <div>
+          <span class="author-stats__value">{authorCards.length}</span>
+          <span class="author-stats__label">Contributors</span>
+        </div>
+        <div>
+          <span class="author-stats__value">{live.length}</span>
+          <span class="author-stats__label">Live pieces</span>
+        </div>
+      </div>
+    </PageHero>
+
+    <div class="author-grid">
       {
-        authors.map((author) => (
-          <li>
-            <a href={`/authors/${author.id}`} class="unstyled-link author-list__item">
-              <span class="author-list__name">{author.data.name}</span>
-              <span class="author-list__bio">{author.data.bio}</span>
-            </a>
-          </li>
+        authorCards.map(({ author, count }) => (
+          <a href={`/authors/${author.id}`} class="author-card unstyled-link">
+            <div class="author-card__head">
+              <span class="author-card__initials" aria-hidden="true">
+                {author.data.name
+                  .split(' ')
+                  .map((part) => part[0])
+                  .slice(0, 2)
+                  .join('')}
+              </span>
+              <span class="author-card__count">
+                {count} {count === 1 ? 'piece' : 'pieces'}
+              </span>
+            </div>
+            <h2 class="author-card__name">
+              <span>{author.data.name}</span>
+              <Icon name="arrow-up-right" class="author-card__arrow" />
+            </h2>
+            <p class="author-card__bio">{author.data.bio}</p>
+            {author.data.expertise.length > 0 && (
+              <p class="author-card__expertise">{author.data.expertise.join(' · ')}</p>
+            )}
+          </a>
         ))
       }
-    </ul>
-  </section>
+    </div>
+  </div>
 </BaseLayout>
 
 <style>
-  .listing {
-    max-width: var(--content-width);
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-5) var(--space-9);
+  .authors-page {
+    padding-block: var(--space-7) var(--space-9);
   }
-  .listing__header h1 {
-    font-family: var(--font-body);
-    font-size: var(--text-2xl);
-    margin: var(--space-2) 0 var(--space-6);
+
+  .author-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
   }
-  .author-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+
+  .author-stats > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
   }
-  .author-list__item {
-    display: block;
-    padding: var(--space-4) 0;
-    border-top: 1px solid var(--hairline);
+
+  .author-stats__value {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .author-stats__label {
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+  }
+
+  .author-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+  }
+
+  .author-card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: var(--space-5);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface);
     color: inherit;
+    text-decoration: none;
   }
-  .author-list__item:is(:hover, :focus-visible) {
+
+  .author-card:hover,
+  .author-card:focus-visible {
+    border-color: var(--signal);
+  }
+
+  .author-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .author-card__initials {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border: 1px solid var(--signal);
+    border-radius: 50%;
+    background: var(--signal-dim);
+    color: var(--signal);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .author-card__count {
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .author-card__name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin: var(--space-4) 0 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .author-card:hover .author-card__name {
     color: var(--signal);
   }
-  .author-list__name {
-    display: block;
-    font-family: var(--font-display);
-    font-weight: 600;
+
+  .author-card__arrow {
+    flex-shrink: 0;
+    color: var(--ink-muted);
+    opacity: 0.5;
   }
-  .author-list__bio {
+
+  .author-card:hover .author-card__arrow {
+    color: var(--signal);
+    opacity: 1;
+  }
+
+  .author-card__bio {
+    margin: var(--space-2) 0 0;
     color: var(--ink-muted);
     font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+  }
+
+  .author-card__expertise {
+    margin: var(--space-4) 0 0;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--hairline);
+    color: var(--signal);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1.5;
+  }
+
+  @media (min-width: 48rem) {
+    .author-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .author-list__item {
-      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+    .author-card,
+    .author-card__name,
+    .author-card__arrow {
+      transition:
+        border-color var(--motion-duration-fast) var(--motion-ease-out),
+        color var(--motion-duration-fast) var(--motion-ease-out),
+        opacity var(--motion-duration-fast) var(--motion-ease-out);
     }
   }
 </style>

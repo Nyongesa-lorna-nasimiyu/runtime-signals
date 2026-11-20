@@ -1,0 +1,8 @@
+title: 'On the Fragility of Self-Improving Agents: Variance, Task Order, and Underspecification'
+url: https://arxiv.org/abs/2608.18066
+publisher: arXiv
+published_at: 2026-08-18
+accessed_at: 2026-09-04
+source_type: paper
+primary: true
+notes: Re-evaluates memory-based self-improving agents across multiple runs and shuffled task orders, finding variance and hidden-curriculum effects.

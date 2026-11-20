@@ -12,6 +12,7 @@ Google's current guidance says the same Search fundamentals apply to AI Overview
 
 - Server-render complete article HTML; do not hide article body behind React hydration.
 - One canonical HTTPS URL per page, emitted in HTML and feeds.
+- Paginate `/articles` and `/brief` with 10 live entries per page: page 1 stays at the root, while page 2+ use static `/page/{n}` routes only when needed. Use regular crawlable anchors and unique per-page title, description, and canonical metadata. Publication filtering excludes drafts, future entries, unapproved entries, and archived entries from active listings.
 - Generate XML sitemap index when URL count warrants it; exclude drafts, noindex pages, redirects, and archived pages that are intentionally gone.
 - Serve `/robots.txt` with sitemap location; use `noindex` or authentication for hiding pages, not robots.txt alone. [Google robots guidance](https://developers.google.com/search/docs/crawling-indexing/robots/intro).
 - Generate RSS and Atom feeds for all articles and the weekly brief. Google documents RSS/Atom as accepted sitemap-like discovery inputs but XML remains the canonical sitemap. [Sitemaps](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap).
@@ -71,4 +72,3 @@ Do not use hidden text, prompt bait, automated article generation, or `llms.txt`
 ## Measurement and refresh
 
 Track Search Console and Bing Webmaster data by page, topic, and intent. Refresh on a schedule based on evidence: outdated provider APIs, changed framework semantics, decaying impressions/CTR, new primary evidence, or broken examples. Preserve revisions rather than silently rewriting history.
-

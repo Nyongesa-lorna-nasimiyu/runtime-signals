@@ -88,7 +88,7 @@ Items that must be true before the site can go live in front of readers, regardl
 7. Backup/export rehearsal completed for any provider holding subscriber data (Phase 5 gate).
 8. Structured data, sitemap, and Search Console/Bing ownership verified before relying on organic discovery.
 9. A named incident owner and second contact assigned before any production account is activated, per `docs/security/incident-response.md`.
-10. HSTS `max-age` in `public/_headers` raised from its current 300-second bootstrap value to one year, only after HTTPS/DNS stability on the real domain is verified in production — a long max-age shipped before that verification risks stranding the domain for every browser that saw it.
+10. HSTS `max-age` in `public/_headers` raised from its current 300-second bootstrap value to one year, only after HTTPS/DNS stability on the real domain is verified in production - a long max-age shipped before that verification risks stranding the domain for every browser that saw it.
 
 ## Approval gate
 

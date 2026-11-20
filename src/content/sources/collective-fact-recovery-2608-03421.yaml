@@ -1,0 +1,8 @@
+title: 'When Truth Is Distributed: Misinformation Derails Collective Fact Recovery in LLM-Based Multi-Agent Systems'
+url: https://arxiv.org/abs/2608.03421
+publisher: arXiv
+published_at: 2026-08-13
+accessed_at: 2026-09-04
+source_type: paper
+primary: true
+notes: Uses paired controlled five-agent environments and evidence-root lineage to study how false testimony propagates through multi-agent communication.

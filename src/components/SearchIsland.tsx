@@ -41,7 +41,7 @@ let pagefindLoadPromise: Promise<PagefindModule> | null = null;
  * Same span-ID visual treatment as ArticleCard/ArticleLayout (src/lib/span-id.ts),
  * derived from a search result's URL rather than a CollectionEntry (the only
  * thing Pagefind's result data actually gives this component). Only articles
- * and briefs get one — a topic/series/methodology/etc. result's URL doesn't
+ * and briefs get one - a topic/series/methodology/etc. result's URL doesn't
  * match either prefix, and undefined means "don't render a span ID."
  */
 function entrySpanId(url: string): string | undefined {

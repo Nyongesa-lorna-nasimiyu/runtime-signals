@@ -1,0 +1,73 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import ArticleCard from './ArticleCard.astro';
+import { articlePath, evidenceCounts, resolveTopicNames, weakestEvidence } from '@/lib/resolve';
+
+interface RelatedContentData {
+  curated: CollectionEntry<'articles'>[];
+  seriesNext?: CollectionEntry<'articles'>;
+  fallback: CollectionEntry<'articles'>[];
+}
+
+interface Props {
+  relatedContent?: RelatedContentData;
+}
+
+const { relatedContent } = Astro.props;
+const relatedEntries = relatedContent
+  ? [...relatedContent.curated, ...relatedContent.fallback]
+  : [];
+
+const toCard = async (entry: CollectionEntry<'articles'>) => ({
+  id: entry.id,
+  path: articlePath(entry),
+  title: entry.data.title,
+  dek: entry.data.dek,
+  publishedAt: entry.data.published_at,
+  topics: await resolveTopicNames(entry),
+  dominantEvidence: weakestEvidence(entry),
+  evidence: evidenceCounts([entry]),
+});
+
+const [seriesNextCard, relatedCards] = await Promise.all([
+  relatedContent?.seriesNext ? toCard(relatedContent.seriesNext) : undefined,
+  Promise.all(relatedEntries.map(toCard)),
+]);
+---
+
+{
+  seriesNextCard && (
+    <section class="related-content">
+      <h2 class="eyebrow">Continue the series</h2>
+      <div class="related-content__list">
+        <ArticleCard {...seriesNextCard} headingLevel={3} />
+      </div>
+    </section>
+  )
+}
+
+{
+  relatedCards.length > 0 && (
+    <section class="related-content">
+      <h2 class="eyebrow">Related reading</h2>
+      <div class="related-content__list">
+        {relatedCards.map((card) => (
+          <ArticleCard {...card} headingLevel={3} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .related-content {
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--hairline);
+  }
+
+  .related-content__list {
+    display: flex;
+    flex-direction: column;
+  }
+</style>

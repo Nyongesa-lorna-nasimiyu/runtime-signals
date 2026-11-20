@@ -1,15 +1,18 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import ArticleCard from '@/components/ArticleCard.astro';
+import Pagination from '@/components/Pagination.astro';
 import { getCollection } from 'astro:content';
 import { getPublishedEntries } from '@/lib/publication';
 import { resolveTopicNames, weakestEvidence, evidenceCounts, articlePath } from '@/lib/resolve';
 import { BUILD_TIME } from '@/lib/build-time';
 
+const PAGE_SIZE = 10;
 const articles = await getCollection('articles');
 const live = getPublishedEntries(articles, BUILD_TIME);
+const totalPages = Math.ceil(live.length / PAGE_SIZE);
 const cards = await Promise.all(
-  live.map(async (entry) => ({
+  live.slice(0, PAGE_SIZE).map(async (entry) => ({
     id: entry.id,
     path: articlePath(entry),
     title: entry.data.title,
@@ -43,6 +46,7 @@ const cards = await Promise.all(
         </div>
       )
     }
+    <Pagination basePath="/articles" currentPage={1} totalPages={totalPages} />
   </section>
 </BaseLayout>
 

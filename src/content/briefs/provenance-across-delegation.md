@@ -1,7 +1,7 @@
 ---
 title: 'Weekly Brief: Weak evidence gets weaker at delegation boundaries'
 dek: Preserve provenance and confidence when one agent hands a claim to another.
-status: scheduled
+status: draft
 authors: [jordan-avery]
 topics: [state, execution, evaluation]
 published_at: 2026-10-02T07:00:00Z
@@ -17,7 +17,7 @@ citations: [opentelemetry-genai-semconv]
 ---
 
 Draft brief for the execution cluster. A delegated claim should carry its source reference,
-retrieval time, transformation history, and confidence—not just the sentence that summarizes it.
+retrieval time, transformation history, and confidence-not just the sentence that summarizes it.
 OpenTelemetry's [GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/)
 offer a useful precedent for naming context around model and agent operations; the provenance
 contract is an application design to test.

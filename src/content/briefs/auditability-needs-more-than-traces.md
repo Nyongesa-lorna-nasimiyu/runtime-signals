@@ -1,7 +1,7 @@
 ---
 title: 'Weekly Brief: Trace visibility is not auditability'
 dek: Distinguish debugging telemetry from an evidence trail that can support a consequential review.
-status: scheduled
+status: draft
 authors: [jordan-avery]
 topics: [observability, security]
 published_at: 2026-09-18T07:00:00Z

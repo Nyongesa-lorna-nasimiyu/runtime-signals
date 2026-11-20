@@ -1,7 +1,7 @@
 # Required for the branch-protection setting "Require review from Code
 # Owners" that .github/workflows/deploy.yml's approval-manifest generation
 # relies on (scripts/ci/github-checks.mjs's hasApprovingReview doesn't
-# independently re-verify CODEOWNERS matching — it trusts that GitHub's own
+# independently re-verify CODEOWNERS matching - it trusts that GitHub's own
 # branch-protection setting already enforced it, which requires this file to
 # be real and that setting to be enabled).
 #

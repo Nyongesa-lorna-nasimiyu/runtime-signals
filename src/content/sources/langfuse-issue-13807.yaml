@@ -1,0 +1,7 @@
+title: 'Langfuse issue 13807: OpenInference cost mapping'
+url: https://github.com/langfuse/langfuse/issues/13807
+publisher: Langfuse
+accessed_at: 2026-09-04
+source_type: repository
+primary: true
+notes: Reproduction and version discussion for divergence between provider-reported costs and Langfuse-derived cost fields.

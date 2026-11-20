@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Real build-time and Pagefind-index measurements at 100/1,000/5,000
-// documents — what ADR-0001's migration boundary (1-2 MB compressed search
+// documents - what ADR-0001's migration boundary (1-2 MB compressed search
 // payload) is actually measured against, and what docs/poc/README.md's
 // "Remaining: fixture scaling" item asked for. Generates synthetic articles
 // directly into src/content/articles/ (reusing the real schema, real
@@ -9,7 +9,7 @@
 // leave synthetic fixtures mixed into real content.
 //
 // SKIP_OG_RENDER=true (src/lib/og-image.ts) is set for the main scale loop:
-// a first, un-isolated run at 1,000 documents took 578s to build — Satori
+// a first, un-isolated run at 1,000 documents took 578s to build - Satori
 // font-shaping + resvg PNG encoding per document, sequential in Astro's
 // static path generation, dominates so badly it was measuring OG-image cost,
 // not the Pagefind/content-build cost this scale test actually cares about.

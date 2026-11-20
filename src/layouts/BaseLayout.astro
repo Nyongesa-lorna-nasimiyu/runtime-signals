@@ -1,7 +1,7 @@
 ---
 import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
-import { absoluteUrl, websiteJsonLd } from '@/lib/seo';
+import { absoluteUrl, documentTitle, websiteJsonLd } from '@/lib/seo';
 import '@/styles/global.css';
 
 interface Props {
@@ -42,7 +42,7 @@ const isPreviewBuild = process.env.PREVIEW_BUILD === 'true';
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} - Runtime Signals</title>
+    <title>{documentTitle(title)}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {(noindex || isPreviewBuild) && <meta name="robots" content="noindex, nofollow" />}

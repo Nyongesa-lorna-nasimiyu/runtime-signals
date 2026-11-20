@@ -1,7 +1,7 @@
 ---
 title: 'Weekly Brief: Stop conditions are part of the agent contract'
 dek: Define when an autonomous loop must pause, fail, or ask for a human decision.
-status: scheduled
+status: draft
 authors: [jordan-avery]
 topics: [execution, reliability, security]
 published_at: 2026-10-30T07:00:00Z

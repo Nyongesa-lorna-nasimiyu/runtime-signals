@@ -6,6 +6,7 @@ import { resolveAuthorNames, resolveTopicNames, resolveSeries } from '@/lib/reso
 import { getEntries } from 'astro:content';
 import { Callout, Figure } from '@/components/mdx';
 import { BUILD_TIME } from '@/lib/build-time';
+import { getRelatedContent } from '@/lib/related';
 
 // This is the actual draft/future/unapproved exclusion boundary: getStaticPaths only
 // ever iterates getRoutableEntries(), so a draft, a not-yet-due scheduled piece, or
@@ -15,11 +16,15 @@ import { BUILD_TIME } from '@/lib/build-time';
 // tests/integration/README.md for why this isn't a vitest integration test).
 export async function getStaticPaths() {
   const articles = await getCollection('articles');
+  const allSeries = await getCollection('series');
   const routable = getRoutableEntries(articles, BUILD_TIME);
-  return routable.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+  return routable.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry, relatedContent: getRelatedContent(entry, articles, allSeries) },
+  }));
 }
 
-const { entry } = Astro.props;
+const { entry, relatedContent } = Astro.props;
 const { Content, headings } = await render(entry);
 const [authorNames, topicNames, series, sourceEntries, artifactEntries] = await Promise.all([
   resolveAuthorNames(entry),
@@ -45,6 +50,7 @@ const artifactTitles = artifactEntries.map((a) => ({
   sourceTitles={sourceTitles}
   artifactTitles={artifactTitles}
   archived={isArchived(entry)}
+  relatedContent={relatedContent}
   bodyHeadings={headings}
 >
   <Content components={{ Callout, Figure }} />

@@ -27,6 +27,15 @@ const mustNotExist = [
     'articles/unapproved-but-scheduled-past-due/index.html',
     'scheduled + past due, but unapproved article',
   ],
+  ['brief/trace-failure-origin/index.html', 'draft brief placeholder'],
+  ['brief/auditability-needs-more-than-traces/index.html', 'draft brief placeholder'],
+  ['brief/evaluation-task-order/index.html', 'draft brief placeholder'],
+  ['brief/lease-fencing-review/index.html', 'draft brief placeholder'],
+  ['brief/provenance-across-delegation/index.html', 'draft brief backlog item'],
+  ['brief/provider-cost-reconciliation/index.html', 'draft brief backlog item'],
+  ['brief/retrieval-poisoning-check/index.html', 'draft brief backlog item'],
+  ['brief/agent-stop-conditions/index.html', 'draft brief backlog item'],
+  ['brief/schema-as-publication-control/index.html', 'draft brief backlog item'],
 ];
 
 let failures = [];
@@ -140,5 +149,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `Draft-leak check passed: ${mustExist.length} expected routes exist, ${mustNotExist.length} excluded fixtures produced no route, and the archived fixture is absent from ${surfacesThatMustExcludeArchived.length} active-listing surfaces.`,
+  `Draft-leak check passed: ${mustExist.length} expected routes exist, ${mustNotExist.length} excluded records produced no route, and the archived fixture is absent from ${surfacesThatMustExcludeArchived.length} active-listing surfaces.`,
 );

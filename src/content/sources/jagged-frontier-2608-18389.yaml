@@ -1,0 +1,8 @@
+title: 'A Jagged Frontier: Evaluating Robustness of Code Agents to Semantics-Preserving Transformations'
+url: https://arxiv.org/abs/2608.18389
+publisher: arXiv
+published_at: 2026-08-18
+accessed_at: 2026-09-04
+source_type: paper
+primary: true
+notes: Evaluates code-agent robustness under semantics-preserving transformations across two scaffolds, four models, SWE-bench Verified, and SWE-bench Pro.

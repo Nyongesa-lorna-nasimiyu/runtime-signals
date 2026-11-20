@@ -1,0 +1,8 @@
+title: 'A²E: An End-to-End Agent Auditing Engine'
+url: https://arxiv.org/abs/2608.07346
+publisher: arXiv
+published_at: 2026-08-10
+accessed_at: 2026-09-04
+source_type: paper
+primary: true
+notes: Introduces an agent task protocol, automatic trace instrumentation, and multidimensional harness evaluation across task types.

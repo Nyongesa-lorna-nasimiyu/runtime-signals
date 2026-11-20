@@ -1,10 +1,10 @@
-// Pure decision logic for the real (CI) approval manifest — separated from the
+// Pure decision logic for the real (CI) approval manifest - separated from the
 // GitHub API I/O in generate-real-approval-manifest.mjs so it's directly unit
 // testable (tests/unit/github-checks.test.ts) without a live repo. This
 // project has no GitHub remote yet (a local-only git repo throughout Phase 1
 // and 2), so these functions are what's actually verified; the workflow
 // wiring around them (.github/workflows/deploy.yml) has correct-by-reading
-// confidence against GitHub's documented REST API, not a real triggered run —
+// confidence against GitHub's documented REST API, not a real triggered run -
 // that verification is itself a launch-blocker item once a GitHub remote and
 // branch protection exist.
 
@@ -12,7 +12,7 @@ export const REQUIRED_CHECK_NAMES = ['publication-gate'];
 
 /**
  * True only if every required check name has a completed, successful run for
- * this commit. Does not special-case "no checks found" as passing — an empty
+ * this commit. Does not special-case "no checks found" as passing - an empty
  * or missing required check is a failure to authorize, not a pass by default.
  */
 export function allRequiredChecksPassed(checkRuns, requiredNames = REQUIRED_CHECK_NAMES) {
@@ -26,7 +26,7 @@ export function allRequiredChecksPassed(checkRuns, requiredNames = REQUIRED_CHEC
 /**
  * True if at least one review on the PR is in the APPROVED state. This does
  * NOT independently verify the approver was a CODEOWNERS-designated reviewer
- * — that enforcement is delegated to GitHub's own "Require review from Code
+ * - that enforcement is delegated to GitHub's own "Require review from Code
  * Owners" branch-protection setting (a required repository configuration,
  * documented in docs/editorial/publication-gates.md), because a merge to a
  * protected `main` could only happen if that setting already enforced it.
@@ -39,7 +39,7 @@ export function hasApprovingReview(reviews) {
 
 /**
  * A pull request is associated with this commit only if GitHub reports one
- * whose merge_commit_sha matches — a commit reachable on main some other way
+ * whose merge_commit_sha matches - a commit reachable on main some other way
  * (a direct push, if branch protection were ever misconfigured to allow it)
  * must not be treated as though it went through review.
  */

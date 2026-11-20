@@ -5,11 +5,11 @@ const distDir = fileURLToPath(new URL('../../dist', import.meta.url));
 
 // `astro preview` cannot be used here: it always self-daemonizes (prints
 // "Preview server running (pid N)" and returns immediately, regardless of
-// flags — verified directly, not assumed), which is incompatible with how
+// flags - verified directly, not assumed), which is incompatible with how
 // Playwright's webServer expects to own a long-running foreground process it
 // spawns and can reliably kill. That mismatch caused two real problems: an
-// intermittent "Process from config.webServer exited early" failure, and —
-// worse — when reuseExistingServer silently found *something* already
+// intermittent "Process from config.webServer exited early" failure, and -
+// worse - when reuseExistingServer silently found *something* already
 // listening on the port (once, an unrelated `astro dev` instance, apparently
 // launched by the editor's Astro extension), it ran the entire a11y suite
 // against a live dev server carrying the Dev Toolbar UI instead of the real
@@ -23,7 +23,7 @@ export default defineConfig({
   webServer: {
     command: `npx serve "${distDir}" -p 4319 -L`,
     url: 'http://localhost:4319',
-    // Never reuse whatever happens to already be listening on this port —
+    // Never reuse whatever happens to already be listening on this port -
     // that ambiguity is exactly what caused the corrupted run above.
     reuseExistingServer: false,
     timeout: 30_000,

@@ -1,0 +1,79 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ArticleCard from '@/components/ArticleCard.astro';
+import Pagination from '@/components/Pagination.astro';
+import { getCollection } from 'astro:content';
+import { getPublishedEntries } from '@/lib/publication';
+import { resolveTopicNames, weakestEvidence, evidenceCounts, articlePath } from '@/lib/resolve';
+import { BUILD_TIME } from '@/lib/build-time';
+
+interface Props {
+  entries: CollectionEntry<'articles'>[];
+  currentPage: number;
+  totalPages: number;
+}
+
+export async function getStaticPaths() {
+  const PAGE_SIZE = 10;
+  const articles = await getCollection('articles');
+  const live = getPublishedEntries(articles, BUILD_TIME);
+  const totalPages = Math.ceil(live.length / PAGE_SIZE);
+
+  return Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => {
+    const currentPage = index + 2;
+    return {
+      params: { page: String(currentPage) },
+      props: {
+        entries: live.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+        currentPage,
+        totalPages,
+      },
+    };
+  });
+}
+
+const { entries, currentPage, totalPages } = Astro.props;
+const cards = await Promise.all(
+  entries.map(async (entry) => ({
+    id: entry.id,
+    path: articlePath(entry),
+    title: entry.data.title,
+    dek: entry.data.dek,
+    publishedAt: entry.data.published_at,
+    topics: await resolveTopicNames(entry),
+    dominantEvidence: weakestEvidence(entry),
+    evidence: evidenceCounts([entry]),
+  })),
+);
+---
+
+<BaseLayout
+  title={`Articles — Page ${currentPage}`}
+  description={`All published Runtime Signals articles, filterable by topic and evidence strength. Page ${currentPage}`}
+  canonicalPath={`/articles/page/${currentPage}`}
+>
+  <section class="listing">
+    <header class="listing__header">
+      <p class="eyebrow">Archive</p>
+      <h1>Articles</h1>
+    </header>
+    <div class="listing__list">
+      {cards.map((card) => <ArticleCard {...card} headingLevel={2} />)}
+    </div>
+    <Pagination basePath="/articles" currentPage={currentPage} totalPages={totalPages} />
+  </section>
+</BaseLayout>
+
+<style>
+  .listing {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) var(--space-9);
+  }
+  .listing__header h1 {
+    font-family: var(--font-body);
+    font-size: var(--text-2xl);
+    margin: var(--space-2) 0 var(--space-6);
+  }
+</style>

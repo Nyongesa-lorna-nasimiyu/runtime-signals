@@ -3,10 +3,15 @@
   register, not the warm-cream/serif, near-black/neon, or broadsheet defaults.
   Two aesthetic choices carry the identity:
 
-  1. A monospace face as the DISPLAY voice (headlines, eyebrows, nav) rather than
-     reserving it for code - apt for a publication literally named for signals
-     and telemetry, read by engineers who live in monospace. Body copy stays a
-     system serif for sustained long-form reading and zero font-loading cost.
+  1. A monospace face as the SYSTEM voice rather than reserving it for code:
+     eyebrows, nav, masthead, observability-style IDs, and the h1 on the two
+     surfaces where the site itself is speaking (home and the 404). Content
+     headlines - article titles, listing/search/source h1s, prose h1s - stay
+     the serif body face: an article title is writing to be read, while a
+     brand mark or an error page is instrumentation. Apt for a publication
+     literally named for signals and telemetry, read by engineers who live
+     in monospace. Body copy stays a system serif for sustained long-form
+     reading and zero font-loading cost.
   2. --signal is verdigris/oscilloscope-phosphor teal, not the generic "AI blue"
      link color most sites reach for - it's the one hue that recurs everywhere
      evidence is live or current (dates, counts, the Evidence Strip's strongest

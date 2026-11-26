@@ -58,8 +58,13 @@ const sources = (await getCollection('sources')).sort((a, b) =>
     color: inherit;
     flex-wrap: wrap;
   }
-  .source-list__item:is(:hover, :focus-visible) {
+  .source-list__item:focus-visible {
     color: var(--signal);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .source-list__item:hover {
+      color: var(--signal);
+    }
   }
   .source-list__type {
     font-family: var(--font-display);
@@ -78,7 +83,9 @@ const sources = (await getCollection('sources')).sort((a, b) =>
 
   @media (prefers-reduced-motion: no-preference) {
     .source-list__item {
-      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+      transition:
+        color var(--motion-duration-fast) var(--motion-ease-out),
+        transform var(--motion-duration-fast) var(--motion-ease-out);
     }
   }
 

@@ -63,6 +63,32 @@
     text-decoration-thickness: 1px;
   }
 
+  /* Press feedback on everything the user can activate. The scale is the
+     part a finger feels before the navigation happens - a color-only hover
+     never reaches touch. transform only, so it costs no layout, and 0.97 is
+     inside the 0.95-0.98 band where it reads as "the interface heard me"
+     rather than as the element moving.
+
+     Gated with the rest of this file's motion: a snapping 3% jump is a
+     position animation, which is exactly what prefers-reduced-motion asks
+     us to drop. Components that already declare their own `transition` also
+     list `transform` alongside their colors - Astro's per-component styles are
+     unlayered and would otherwise win on transition-property, leaving those
+     elements snapping instead of easing. */
+  @media (prefers-reduced-motion: no-preference) {
+    a[href],
+    button,
+    summary {
+      transition: transform var(--motion-duration-fast) var(--motion-ease-out);
+    }
+
+    a[href]:active,
+    button:active,
+    summary:active {
+      transform: scale(0.97);
+    }
+  }
+
   /* Visible keyboard focus everywhere - never suppressed. */
   :focus-visible {
     outline: 2px solid var(--focus-ring);

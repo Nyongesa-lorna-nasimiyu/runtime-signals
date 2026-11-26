@@ -94,8 +94,12 @@ const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
     font-size: var(--text-sm);
     text-decoration: none;
   }
-  .pagination__link:hover {
-    background: var(--signal-dim);
+  /* Keyboard focus keeps the global :focus-visible outline; the hover
+     background is only meaningful with a real pointer. */
+  @media (hover: hover) and (pointer: fine) {
+    .pagination__link:hover {
+      background: var(--signal-dim);
+    }
   }
   .pagination__link--current {
     border-color: var(--signal);

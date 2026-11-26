@@ -49,7 +49,13 @@ const Heading = headingLevel === 2 ? 'h2' : 'h3';
       }
       {
         hasEvidence && (
-          <EvidenceStrip counts={evidence!} variant="mini" class="signal-entry__evidence" />
+          /* Same wrapper-owns-the-class rule as .hero__evidence / .article__evidence:
+             a class passed onto EvidenceStrip's root element would be owned by
+             EvidenceStrip.astro, and any .signal-entry__evidence rule written
+             here would silently never match. */
+          <span class="signal-entry__evidence">
+            <EvidenceStrip counts={evidence!} variant="mini" />
+          </span>
         )
       }
       {archived && <span class="signal-entry__archived">archived</span>}
@@ -108,8 +114,14 @@ const Heading = headingLevel === 2 ? 'h2' : 'h3';
     font-size: var(--text-xs);
     vertical-align: 0.1em;
   }
-  .signal-entry:is(:hover, :focus-within) .signal-entry__title {
+  .signal-entry:focus-within .signal-entry__title {
     color: var(--signal);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .signal-entry:hover .signal-entry__title {
+      color: var(--signal);
+    }
   }
   .signal-entry__dek {
     margin: 0;
@@ -121,6 +133,15 @@ const Heading = headingLevel === 2 ? 'h2' : 'h3';
     .signal-entry__title,
     .signal-entry__dek {
       transition: color var(--motion-duration-fast) var(--motion-ease-out);
+    }
+  }
+
+  @media (max-width: 42rem) {
+    /* At three and a half rem the segmented bar's mix stops being legible,
+       and beside a long topic list it pushes the meta row onto a third line.
+       The evidence-grade tag on the same row still carries the claim. */
+    .signal-entry__evidence {
+      display: none;
     }
   }
 </style>

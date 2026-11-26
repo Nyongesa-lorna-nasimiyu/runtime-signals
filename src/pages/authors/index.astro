@@ -54,8 +54,13 @@ const authors = (await getCollection('authors')).sort((a, b) =>
     border-top: 1px solid var(--hairline);
     color: inherit;
   }
-  .author-list__item:is(:hover, :focus-visible) {
+  .author-list__item:focus-visible {
     color: var(--signal);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .author-list__item:hover {
+      color: var(--signal);
+    }
   }
   .author-list__name {
     display: block;
@@ -69,7 +74,9 @@ const authors = (await getCollection('authors')).sort((a, b) =>
 
   @media (prefers-reduced-motion: no-preference) {
     .author-list__item {
-      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+      transition:
+        color var(--motion-duration-fast) var(--motion-ease-out),
+        transform var(--motion-duration-fast) var(--motion-ease-out);
     }
   }
 </style>

@@ -55,6 +55,12 @@ import SearchIsland from '@/components/SearchIsland';
       transition: border-color var(--motion-duration-fast) var(--motion-ease-out);
     }
   }
+  /* This border-color transition had nothing driving it - the only focus
+     affordance was the global outline. Give the input its own focus state
+     so the declared transition actually has a state to run between. */
+  .search-island__input:focus {
+    border-color: var(--signal);
+  }
   .search-island__status {
     font-family: var(--font-display);
     font-size: var(--text-xs);
@@ -73,9 +79,13 @@ import SearchIsland from '@/components/SearchIsland';
     display: inline-flex;
     align-items: center;
   }
-  .search-island__filters summary:hover,
   .search-island__filters summary:focus-visible {
     color: var(--ink);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .search-island__filters summary:hover {
+      color: var(--ink);
+    }
   }
   .search-island__facet {
     border: none;
@@ -111,10 +121,15 @@ import SearchIsland from '@/components/SearchIsland';
     cursor: pointer;
     min-block-size: var(--touch-target-min);
   }
-  .search-island__clear-filters:hover,
   .search-island__clear-filters:focus-visible {
     color: var(--ink);
     border-color: var(--ink-muted);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .search-island__clear-filters:hover {
+      color: var(--ink);
+      border-color: var(--ink-muted);
+    }
   }
   .search-island__results {
     list-style: none;

@@ -102,9 +102,14 @@ const currentPath = Astro.url.pathname;
     touch-action: manipulation;
   }
 
-  .site-nav__link:hover,
   .site-nav__link:focus-visible {
     color: var(--ink);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .site-nav__link:hover {
+      color: var(--ink);
+    }
   }
 
   .site-nav__link[aria-current='page'] {
@@ -117,7 +122,8 @@ const currentPath = Astro.url.pathname;
     .site-nav__link {
       transition:
         color var(--motion-duration-fast) var(--motion-ease-out),
-        border-color var(--motion-duration-fast) var(--motion-ease-out);
+        border-color var(--motion-duration-fast) var(--motion-ease-out),
+        transform var(--motion-duration-fast) var(--motion-ease-out);
     }
   }
 

@@ -37,7 +37,12 @@ const year = new Date().getFullYear();
 <style>
   .site-footer {
     max-width: var(--wide-width);
-    margin: var(--space-9) auto 0;
+    /* Every page already ends with --space-9 of bottom padding. Adding the
+       same value here as margin-top doubled it into 14rem of dead air
+       between the last piece of content and this hairline. The page's own
+       padding is now the single source of that gap - margin-inline stays
+       auto for the wide-width centering. */
+    margin: 0 auto;
     padding: 0 var(--space-5) var(--space-6);
   }
 
@@ -78,9 +83,17 @@ const year = new Date().getFullYear();
     touch-action: manipulation;
   }
 
-  .site-footer__list a:hover,
   .site-footer__list a:focus-visible {
     color: var(--ink);
+  }
+
+  /* Hover is gated on a device that actually has a pointer to hover with -
+     on touch, a tap would otherwise leave the link stuck in its hover color
+     for as long as the reader stays on the page. */
+  @media (hover: hover) and (pointer: fine) {
+    .site-footer__list a:hover {
+      color: var(--ink);
+    }
   }
 
   .site-footer__legal {
@@ -92,7 +105,9 @@ const year = new Date().getFullYear();
 
   @media (prefers-reduced-motion: no-preference) {
     .site-footer__list a {
-      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+      transition:
+        color var(--motion-duration-fast) var(--motion-ease-out),
+        transform var(--motion-duration-fast) var(--motion-ease-out);
     }
   }
 

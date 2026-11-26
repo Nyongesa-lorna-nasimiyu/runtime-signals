@@ -60,8 +60,13 @@ const series = (await getCollection('series')).sort((a, b) =>
     border-top: 1px solid var(--hairline);
     color: inherit;
   }
-  .series-list__item:is(:hover, :focus-visible) {
+  .series-list__item:focus-visible {
     color: var(--signal);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .series-list__item:hover {
+      color: var(--signal);
+    }
   }
   /* Pure texture, not content - low-contrast enough to never compete with
      the row's actual name/description text, which stays in normal flow and
@@ -92,7 +97,9 @@ const series = (await getCollection('series')).sort((a, b) =>
 
   @media (prefers-reduced-motion: no-preference) {
     .series-list__item {
-      transition: color var(--motion-duration-fast) var(--motion-ease-out);
+      transition:
+        color var(--motion-duration-fast) var(--motion-ease-out),
+        transform var(--motion-duration-fast) var(--motion-ease-out);
     }
   }
 </style>

@@ -114,7 +114,7 @@ const jsonLd = [
               <li>
                 <a href={`#${section.id}`} class="article__rail-tick" data-target={section.id}>
                   <span class="article__rail-mark" aria-hidden="true" />
-                  <span class="visually-hidden">{section.label}</span>
+                  <span class="article__rail-label">{section.label}</span>
                 </a>
               </li>
             ))}
@@ -183,11 +183,9 @@ const jsonLd = [
         }
         {
           claims.length > 0 && (
-            <EvidenceStrip
-              counts={entryEvidence}
-              label="Evidence in this piece"
-              class="article__evidence"
-            />
+            <div class="article__evidence">
+              <EvidenceStrip counts={entryEvidence} label="Evidence in this piece" />
+            </div>
           )
         }
       </header>
@@ -452,6 +450,47 @@ const jsonLd = [
     align-items: center;
     min-inline-size: var(--touch-target-min);
     min-block-size: var(--touch-target-min);
+    position: relative;
+  }
+
+  /* The section name was already here as visually-hidden text (and still is
+     the link's accessible name). Revealing it on hover/focus is what turns
+     these dashes into a navigable index instead of margin decoration. Kept
+     laid out with opacity 0 so the reveal can fade; absolutely positioned so
+     it never moves the tick row, and placed in the margin to the right so it
+     doesn't cover the mark. */
+  .article__rail-label {
+    position: absolute;
+    inset-inline-start: calc(100% + var(--space-2));
+    inset-block-start: 50%;
+    translate: 0 -50%;
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    color: var(--ink);
+    background: var(--paper-raised);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 0.15em 0.5em;
+  }
+
+  .article__rail-tick:focus-visible .article__rail-label {
+    opacity: 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .article__rail-tick:hover .article__rail-label {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .article__rail-label {
+      transition: opacity 125ms var(--motion-ease-out);
+    }
   }
 
   .article__rail-mark {
@@ -521,6 +560,11 @@ const jsonLd = [
     color: var(--signal);
   }
 
+  /* Reachable only through the wrapper element in the template above, which
+     this file's <style> does own - a class passed straight onto
+     EvidenceStrip's root is owned by EvidenceStrip.astro instead, so both
+     of these rules silently never matched (the strip ran the full 624px
+     column instead of capping at 24rem). */
   .article__evidence {
     margin-top: var(--space-5);
     max-width: 24rem;

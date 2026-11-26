@@ -41,11 +41,9 @@ const cards = await Promise.all(
       engineering practice that holds under load. No unreviewed AI-generated articles. Every
       consequential claim is sourced or explicitly labeled as inference.
     </p>
-    <EvidenceStrip
-      counts={corpusEvidence}
-      label="Evidence across the corpus"
-      class="hero__evidence"
-    />
+    <div class="hero__evidence">
+      <EvidenceStrip counts={corpusEvidence} label="Evidence across the corpus" />
+    </div>
   </section>
 
   <section class="log">
@@ -71,8 +69,14 @@ const cards = await Promise.all(
 </BaseLayout>
 
 <style>
+  /* Same --content-width as .log below, so the hero and "Recent signals"
+     share one left edge. Centered blocks of different widths sit at
+     different offsets: at 1280px the hero title started 238px to the LEFT
+     of the list header, which reads as two columns that never aligned.
+     Header/footer stay at --wide-width - chrome may be wider than the
+     reading column, but adjacent content must not disagree with itself. */
   .hero {
-    max-width: var(--wide-width);
+    max-width: var(--content-width);
     margin: 0 auto;
     padding: var(--space-8) var(--space-5) var(--space-6);
   }
@@ -93,6 +97,11 @@ const cards = await Promise.all(
     margin: 0;
   }
 
+  /* Wrapper element in the template owns this class. EvidenceStrip's root
+     element belongs to EvidenceStrip.astro, so a class passed straight onto
+     the component as a prop is never seen by this file's scoped <style> -
+     both rules below silently never matched (the strip rendered at the full
+     hero width instead of capping at 30rem, with no top margin). */
   .hero__evidence {
     margin-top: var(--space-7);
     max-width: 30rem;

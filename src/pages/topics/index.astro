@@ -65,9 +65,13 @@ const topics = (await getCollection('topics')).sort((a, b) =>
     padding: var(--space-4);
     color: inherit;
   }
-  .topic-card:hover,
   .topic-card:focus-visible {
     border-color: var(--signal);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .topic-card:hover {
+      border-color: var(--signal);
+    }
   }
   /* Pure texture, not content - low-contrast enough to never compete with
      the card's actual name/description text, which stays in normal flow
@@ -100,7 +104,8 @@ const topics = (await getCollection('topics')).sort((a, b) =>
     .topic-card {
       transition:
         border-color var(--motion-duration-fast) var(--motion-ease-out),
-        background-color var(--motion-duration-fast) var(--motion-ease-out);
+        background-color var(--motion-duration-fast) var(--motion-ease-out),
+        transform var(--motion-duration-fast) var(--motion-ease-out);
     }
   }
 </style>
